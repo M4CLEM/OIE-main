@@ -100,7 +100,7 @@ $result = mysqli_query($connect, $query);
                                             </button>
 
                                             <ul class="dropdown-menu" aria-labelledby="dropdowncourse">
-
+                                                <!--  COURSE DROPDOWN FIX ISSUE     -->
                                                 <?php 
 
                                                     $stmtSec = $connect->prepare("SELECT * FROM course_list WHERE department = ?");
