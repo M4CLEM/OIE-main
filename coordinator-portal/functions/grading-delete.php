@@ -2,19 +2,31 @@
 session_start();
 include_once("../../includes/connection.php");
 
+// Check if the request is an AJAX request
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
 
-    $id = isset($_POST['id']) ? $_POST['id'] : null;
-    $id = mysqli_real_escape_string($connect, $id);
-    $query = "DELETE FROM criteria_list WHERE id='$id'";
+    if (isset($_POST['id']) && !empty($_POST['id'])) {
+        $id = intval($_POST['id']); // Ensure it's an integer
 
-    if (mysqli_query($connect, $query)) {
-        echo 'Record deleted successfully.';
+        // Use a prepared statement to prevent SQL injection
+        $query = "DELETE FROM criteria_list_view WHERE id = ?";
+        $stmt = $connect->prepare($query);
+        $stmt->bind_param("i", $id);
+
+        if ($stmt->execute()) {
+            echo json_encode(['status' => 'success', 'message' => 'Record deleted successfully.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error deleting record: ' . $stmt->error]);
+        }
+
+        $stmt->close();
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Error deleting record: ' . mysqli_error($connect)]);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid ID received.']);
     }
 } else {
-    header("Location:../grading-view.php");
+    // Redirect if accessed directly
+    header("Location: ../grading-view.php");
+    exit();
 }
 
 mysqli_close($connect);

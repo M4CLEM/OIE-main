@@ -1,259 +1,228 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
+
 $program = $_SESSION['program'];
-$result=mysqli_query($connect,"SELECT * FROM criteria_list WHERE program = '$program'");
+
+// Fetch criteria data from criteria_list_view including company and job role
+$result = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE program = '$program'");
+
+$criteriaGrouped = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $criteriaData = json_decode($row['criteria'], true);
+    if (!isset($criteriaGrouped[$row['id']])) {
+        $criteriaGrouped[$row['id']] = [
+            'company' => $row['company'],
+            'jobrole' => $row['jobrole'], // Include job role
+            'criteria' => []
+        ];
+    }
+    foreach ($criteriaData as $criteriaItem) {
+        $criteriaGrouped[$row['id']]['criteria'][] = $criteriaItem;
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <?php include("../elements/meta.php"); ?>
     <title>OJT COORDINATOR PORTAL</title>
     <?php include("embed.php"); ?>
-
+    <style>
+        .card-custom {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .card-custom h5 {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .jobrole {
+            font-size: 14px;
+            font-weight: normal;
+            color: gray;
+        }
+        .criteria-item {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .card-custom .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+    </style>
 </head>
-
 <body id="page-top">
-
-    <!-- Page Wrapper -->
     <div id="wrapper">
-
-        <!--Sidebar Wrapper-->
         <aside id="sidebar" class="expand">
-            <?php include('../elements/cood_sidebar.php')?>
+            <?php include('../elements/cood_sidebar.php') ?>
         </aside>
 
         <div class="main">
-
-            <!-- Topbar -->
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
-
-            <!-- Title -->
-            <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Grading</h4>
-
-                <!-- Topbar Navbar -->
+                <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Grading</h4>
                 <ul class="navbar-nav ml-auto">
-
                     <div class="topbar-divider d-none d-sm-block"></div>
-
-                    <!-- Nav Item - User Information -->
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                <?php (isset($_SESSION['coordinator'])) ?> <?php echo $_SESSION['coordinator']; ?></span>
-                            <img class="img-profile rounded-circle"
-                                src="../img/undraw_profile.svg">
+                                <?php echo $_SESSION['coordinator']; ?>
+                            </span>
+                            <img class="img-profile rounded-circle" src="../img/undraw_profile.svg">
                         </a>
-                        <!-- Dropdown - User Information -->
                         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                             aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Profile
-                            </a>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Settings
-                            </a>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Activity Log
-                            </a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i> Profile</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i> Settings</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i> Activity Log</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="../logout.php" data-toggle="logout" data-target="logout">
-                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Logout
-                            </a>
+                            <a class="dropdown-item" href="../logout.php"><i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i> Logout</a>
                         </div>
                     </li>
-
                 </ul>
-
             </nav>
-            <!-- End of Topbar -->
 
-            <!-- Main Content -->
             <div id="content" class="py-2">
-
-                <!-- Begin Page Content -->
                 <div class="col-lg-13 m-3">
-
                     <div class="card shadow mb-4">
-
                         <div class="card-header py-3">
                             <a class="btn btn-primary btn-sm" href="grading.php" style="font-size: 13px;">+ Add Criteria</a> 
                         </div>
                         <div class="card-body">
-                            <style>
-                                .table td, .table th {
-                                    font-size:  12px;
-                                }
-                            </style>
-                            <div class="table-responsive">
-
-                                <table class="table table-bordered" width="100%" cellspacing="0">
-
-                                    <thead>
-                                        <tr>
-                                            <th width="20%" scope="col">Criteria Title</th>
-                                            <th scope="col">Description</th>
-                                            <th width="15%" scope="col">Percentage</th>
-                                            <th width="22%" scope="col">Action</th>
-
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-
-                                        <?php 
-                                            while($rows=mysqli_fetch_assoc($result))
-                                            {
-                                        ?>
-                                            <tr>
-                                                <td><?php echo $rows['criteria'];?></td>
-                                                <td><?php echo $rows['description'];?></td>
-                                                <td><?php echo $rows['percentage'];?>%</td>
-                                                <td>
-                                                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" 
-                                                    data-target="#editModal"data-id="<?php echo $rows['id'];?>" 
-                                                    data-title="<?php echo $rows['criteria'];?>" 
-                                                    data-description="<?php echo $rows['description'];?>" 
-                                                    data-percentage="<?php echo $rows['percentage'];?>"> 
-                                                    <i class="fa fa-edit fw-fa"></i> Edit</a> 
-                                                    <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $rows['id'];?>">
-                                                        <i class="fa fa-trash fw-fa"></i> Delete
-                                                    </button>
-                                                    
-                                                </td>
-                                            </tr>
-                                        <?php 
-                                            }
-                                        ?> 	
-
-
-                                    </tbody>
-                                </table>
-                            </div>
+                            <?php foreach ($criteriaGrouped as $id => $data) { ?>
+                                <div class="card card-custom">
+                                    <h5><?php echo $data['company']; ?> <span class="jobrole">(<?php echo $data['jobrole']; ?>)</span></h5>
+                                    <?php foreach ($data['criteria'] as $criteriaItem) { ?>
+                                        <p class="criteria-item"><strong><?php echo $criteriaItem['criteria']; ?></strong> - <?php echo $criteriaItem['percentage']; ?>%</p>
+                                        <p class="text-muted"> <?php echo $criteriaItem['description']; ?> </p>
+                                    <?php } ?>
+                                    <div class="actions">
+                                        <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
+                                            data-toggle="modal" 
+                                            data-target="#editModal"
+                                            data-id="<?php echo $id; ?>"
+                                            data-company="<?php echo $data['company']; ?>"> 
+                                            <i class="fa fa-edit fw-fa"></i> Edit
+                                        </a> 
+                                        <button type="button" class="btn btn-danger btn-sm deleteBtn" 
+                                            data-toggle="modal" 
+                                            data-target="#deleteModal" 
+                                            data-id="<?php echo $id; ?>">
+                                            <i class="fa fa-trash fw-fa"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php } ?>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this row?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this row?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-            </div>
-            </div>
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Criteria</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="editId">
+                    <div class="form-group">
+                        <label for="editTitle">Criteria Title:</label>
+                        <input class="form-control" id="editTitle" name="editTitle" type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">Description:</label>
+                        <textarea class="form-control" id="editDescription" name="editDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPercentage">Percentage:</label>
+                        <select class="form-control" id="editPercentage" name="editPercentage">
+                            <?php for ($i = 5; $i <= 100; $i += 5): ?>
+                                <option value="<?php echo $i; ?>"><?php echo $i; ?>%</option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Edit Modal-->
-   <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form action="functions/grading-edit.php?>" method="POST">
+<script>
+$(document).ready(function() {
+    $('.editBtn').click(function() {
+        var id = $(this).data('id');
+        var title = $(this).data('title');
+        var description = $(this).data('description');
+        var percentage = $(this).data('percentage');
 
-                    <div class="modal-body">
-                        <div class="form-group">
-                        <div class="col-md-12 mt-3">
-                            <label for= "editTitle">Criteria Title:</label>  
-                            <input class="form-control input-sm" id="editTitle" name="editTitle" type="text" value="" autocomplete="none">
-                        </div>
-                    </div>
+        $('#editId').val(id);
+        $('#editTitle').val(title);
+        $('#editDescription').val(description);
+        $('#editPercentage').val(percentage);
+        $('#editForm').attr('action', 'functions/grading-edit.php?id=' + id);
+    });
 
-                    <div class="form-group">
-                        <div class="col-md-12">
-                            <label for="editDescription">Description:</label> 
-                            <textarea class="form-control" id="editDescription" name="editDescription"></textarea>
-                        </div>
-                    </div>
+    $('.deleteBtn').click(function() {
+        var id = $(this).data('id');
+        $('#confirmDelete').data('id', id);
+    });
 
-                    <div class="form-group">
-                        <div class="col-md-12">
-                            <label for="editPercentage">Percentage:</label>
-                            <select class="form-control" id="editPercentage" name="editPercentage">
-                                <?php for ($i = 5; $i <= 100; $i += 5): ?>
-                                    <option value="<?php echo $i; ?>"><?php echo $i; ?>%</option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button class="btn btn-primary btn-sm" name="save" type="submit" ><span class="fa fa-save fw-fa"></span> Save</button>
-                        <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-                    </div>
-                    
-                </form>
-            </div>
-        </div>
-    </div>
-
-    
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-            crossorigin="anonymous"></script>
-    <script src="../assets/js/sidebarscript.js"></script>
-
-    <script>
-    $(document).ready(function() {
-        $('.editBtn').click(function() {
-            var id = $(this).data('id');
-            var title = $(this).data('title');
-            var description = $(this).data('description');
-            var percentage = $(this).data('percentage');
-
-            $('#editTitle').val(title);
-            $('#editDescription').val(description);
-            $('#editPercentage').val(percentage);
-            $('form').attr('action', 'functions/grading-edit.php?id=' + id);
-        });
-
-        $('.deleteBtn').click(function() {
-            var id = $(this).data('id');
-            $('#confirmDelete').data('id', id);
-        });
-
-        $('#confirmDelete').click(function() {
-            var id = $(this).data('id');
-            $.ajax({
-                url: 'functions/grading-delete.php',
-                type: 'POST',
-                data: {id: id},
-                success: function(response) {
-                    alert(response);
-                    location.reload();
-                },
-                error: function(xhr, status, error) {
-                    alert('An error occurred: ' + error);
-                }
-            });
+    $('#confirmDelete').click(function() {
+        var id = $(this).data('id');
+        $.ajax({
+            url: 'functions/grading-delete.php',
+            type: 'POST',
+            data: { id: id },
+            success: function(response) {
+                alert(response);
+                location.reload();
+            },
+            error: function(xhr, status, error) {
+                alert('An error occurred: ' + error);
+            }
         });
     });
-    </script>
+});
+</script>
 
 
+        </div>
+    </div>
 </body>
-</html>	
+</html>
