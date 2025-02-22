@@ -9,27 +9,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     $id = $_POST['editId'];
     
-    if (!isset($_POST['criteria'], $_POST['percentage'])) {
+    if (!isset($_POST['criteria'], $_POST['percentage'], $_POST['description'])) {
         die("Error: No data received for update.");
     }
 
     $titles = $_POST['criteria']; 
-    $percentages = $_POST['percentage']; 
+    $percentages = $_POST['percentage'];
+    $description = $_POST['description']; 
 
-    if (empty($titles) || empty($percentages)) {
+    if (empty($titles) || empty($percentages) || empty($description)) {
         die("Error: One or more fields are empty.");
     }
 
     $updatedCriteria = [];
 
     for ($i = 0; $i < count($titles); $i++) {
-        if (empty($titles[$i]) || empty($percentages[$i])) {
+        if (empty($titles[$i]) || empty($percentages[$i]) || empty($description[$i])) {
             die("Error: All fields must be filled.");
         }
 
         $updatedCriteria[] = [
             'criteria' => mysqli_real_escape_string($connect, $titles[$i]),
-            'percentage' => (int) $percentages[$i] // Convert percentage to integer
+            'percentage' => (int) $percentages[$i], // Convert percentage to integer
+            'description' => mysqli_real_escape_string($connect, $description[$i])
         ];
     }
 
@@ -56,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Fetch criteria and safely decode JSON
 echo "<h3>Criteria List</h3>";
-$query = "SELECT criteria FROM criteria_list_view WHERE id = ?";
+$query = "SELECT criteria,description FROM criteria_list_view WHERE id = ?";
 $stmt = mysqli_prepare($connect, $query);
 if ($stmt) {
     mysqli_stmt_bind_param($stmt, "i", $id);
@@ -64,6 +66,7 @@ if ($stmt) {
     $result = mysqli_stmt_get_result($stmt);
     while ($row = mysqli_fetch_assoc($result)) {
         $criteriaJson = $row['criteria'] ?? "";
+        $criteriaJson = $row['description'] ?? "";
         
         // Decode JSON safely
         $criteriaArray = json_decode($criteriaJson, true);
@@ -77,7 +80,9 @@ if ($stmt) {
         foreach ($criteriaArray as $criteriaItem) {
             $title = isset($criteriaItem['criteria']) ? htmlspecialchars($criteriaItem['criteria']) : "No Title";
             $percentage = isset($criteriaItem['percentage']) ? (int) $criteriaItem['percentage'] : 0;
+            $description = isset($criteriaItem['description']) ? htmlspecialchars($criteriaItem['description']) : "No Description";
             echo "<li><strong>$title</strong> - $percentage%</li>";
+            echo "<li>$description</li>";
         }
         echo "</ul>";
     }

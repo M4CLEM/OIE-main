@@ -241,6 +241,15 @@ while ($row = mysqli_fetch_assoc($result)) {
                 criteriaSelectOptions += `<option value="${option.criteria}" ${option.criteria === title ? 'selected' : ''}>${option.criteria}</option>`;
             });
 
+            var descriptionOptions = criteriaPresets.filter(function(item){
+                return item.program === '<?php echo $program ?>';
+            });
+
+            var descriptionSelectOptions = '';
+            descriptionOptions.forEach(function(option){
+                descriptionSelectOptions += `<option value="${option.description}" ${option.description === description? 'selected' : ''}>${option.description}</option>`
+            });
+
             // Create a card for each criterion
             $('#editCriteriaContainer').append(`
                 <div class="card mb-3 criteria-card" data-index="${index}">
@@ -261,7 +270,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                         <div class="form-group">
                             <label><strong>Description</strong></label>
-                            <textarea class="form-control description-textarea" rows="1" disabled>${description}</textarea> <!-- Textarea with auto-resizing -->
+                            <textarea class="form-control description-textarea" name="description[${index}]" rows="1">${description}</textarea> <!-- Textarea with auto-resizing -->
                         </div>
                     </div>
                 </div>
@@ -298,6 +307,16 @@ while ($row = mysqli_fetch_assoc($result)) {
             criteriaSelectOptions += `<option value="${option.criteria}">${option.criteria}</option>`;
         });
 
+        // Filter the description based on the program
+        var descriptionOptions = criteriaPresets.filter(function(item) {
+            return item.program === '<?php echo $program; ?>'; // Match program
+        });
+
+        var descriptionSelectOptions = '';
+        descriptionOptions.forEach(function(option) {
+            descriptionSelectOptions += `<option value="${option.description}">${option.description}</option>`;
+        });
+
         $('#editCriteriaContainer').append(`
             <div class="card mb-3 criteria-card" data-index="${newIndex}">
                 <div class="card-body">
@@ -317,7 +336,9 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                     <div class="form-group">
                         <label><strong>Description</strong></label>
-                        <textarea class="form-control description-textarea" rows="1" readonly></textarea> <!-- Textarea with auto-resizing -->
+                        <textarea class="form-control description-textarea" name="description[${newIndex}]" rows="1">
+                            ${descriptionSelectOptions}
+                        </textarea> <!-- Textarea with auto-resizing -->
                     </div>
                 </div>
             </div>
