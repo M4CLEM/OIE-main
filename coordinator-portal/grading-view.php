@@ -317,7 +317,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                     <div class="form-group">
                         <label><strong>Description</strong></label>
-                        <textarea class="form-control description-textarea" rows="1" disabled></textarea> <!-- Textarea with auto-resizing -->
+                        <textarea class="form-control description-textarea" rows="1" readonly></textarea> <!-- Textarea with auto-resizing -->
                     </div>
                 </div>
             </div>

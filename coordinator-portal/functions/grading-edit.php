@@ -1,48 +1,88 @@
 <?php 
 session_start();
-include_once("../../includes/connection.php");
+include_once("../../includes/connection.php"); // Ensure correct database connection
 
-$id = $_GET['id']; // Make sure this is correctly passed
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!isset($_POST['editId']) || empty($_POST['editId'])) {
+        die("Error: No ID provided.");
+    }
+    
+    $id = $_POST['editId'];
+    
+    if (!isset($_POST['criteria'], $_POST['percentage'])) {
+        die("Error: No data received for update.");
+    }
 
-// Check if the necessary form data is set
-if (isset($_POST['editTitle']) && isset($_POST['editDescription']) && isset($_POST['editPercentage'])) {
-    $titles = $_POST['editTitle']; // Array of titles
-    $descriptions = $_POST['editDescription']; // Array of descriptions
-    $percentages = $_POST['editPercentage']; // Array of percentages
+    $titles = $_POST['criteria']; 
+    $percentages = $_POST['percentage']; 
 
-    // Prepare an array to store the updated criteria
+    if (empty($titles) || empty($percentages)) {
+        die("Error: One or more fields are empty.");
+    }
+
     $updatedCriteria = [];
 
-    // Loop through each set of criteria
     for ($i = 0; $i < count($titles); $i++) {
-        // Make sure the data is not empty
-        if (empty($titles[$i]) || empty($descriptions[$i]) || empty($percentages[$i])) {
-            echo '<script> alert("One or more fields are empty. Please fill out all fields."); </script>';
-            exit; // Stop further execution if there's empty data
+        if (empty($titles[$i]) || empty($percentages[$i])) {
+            die("Error: All fields must be filled.");
         }
 
-        // Create the new criteria structure for each set of data
         $updatedCriteria[] = [
             'criteria' => mysqli_real_escape_string($connect, $titles[$i]),
-            'description' => mysqli_real_escape_string($connect, $descriptions[$i]),
-            'percentage' => mysqli_real_escape_string($connect, $percentages[$i])
+            'percentage' => (int) $percentages[$i] // Convert percentage to integer
         ];
     }
 
-    // Encode the updated criteria array as JSON
     $updatedCriteriaJson = json_encode($updatedCriteria);
 
-    // Update the database with the new JSON data
-    $query = "UPDATE criteria_list SET criteria = '$updatedCriteriaJson' WHERE id = '$id'";
-    $result = mysqli_query($connect, $query);
+    $query = "UPDATE criteria_list_view SET criteria = ? WHERE id = ?";
+    $stmt = mysqli_prepare($connect, $query);
 
-    if ($result) {
-        echo '<script> alert("Data Updated Successfully"); </script>';
-        header("Location:../grading-view.php");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "si", $updatedCriteriaJson, $id);
+        $result = mysqli_stmt_execute($stmt);
+
+        if ($result) {
+            echo '<script> alert("Data Updated Successfully"); window.location.href="../grading-view.php"; </script>';
+        } else {
+            die("Error: Data not updated. " . mysqli_error($connect));
+        }
+
+        mysqli_stmt_close($stmt);
     } else {
-        echo '<script> alert("Data Not Updated"); </script>';
+        die("Error: SQL statement preparation failed. " . mysqli_error($connect));
     }
+}
+
+// Fetch criteria and safely decode JSON
+echo "<h3>Criteria List</h3>";
+$query = "SELECT criteria FROM criteria_list_view WHERE id = ?";
+$stmt = mysqli_prepare($connect, $query);
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    while ($row = mysqli_fetch_assoc($result)) {
+        $criteriaJson = $row['criteria'] ?? "";
+        
+        // Decode JSON safely
+        $criteriaArray = json_decode($criteriaJson, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($criteriaArray)) {
+            echo "<p>Error: Invalid JSON format.</p>";
+            continue;
+        }
+        
+        // Display criteria properly
+        echo "<ul>";
+        foreach ($criteriaArray as $criteriaItem) {
+            $title = isset($criteriaItem['criteria']) ? htmlspecialchars($criteriaItem['criteria']) : "No Title";
+            $percentage = isset($criteriaItem['percentage']) ? (int) $criteriaItem['percentage'] : 0;
+            echo "<li><strong>$title</strong> - $percentage%</li>";
+        }
+        echo "</ul>";
+    }
+    mysqli_stmt_close($stmt);
 } else {
-    echo '<script> alert("No data to update."); </script>';
+    die("Error: SQL query preparation failed. " . mysqli_error($connect));
 }
 ?>
