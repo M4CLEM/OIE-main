@@ -1,15 +1,21 @@
 <?php
+// Start a PHP session to access session variables
 session_start();
+
+// Include the database connection file from the parent directory
 include_once("../includes/connection.php");
 
+// Get the program value stored in the session
 $program = $_SESSION['program'];
 
-// Fetch criteria data from criteria_list_view including company and job role
+// Query the database to get criteria lists for the current program
+// Includes company and job role information from the view
 $result = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE program = '$program'");
 
-// Fetch criteria presets from the database
+// Query preset criteria templates from the database
 $criteriaPresetsQuery = mysqli_query($connect, "SELECT * FROM criteria_presets");
 $criteriaPresets = [];
+// Convert preset results into an array of [criteria, description] pairs
 while ($row = mysqli_fetch_assoc($criteriaPresetsQuery)) {
     $criteriaPresets[] = [
         'criteria' => $row['criteria'],
@@ -17,16 +23,23 @@ while ($row = mysqli_fetch_assoc($criteriaPresetsQuery)) {
     ];
 }
 
+// Initialize an array to group criteria by their ID
 $criteriaGrouped = [];
+// Process each row from the criteria list results
 while ($row = mysqli_fetch_assoc($result)) {
+    // Decode the JSON-formatted criteria string into an array
     $criteriaData = json_decode($row['criteria'], true);
+    
+    // Create a new group entry if it doesn't exist
     if (!isset($criteriaGrouped[$row['id']])) {
         $criteriaGrouped[$row['id']] = [
-            'company' => $row['company'],
-            'jobrole' => $row['jobrole'], // Include job role
-            'criteria' => []
+            'company' => $row['company'],       // Store company name
+            'jobrole' => $row['jobrole'],       // Store job role
+            'criteria' => []                    // Initialize criteria array
         ];
     }
+    
+    // Add each criteria item to the group's criteria array
     foreach ($criteriaData as $criteriaItem) {
         $criteriaGrouped[$row['id']]['criteria'][] = $criteriaItem;
     }
@@ -188,75 +201,79 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 <script>
     $(document).ready(function() {
-    var selectedCards = []; // Keep track of the selected cards for deletion
+    // Track selected cards for deletion
+    var selectedCards = [];
 
-    // Fetch criteria presets dynamically using AJAX for filtering options by program
+    // PHP-generated criteria presets filtered by program
     var criteriaPresets = <?php
+        // Server-side code to fetch criteria presets for current program
         $program = $_SESSION['program'];
         $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE program = '$program'");
         $criteriaData = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $criteriaData[] = $row;
         }
-        echo json_encode($criteriaData);
+        echo json_encode($criteriaData, JSON_PRETTY_PRINT);
     ?>;
 
-    // Prevent card selection when clicking on dropdowns
+    // Prevent card selection when interacting with form controls
     $(document).on('click', '.criteria-card .form-control', function(event) {
-        event.stopPropagation(); // Prevent the click event from propagating
+        event.stopPropagation(); // Stop event bubbling to parent elements
     });
 
+    // Edit button click handler
     $('.editBtn').click(function() {
+        // Get data attributes from clicked button
         var id = $(this).data('id');
         var company = $(this).data('company');
         var card = $(this).closest('.card-custom');
         
-        // Extract all criteria details from the card
+        // Extract existing criteria details
         var criteriaItems = card.find('.criteria-item');
         var descriptionItems = card.find('.text-muted');
         
-        // Clear previous content
+        // Prepare edit container
         $('#editCriteriaContainer').empty();
-        selectedCards = []; // Reset selected cards
-        
+        selectedCards = [];
+
+        // Process each criteria item
         criteriaItems.each(function(index) {
+            // Extract data from DOM elements
             var title = $(this).find('strong').text();
             var percentage = $(this).text().match(/(\d+)%/)[1];
             var description = descriptionItems.eq(index).text().trim();
 
-            // Generate percentage options dynamically
+            // Generate percentage dropdown options
             var percentageOptions = '';
             for (var i = 5; i <= 100; i += 5) {
                 var selected = (i == percentage) ? 'selected' : '';
                 percentageOptions += `<option value="${i}" ${selected}>${i}%</option>`;
             }
 
-            // Filter the criteria based on the program
+            // Filter criteria options by program
             var criteriaOptions = criteriaPresets.filter(function(item) {
-                return item.program === '<?php echo $program; ?>'; // Match program
+                return item.program === '<?php echo $program; ?>';
             });
 
+            // Build criteria dropdown options
             var criteriaSelectOptions = '';
             criteriaOptions.forEach(function(option) {
                 criteriaSelectOptions += `<option value="${option.criteria}" ${option.criteria === title ? 'selected' : ''}>${option.criteria}</option>`;
             });
 
-            var descriptionOptions = criteriaPresets.filter(function(item){
-                return item.program === '<?php echo $program ?>';
-            });
-
+            // Build description dropdown options
             var descriptionSelectOptions = '';
-            descriptionOptions.forEach(function(option){
+            criteriaOptions.forEach(function(option){
                 descriptionSelectOptions += `<option value="${option.description}" ${option.description === description? 'selected' : ''}>${option.description}</option>`
             });
 
-            // Create a card for each criterion
+            // Append new criteria card to container
             $('#editCriteriaContainer').append(`
                 <div class="card mb-3 criteria-card" data-index="${index}">
                     <div class="card-body">
                         <div class="form-group">
                             <label><strong>Criteria Title</strong></label>
-                            <select class="form-control" name="criteria[${index}]">
+                            <select class="form-control criteria-dropdown" name="criteria[${index}]" data-index="${index}">
                                 ${criteriaSelectOptions}
                             </select>
                         </div>
@@ -270,59 +287,52 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                         <div class="form-group">
                             <label><strong>Description</strong></label>
-                            <textarea class="form-control description-textarea" name="description[${index}]" rows="1">${description}</textarea> <!-- Textarea with auto-resizing -->
+                            <textarea class="form-control description-textarea" name="description[${index}]" rows="1">${description}</textarea>
                         </div>
                     </div>
                 </div>
             `);
         });
 
+        // Set form values and action
         $('#editId').val(id);
         $('#editForm').attr('action', 'functions/grading-edit.php?id=' + id);
 
-        // Adjust textarea size based on content
+        // Adjust textarea heights
         $('.description-textarea').each(function() {
-            this.style.height = 'auto'; // Reset height
-            this.style.height = (this.scrollHeight) + 'px'; // Set height to content
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
         });
     });
 
-    // Add a new empty card
+    // Add new criteria card
     $('#addCriteriaBtn').click(function() {
         var newIndex = $('#editCriteriaContainer .criteria-card').length;
-        var percentageOptions = '';
-        
-        // Generate percentage options dynamically for the new card
+
+        // Generate percentage options
+        var percentageOptions = '<option value="" selected disabled>Select percentage</option>';
         for (var i = 5; i <= 100; i += 5) {
             percentageOptions += `<option value="${i}">${i}%</option>`;
         }
 
-        // Filter the criteria based on the program
+        // Filter criteria by program
         var criteriaOptions = criteriaPresets.filter(function(item) {
-            return item.program === '<?php echo $program; ?>'; // Match program
+            return item.program === '<?php echo $program; ?>';
         });
 
-        var criteriaSelectOptions = '';
+        // Build criteria dropdown
+        var criteriaSelectOptions = '<option value="" selected disabled>Select criteria</option>';
         criteriaOptions.forEach(function(option) {
             criteriaSelectOptions += `<option value="${option.criteria}">${option.criteria}</option>`;
         });
 
-        // Filter the description based on the program
-        var descriptionOptions = criteriaPresets.filter(function(item) {
-            return item.program === '<?php echo $program; ?>'; // Match program
-        });
-
-        var descriptionSelectOptions = '';
-        descriptionOptions.forEach(function(option) {
-            descriptionSelectOptions += `<option value="${option.description}">${option.description}</option>`;
-        });
-
+        // Append new empty card
         $('#editCriteriaContainer').append(`
             <div class="card mb-3 criteria-card" data-index="${newIndex}">
                 <div class="card-body">
                     <div class="form-group">
                         <label><strong>Criteria Title</strong></label>
-                        <select class="form-control" name="criteria[${newIndex}]">
+                        <select class="form-control criteria-dropdown" name="criteria[${newIndex}]" data-index="${newIndex}">
                             ${criteriaSelectOptions}
                         </select>
                     </div>
@@ -336,20 +346,19 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                     <div class="form-group">
                         <label><strong>Description</strong></label>
-                        <textarea class="form-control description-textarea" name="description[${newIndex}]" rows="1">
-                            ${descriptionSelectOptions}
-                        </textarea> <!-- Textarea with auto-resizing -->
+                        <textarea class="form-control description-textarea" name="description[${newIndex}]" rows="1"></textarea>
                     </div>
                 </div>
             </div>
         `);
     });
 
-    // Select or unselect a card when clicked
+    // Card selection handler
     $(document).on('click', '.criteria-card', function() {
         var card = $(this);
         var index = card.data('index');
         
+        // Toggle selection
         if (card.hasClass('selected-card')) {
             card.removeClass('selected-card');
             selectedCards = selectedCards.filter(function(i) { return i !== index; });
@@ -358,36 +367,34 @@ while ($row = mysqli_fetch_assoc($result)) {
             selectedCards.push(index);
         }
 
-        // Enable or disable delete button
-        if (selectedCards.length > 0) {
-            $('#deleteCriteriaBtn').prop('disabled', false);
-        } else {
-            $('#deleteCriteriaBtn').prop('disabled', true);
-        }
+        // Update delete button state
+        $('#deleteCriteriaBtn').prop('disabled', selectedCards.length === 0);
     });
 
-    // Delete the selected cards
+    // Delete selected cards
     $('#deleteCriteriaBtn').click(function() {
-        selectedCards.sort(function(a, b) { return b - a }); // Sort in descending order to avoid issues when removing
+        // Sort indices in reverse order to prevent DOM issues
+        selectedCards.sort(function(a, b) { return b - a });
         selectedCards.forEach(function(index) {
             $('#editCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
         });
-        selectedCards = []; // Reset selected cards
-        $('#deleteCriteriaBtn').prop('disabled', true); // Disable delete button again
+        selectedCards = [];
+        $('#deleteCriteriaBtn').prop('disabled', true);
     });
 
-    // Auto-resize textareas on input (optional, if you want dynamic resizing during typing)
+    // Auto-resize textareas
     $(document).on('input', '.description-textarea', function() {
-        this.style.height = 'auto'; // Reset height
-        this.style.height = (this.scrollHeight) + 'px'; // Set height to content
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
     });
 
-
+    // Delete confirmation handler
     $('.deleteBtn').click(function() {
         var id = $(this).data('id');
         $('#confirmDelete').data('id', id);
     });
 
+    // Actual delete operation
     $('#confirmDelete').click(function() {
         var id = $(this).data('id');
         $.ajax({
@@ -403,7 +410,25 @@ while ($row = mysqli_fetch_assoc($result)) {
             }
         });
     });
+
+    // Criteria dropdown change handler
+    $(document).on('change', '.criteria-dropdown', function() {
+        var index = $(this).data('index');
+        var selectedCriteria = $(this).val();
+        
+        // Find matching description
+        var selectedDescription = '';
+        criteriaPresets.forEach(function(option) {
+            if (option.criteria === selectedCriteria) {
+                selectedDescription = option.description;
+            }
+        });
+
+        // Update corresponding description field
+        $('textarea[name="description[' + index + ']"]').val(selectedDescription);
     });
+
+});
 </script>
 
 <style>
