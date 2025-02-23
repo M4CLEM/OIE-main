@@ -372,15 +372,28 @@ while ($row = mysqli_fetch_assoc($result)) {
     });
 
     // Delete selected cards
-    $('#deleteCriteriaBtn').click(function() {
-        // Sort indices in reverse order to prevent DOM issues
-        selectedCards.sort(function(a, b) { return b - a });
-        selectedCards.forEach(function(index) {
-            $('#editCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
-        });
-        selectedCards = [];
-        $('#deleteCriteriaBtn').prop('disabled', true);
+    $(document).on('click', '#deleteCriteriaBtn', function() {
+    if (selectedCards.length === 0) return;
+    
+    selectedCards.sort(function(a, b) { return b - a; });
+    selectedCards.forEach(function(index) {
+        $('#editCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
     });
+    
+    // Renumber remaining criteria-card indices to maintain order
+    $('#editCriteriaContainer .criteria-card').each(function(i) {
+        $(this).attr('data-index', i);
+        $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
+        $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
+        $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
+    });
+    
+    // Ensure form validation is updated properly after deletion
+    $('#editCriteriaContainer input, #editCriteriaContainer select, #editCriteriaContainer textarea').trigger('change');
+    
+    selectedCards = [];
+    $('#deleteCriteriaBtn').prop('disabled', true);
+});
 
     // Auto-resize textareas
     $(document).on('input', '.description-textarea', function() {
