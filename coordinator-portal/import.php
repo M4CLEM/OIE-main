@@ -33,7 +33,6 @@ if (isset($_POST['submit'])) {
         }
 
         $spreadsheet = $reader->load($_FILES['file']['tmp_name']);
-
         $sheetData = $spreadsheet->getActiveSheet()->toArray();
 
         if (empty($sheetData[0]) || !array_filter($sheetData[0])) {
@@ -41,77 +40,70 @@ if (isset($_POST['submit'])) {
             exit;
         }
 
-        for ($i =  6; $i < count($sheetData); $i++) {
-            //SKIP IF EMPTY
+        for ($i = 6; $i < count($sheetData); $i++) {
             if (empty($sheetData[$i]) || !array_filter($sheetData[$i])) {
                 continue;
-            } {
-                $studentid = $sheetData[$i][1];
-                $lastName = $sheetData[$i][2];
-                $firstName = $sheetData[$i][3];
-                $excelCourse = $sheetData[$i][4];
-                $year = $sheetData[$i][5];
-
-
-                $sql = "INSERT INTO student_masterlist(studentID,lastName,firstName,course,year,section) VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section')";
-
-                // Directory where you want to create the folder
-                $directory = "documents/$dept/$course/$SY/$semester/$section/";
-
-                // Combine the directory path and folder name
-                $folderPath = $directory . $course . '_' . $studentid;
-
-                // Check if the folder doesn't already exist
-                if (!is_dir($folderPath)) {
-                    // Create the folder
-                    if (mkdir($folderPath, 0777, true)) {
-                        echo "Folder created successfully.";
-                    } else {
-                        echo "Failed to create the folder.";
-                    }
-                } else {
-                    echo "Folder already exists.";
-                }
-
-
-
-
-                if (mysqli_query($conn, $sql)) {
-
-?>
-
-                    <!DOCTYPE html>
-                    <html lang="en">
-
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-
-                    </head>
-
-                    <body>
-                        <div class="alert alert-success m-4" role="alert">
-                            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
-                            <h4 class="alert-heading">Well done!</h4>
-
-                            <?php echo $lastName . ' ' . $firstName ?>
-                            <p> upload successfully
-                            <p>
-
-
-                        </div>
-
-                    </body>
-
-                    </html>
-
-<?php
-                } else {
-                    echo "Error: " . $sql . "<br>" . mysqli_error($conn);
-                }
             }
+
+            $studentid = $sheetData[$i][1];
+            $lastName = $sheetData[$i][2];
+            $firstName = $sheetData[$i][3];
+            $excelCourse = $sheetData[$i][4];
+            $year = $sheetData[$i][5];
+
+            // Directory where you want to create the folder
+            $directory = "documents/$dept/$course/$SY/$semester/$section/";
+            $folderPath = $directory . $course . '_' . $studentid;
+
+            // Check if studentID already exists
+            $checkQuery = "SELECT studentID FROM student_masterlist WHERE studentID = '$studentid'";
+            $checkResult = mysqli_query($conn, $checkQuery);
+
+            if (mysqli_num_rows($checkResult) == 0) {
+                // Only insert if studentID does not exist
+                $sql = "INSERT INTO student_masterlist(studentID,lastName,firstName,course,year,section,semester) 
+                        VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section', '$semester')";
+
+                if (!mysqli_query($conn, $sql)) {
+                    echo "Error inserting student: " . mysqli_error($conn);
+                }
+            } else {
+                echo "Student ID $studentid already exists. Skipping database insertion.<br>";
+            }
+
+            // Create the folder regardless of whether the student exists in the database
+            if (!is_dir($folderPath)) {
+                if (mkdir($folderPath, 0777, true)) {
+                    echo "Folder created successfully for Student ID: $studentid <br>";
+                } else {
+                    echo "Failed to create folder for Student ID: $studentid <br>";
+                }
+            } else {
+                echo "Folder already exists for Student ID: $studentid <br>";
+            }
+
+            // Display the success message in HTML for each student
+?>
+            <!DOCTYPE html>
+            <html lang="en">
+
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+
+            <body>
+                <div class="alert alert-success m-4" role="alert">
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+                    <h4 class="alert-heading">Well done!</h4>
+                    <p><?php echo $lastName . ' ' . $firstName; ?> uploaded successfully.</p>
+                </div>
+            </body>
+
+            </html>
+<?php
         }
     }
 }
