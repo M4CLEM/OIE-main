@@ -1,8 +1,20 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
-$query="select * from companylist";
-$result=mysqli_query($connect,$query);
+
+// Check if department session is set
+if (!isset($_SESSION['department'])) {
+    die("Error: Department session is not set.");
+}
+
+$department = $_SESSION['department']; // Get the department of the logged-in student
+
+// Query to filter companies based on the department
+$query = "SELECT * FROM companylist WHERE dept = ?";
+$stmt = $connect->prepare($query);
+$stmt->bind_param("s", $department);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +25,6 @@ $result=mysqli_query($connect,$query);
     <?php include("embed.php"); ?>
 
 </head>
-
 
 <body id="page-top">
 
@@ -30,8 +41,8 @@ $result=mysqli_query($connect,$query);
             <!-- Topbar -->
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
 
-            <!-- Title -->
-            <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Companies</h4>
+                <!-- Title -->
+                <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Companies</h4>
 
                 <!-- Topbar Navbar -->
                 <ul class="navbar-nav ml-auto">
@@ -43,7 +54,8 @@ $result=mysqli_query($connect,$query);
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                <?php (isset($_SESSION['student'])) ?> <?php echo $_SESSION['student']; ?></span>
+                                <?php echo $_SESSION['student']; ?>
+                            </span>
                             <img class="img-profile rounded-circle"
                                 src="../img/undraw_profile.svg">
                         </a>
@@ -78,77 +90,71 @@ $result=mysqli_query($connect,$query);
             <!-- Begin Page Content -->
             <div class="col-lg-12 mb-4">
 
-            <!-- Illustrations -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h3 class="m-0 font-weight-bold text-dark mb-2">List of Company</h3> 
-                </div>
-                <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th scope="col">Companyname</th>
-                                <th scope="col">Jobrole</th>
-                                
-                                <th width="11%" align="center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            while($rows=mysqli_fetch_assoc($result))
-                            {
-                        ?>
-                            <tr>
-                                    <td><?php echo $rows['companyName'];?></td>
-                                    <td><?php echo $rows['jobrole'];?></td>
-                                        
-                                    <td> 
-                                    <a title="view" href="company-view.php?id=<?php echo $rows['No']; ?>" class="btn btn-info btn-sm"> View</span> 
-                                
-                                </td>
-                                </tr>
-                            <?php 
-                                }
-                            ?>   
-                                    
-                        </tbody>
-                    </table>
-                </div>
-                    
+                <!-- Illustrations -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h3 class="m-0 font-weight-bold text-dark mb-2">List of Companies</h3> 
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Company Name</th>
+                                        <th scope="col">Job Role</th>
+                                        <th width="11%" align="center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php 
+                                    while ($rows = $result->fetch_assoc()) {
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $rows['companyName']; ?></td>
+                                        <td><?php echo $rows['jobrole']; ?></td>
+                                        <td> 
+                                            <a title="view" href="company-view.php?id=<?php echo $rows['No']; ?>" class="btn btn-info btn-sm"> View</a> 
+                                        </td>
+                                    </tr>
+                                    <?php 
+                                    }
+                                    ?>   
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 
 <!-- End of Content Wrapper -->
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-    
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="../logout.php">Logout</a>
-                </div>
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="../logout.php">Logout</a>
             </div>
         </div>
     </div>
+</div>
 
 </body>
 </html>

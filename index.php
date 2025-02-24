@@ -89,8 +89,30 @@ if (isset($_POST['login'])) {
 			} else if ($role == "Student") {
 
 				$_SESSION['student'] = $uname;
+			
+				// Get the student's program
+				$stmtStudent = $connect->prepare("SELECT program FROM users WHERE username = ?");
+				$stmtStudent->bind_param("s", $uname);
+				$stmtStudent->execute();
+				$studentResult = $stmtStudent->get_result();
+			
+				if ($studentRow = $studentResult->fetch_assoc()) {
+					$_SESSION['course'] = $studentRow['program']; // Store program in session
+			
+					// Get the department based on the course
+					$stmtDept = $connect->prepare("SELECT department FROM course_list WHERE course = ?");
+					$stmtDept->bind_param("s", $_SESSION['course']);
+					$stmtDept->execute();
+					$deptResult = $stmtDept->get_result();
+			
+					if ($deptRow = $deptResult->fetch_assoc()) {
+						$_SESSION['department'] = $deptRow['department']; // Store department in session
+					}
+				}
+			
 				header("Location: student-portal/student.php");
-			} else if ($role == "IndustryPartner") {
+			}
+			 else if ($role == "IndustryPartner") {
 
 				$_SESSION['IndustryPartner'] = $uname;
 				$sql = "SELECT companyCode FROM company_info WHERE trainerEmail = ?";
