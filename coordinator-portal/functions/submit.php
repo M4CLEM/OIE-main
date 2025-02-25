@@ -6,6 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $program = $_SESSION['program'];
     $company = $_POST['companyDropdown']; // Get the selected company
     $jobrole = $_POST['jobrole']; // Get the selected job role
+    $designation = $_POST['designation'];
 
     // Check if required data exists
     if (!isset($_POST['title'], $_POST['percentage'], $_POST['description'], $company, $jobrole)) {
@@ -30,11 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $criteriaJson = json_encode($criteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
     // Insert into criteria_list_view
-    $sql = "INSERT INTO criteria_list_view (program, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')";
+    $sql = "INSERT INTO criteria_list_view (program, criteria, company, jobrole, status, designation) VALUES (?, ?, ?, ?, 'Pending', ?)";
     $stmt = $connect->prepare($sql);
 
     if ($stmt) {
-        $stmt->bind_param("ssss", $program, $criteriaJson, $company, $jobrole);
+        $stmt->bind_param("sssss", $program, $criteriaJson, $company, $jobrole, $designation);
         if ($stmt->execute()) {
             header("Location: ../grading-view.php");
             exit();

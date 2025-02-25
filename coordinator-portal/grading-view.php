@@ -35,6 +35,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         $criteriaGrouped[$row['id']] = [
             'company' => $row['company'],       // Store company name
             'jobrole' => $row['jobrole'],       // Store job role
+            'designation' => $row['designation'],
             'criteria' => []                    // Initialize criteria array
         ];
     }
@@ -119,7 +120,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <div class="card-body">
                             <?php foreach ($criteriaGrouped as $id => $data) { ?>
                                 <div class="card card-custom">
-                                    <h5><?php echo $data['company']; ?> <span class="jobrole">(<?php echo $data['jobrole']; ?>)</span></h5>
+                                    <h5><?php echo $data['company']; ?> <span class="jobrole">(<?php echo $data['jobrole']; ?>) <?php echo $data['designation'];?></span></h5>
                                     <?php foreach ($data['criteria'] as $criteriaItem) { ?>
                                         <p class="criteria-item"><strong><?php echo $criteriaItem['criteria']; ?></strong> - <?php echo $criteriaItem['percentage']; ?>%</p>
                                         <p class="text-muted"> <?php echo $criteriaItem['description']; ?> </p>

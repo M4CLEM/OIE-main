@@ -73,7 +73,7 @@ if (!$companyQuery) {
                 <div class="col-lg-13 m-3">
                     <form id="gradingForm" method="post" action="functions/submit.php">
                         <div class="form-group row">
-                            <div class="col-md-10">
+                            <div class="col-md-6">
                                 <label for="companyDropdown">Company Name</label>
                                 <select class="form-control" id="companyDropdown" name="companyDropdown">
                                     <option value="">Select a Company</option>
@@ -90,9 +90,18 @@ if (!$companyQuery) {
                             <!-- Hidden field to store job role -->
                             <input type="hidden" id="jobroleInput" name="jobrole">
 
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label for="searchCompany">Search</label>
                                 <input type="text" class="form-control" id="searchCompany" placeholder="Search Company">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="designation">Designation</label>
+                                <select class="form-control" id="designation" name="designation">
+                                    <option value="">Select</option>
+                                    <option value="company">Company</option>
+                                    <option value="adviser">Adviser</option>
+                                </select>
                             </div>
                         </div>
                         
