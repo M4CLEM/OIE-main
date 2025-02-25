@@ -103,6 +103,8 @@ if (!$companyQuery) {
             <h5>Company Criteria</h5>
             <div class="card shadow mb-4">
                 <div class="card-body" id="companyCards">
+                <div class="card shadow mb-4">
+                <div class="card-body" id="companyCards">
                     <div class="form-group row">
                         <div class="col-md-8">
                             <label for="companyTitle">Grading Criteria Title</label>
@@ -130,6 +132,8 @@ if (!$companyQuery) {
                         <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
                     </div>     
                 </div> 
+            </div>    
+                </div> 
             </div>
             <!-- Only one Add button, placed outside the scrollable section -->
             <button type="button" class="btn btn-primary" id="addCompanyCriteria">+</button>
@@ -141,6 +145,8 @@ if (!$companyQuery) {
         <div id="adviserCriteria" class="col-md-6">
             <h5>Adviser's Criteria</h5>
             <div class="card shadow mb-4">
+                <div class="card-body" id="adviserCards">
+                <div class="card shadow mb-4">
                 <div class="card-body" id="adviserCards">
                     <div class="form-group row">
                         <div class="col-md-8">
@@ -168,6 +174,8 @@ if (!$companyQuery) {
                         <label for="adviserDescription">Description</label>
                         <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
                     </div>
+                </div>
+            </div>
                 </div>
             </div>
             <!-- Only one Add button, placed outside the scrollable section -->
@@ -210,31 +218,36 @@ if (!$companyQuery) {
         var companyCards = document.getElementById('companyCards');
         var newCompanyCriteria = document.createElement('div');
         newCompanyCriteria.innerHTML = `
-            <div class="form-group row">
-                <div class="col-md-8">
-                    <label for="companyTitle">Grading Criteria Title</label>
-                    <select class="form-control grading-title" name="companyTitle[]" required>
-                        <option value="">Select Criteria</option>
-                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
-                                    data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                <?php echo htmlspecialchars($row['criteria']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="companyPercentage">Percentage</label>
-                    <select class="form-control" name="companyPercentage[]">
-                        <?php for ($i = 5; $i <= 100; $i += 5) {
-                            echo "<option value='$i'>$i%</option>";
-                        } ?>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="companyDescription">Description</label>
-                <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
+        <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
+            <div class="card shadow mb-4">
+                <div class="card-body" id="companyCards">
+                    <div class="form-group row">
+                        <div class="col-md-8">
+                            <label for="companyTitle">Grading Criteria Title</label>
+                            <select class="form-control grading-title" name="companyTitle[]" required>
+                                <option value="">Select Criteria</option>
+                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                        <?php echo htmlspecialchars($row['criteria']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="companyPercentage">Percentage</label>
+                            <select class="form-control" name="companyPercentage[]">
+                                <?php for ($i = 5; $i <= 100; $i += 5) {
+                                    echo "<option value='$i'>$i%</option>";
+                                } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="companyDescription">Description</label>
+                        <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
+                    </div>     
+                </div> 
             </div>
         `;
         companyCards.appendChild(newCompanyCriteria);
@@ -245,31 +258,36 @@ if (!$companyQuery) {
         var adviserCards = document.getElementById('adviserCards');
         var newAdviserCriteria = document.createElement('div');
         newAdviserCriteria.innerHTML = `
-            <div class="form-group row">
-                <div class="col-md-8">
-                    <label for="adviserTitle">Grading Criteria Title</label>
-                    <select class="form-control grading-title" name="adviserTitle[]" required>
-                        <option value="">Select Criteria</option>
-                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
-                                    data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                <?php echo htmlspecialchars($row['criteria']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
+        <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
+            <div class="card shadow mb-4">
+                <div class="card-body" id="adviserCards">
+                    <div class="form-group row">
+                        <div class="col-md-8">
+                            <label for="adviserTitle">Grading Criteria Title</label>
+                            <select class="form-control grading-title" name="adviserTitle[]" required>
+                                <option value="">Select Criteria</option>
+                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                        <?php echo htmlspecialchars($row['criteria']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="adviserPercentage">Percentage</label>
+                            <select class="form-control" name="adviserPercentage[]">
+                                <?php for ($i = 5; $i <= 100; $i += 5) {
+                                    echo "<option value='$i'>$i%</option>";
+                                } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adviserDescription">Description</label>
+                        <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label for="adviserPercentage">Percentage</label>
-                    <select class="form-control" name="adviserPercentage[]">
-                        <?php for ($i = 5; $i <= 100; $i += 5) {
-                            echo "<option value='$i'>$i%</option>";
-                        } ?>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="adviserDescription">Description</label>
-                <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
             </div>
         `;
         adviserCards.appendChild(newAdviserCriteria);
