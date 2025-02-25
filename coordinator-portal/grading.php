@@ -71,76 +71,113 @@ if (!$companyQuery) {
 
             <div id="content" class="py-2">
                 <div class="col-lg-13 m-3">
-                    <form id="gradingForm" method="post" action="functions/submit.php">
-                        <div class="form-group row">
-                            <div class="col-md-6">
-                                <label for="companyDropdown">Company Name</label>
-                                <select class="form-control" id="companyDropdown" name="companyDropdown">
-                                    <option value="">Select a Company</option>
-                                    <?php while ($row = mysqli_fetch_assoc($companyQuery)) { ?>
-                                        <option value="<?php echo htmlspecialchars($row['companyName']); ?>" 
-                                                data-jobrole="<?php echo htmlspecialchars($row['jobrole']); ?>">
-                                            <?php echo htmlspecialchars($row['companyName']); ?> - 
-                                            <?php echo htmlspecialchars($row['jobrole']); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </div>
+                <form id="gradingForm" method="post" action="functions/submit.php">
+    <div class="form-group row">
+        <div class="col-md-6">
+            <label for="companyDropdown">Company Name</label>
+            <select class="form-control" id="companyDropdown" name="companyDropdown">
+                <option value="">Select a Company</option>
+                <?php while ($row = mysqli_fetch_assoc($companyQuery)) { ?>
+                    <option value="<?php echo htmlspecialchars($row['companyName']); ?>" 
+                            data-jobrole="<?php echo htmlspecialchars($row['jobrole']); ?>">
+                        <?php echo htmlspecialchars($row['companyName']); ?> - 
+                        <?php echo htmlspecialchars($row['jobrole']); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
 
-                            <!-- Hidden field to store job role -->
-                            <input type="hidden" id="jobroleInput" name="jobrole">
+        <!-- Hidden field to store job role -->
+        <input type="hidden" id="jobroleInput" name="jobrole">
 
-                            <div class="col-md-4">
-                                <label for="searchCompany">Search</label>
-                                <input type="text" class="form-control" id="searchCompany" placeholder="Search Company">
-                            </div>
-
-                            <div class="col-md-2">
-                                <label for="designation">Designation</label>
-                                <select class="form-control" id="designation" name="designation">
-                                    <option value="">Select</option>
-                                    <option value="company">Company</option>
-                                    <option value="adviser">Adviser</option>
-                                </select>
-                            </div>
+        <div class="col-md-4">
+            <label for="searchCompany">Search</label>
+            <input type="text" class="form-control" id="searchCompany" placeholder="Search Company">
+        </div>
+    </div>
+    
+    <!-- New Row with 2 Grading Criteria sections -->
+    <div id="gradingCriteria" class="form-group row">
+        <!-- Company Criteria Section -->
+        <div id="companyCriteria" class="col-md-6">
+            <h5>Company Criteria</h5>
+            <div class="card shadow mb-4">
+                <div class="card-body" id="companyCards">
+                    <div class="form-group row">
+                        <div class="col-md-8">
+                            <label for="companyTitle">Grading Criteria Title</label>
+                            <select class="form-control grading-title" name="companyTitle[]" required>
+                                <option value="">Select Criteria</option>
+                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                        <?php echo htmlspecialchars($row['criteria']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
                         </div>
-                        
-                        <div id="gradingCriteria">
-                            <div class="card shadow mb-4">
-                                <div class="card-body">
-                                    <div class="form-group row">
-                                        <div class="col-md-8">
-                                            <label for="title">Grading Criteria Title</label>
-                                            <select class="form-control grading-title" name="title[]" required>
-                                                <option value="">Select Criteria</option>
-                                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
-                                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                                        <?php echo htmlspecialchars($row['criteria']); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="percentage">Percentage</label>
-                                            <select class="form-control" name="percentage[]">
-                                                <?php for ($i = 5; $i <= 100; $i += 5) {
-                                                    echo "<option value='$i'>$i%</option>";
-                                                } ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="description">Description</label>
-                                        <textarea class="form-control description" name="description[]" rows="3" required></textarea>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="companyPercentage">Percentage</label>
+                            <select class="form-control" name="companyPercentage[]">
+                                <?php for ($i = 5; $i <= 100; $i += 5) {
+                                    echo "<option value='$i'>$i%</option>";
+                                } ?>
+                            </select>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="companyDescription">Description</label>
+                        <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
+                    </div>     
+                </div> 
+            </div>
+            <!-- Only one Add button, placed outside the scrollable section -->
+            <button type="button" class="btn btn-primary" id="addCompanyCriteria">+</button>
+        </div>
 
-                        <button type="button" class="btn btn-primary" id="addCriteria">+</button>
-                        <button type="submit" class="btn btn-success">Submit</button>
-                    </form>
+        <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
+
+        <!-- Adviser's Criteria Section -->
+        <div id="adviserCriteria" class="col-md-6">
+            <h5>Adviser's Criteria</h5>
+            <div class="card shadow mb-4">
+                <div class="card-body" id="adviserCards">
+                    <div class="form-group row">
+                        <div class="col-md-8">
+                            <label for="adviserTitle">Grading Criteria Title</label>
+                            <select class="form-control grading-title" name="adviserTitle[]" required>
+                                <option value="">Select Criteria</option>
+                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                        <?php echo htmlspecialchars($row['criteria']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="adviserPercentage">Percentage</label>
+                            <select class="form-control" name="adviserPercentage[]">
+                                <?php for ($i = 5; $i <= 100; $i += 5) {
+                                    echo "<option value='$i'>$i%</option>";
+                                } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adviserDescription">Description</label>
+                        <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
+                    </div>
+                </div>
+            </div>
+            <!-- Only one Add button, placed outside the scrollable section -->
+            <button type="button" class="btn btn-primary" id="addAdviserCriteria">+</button>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Submit</button>
+</form>
+
                 </div>
             </div>
         </div>
@@ -167,43 +204,93 @@ if (!$companyQuery) {
             }
         });
         
-        document.getElementById('addCriteria').addEventListener('click', function() {
-            var gradingCriteria = document.getElementById('gradingCriteria');
-            var newCriteria = document.createElement('div');
-            newCriteria.innerHTML = `
-                <div class="card shadow mb-4">
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-8">
-                                <label for="title">Grading Criteria Title</label>
-                                <select class="form-control grading-title" name="title[]" required>
-                                    <option value="">Select Criteria</option>
-                                    <?php mysqli_data_seek($result, 0); while ($row = mysqli_fetch_assoc($result)) { ?>
-                                        <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
-                                                data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                            <?php echo htmlspecialchars($row['criteria']); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="percentage">Percentage</label>
-                                <select class="form-control" name="percentage[]">
-                                    <?php for ($i = 5; $i <= 100; $i += 5) {
-                                        echo "<option value='$i'>$i%</option>";
-                                    } ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea class="form-control description" name="description[]" rows="3" required></textarea>
-                        </div>
-                    </div>
+        document.addEventListener('DOMContentLoaded', function () {
+    // Event listener for adding company criteria
+    document.getElementById('addCompanyCriteria').addEventListener('click', function() {
+        var companyCards = document.getElementById('companyCards');
+        var newCompanyCriteria = document.createElement('div');
+        newCompanyCriteria.innerHTML = `
+            <div class="form-group row">
+                <div class="col-md-8">
+                    <label for="companyTitle">Grading Criteria Title</label>
+                    <select class="form-control grading-title" name="companyTitle[]" required>
+                        <option value="">Select Criteria</option>
+                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                    data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                <?php echo htmlspecialchars($row['criteria']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
                 </div>
-            `;
-            gradingCriteria.appendChild(newCriteria);
-        });
+                <div class="col-md-4">
+                    <label for="companyPercentage">Percentage</label>
+                    <select class="form-control" name="companyPercentage[]">
+                        <?php for ($i = 5; $i <= 100; $i += 5) {
+                            echo "<option value='$i'>$i%</option>";
+                        } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="companyDescription">Description</label>
+                <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
+            </div>
+        `;
+        companyCards.appendChild(newCompanyCriteria);
+    });
+
+    // Event listener for adding adviser criteria
+    document.getElementById('addAdviserCriteria').addEventListener('click', function() {
+        var adviserCards = document.getElementById('adviserCards');
+        var newAdviserCriteria = document.createElement('div');
+        newAdviserCriteria.innerHTML = `
+            <div class="form-group row">
+                <div class="col-md-8">
+                    <label for="adviserTitle">Grading Criteria Title</label>
+                    <select class="form-control grading-title" name="adviserTitle[]" required>
+                        <option value="">Select Criteria</option>
+                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                    data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                <?php echo htmlspecialchars($row['criteria']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="adviserPercentage">Percentage</label>
+                    <select class="form-control" name="adviserPercentage[]">
+                        <?php for ($i = 5; $i <= 100; $i += 5) {
+                            echo "<option value='$i'>$i%</option>";
+                        } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="adviserDescription">Description</label>
+                <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
+            </div>
+        `;
+        adviserCards.appendChild(newAdviserCriteria);
+    });
+
+    // Use event delegation to handle change events on dynamically created select elements
+    document.body.addEventListener('change', function(event) {
+        if (event.target && event.target.classList.contains('grading-title')) {
+            // Get the selected option's description
+            var selectedOption = event.target.options[event.target.selectedIndex];
+            var description = selectedOption.getAttribute("data-description");
+
+            // Find the corresponding description textarea
+            var descriptionTextarea = event.target.closest('div').nextElementSibling.querySelector('.description');
+            if (descriptionTextarea) {
+                descriptionTextarea.value = description;
+            }
+        }
+    });
+});
+
 
         // SEARCH BOX FUNCTIONALITY
         document.addEventListener("DOMContentLoaded", function () {
