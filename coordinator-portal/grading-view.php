@@ -149,61 +149,76 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
                         </div>
                         <iv class="card-body mb-1">
                             <?php foreach ($companyCriteriaGrouped as $id => $companyData) { ?>
-    <div class="card card-custom">
-        <h5><?php echo $companyData['company']; ?> <span class="jobrole">(<?php echo $companyData['jobrole']; ?>)</span></h5>
-        
-        <!--Company Section Criteria -->
-        <div class="card-body mb-2" id="companyCriteria">
-            <label for="companyCriteria">Company Criteria</label>
-            <?php foreach ($companyData['companyCriteria'] as $companyCriteriaItem) { ?>
-                <p class="criteria-item"><strong><?php echo $companyCriteriaItem['companyCriteria']; ?></strong> - <?php echo $companyCriteriaItem['companyPercentage']; ?>%</p>
-                <p class="text-muted"> <?php echo $companyCriteriaItem['companyDescription']; ?> </p>
-            <?php } ?>
-            <div class="actions">
-                <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
-                    data-toggle="modal" 
-                    data-target="#editModal"
-                    data-id="<?php echo $id; ?>"
-                    data-company="<?php echo $companyData['company']; ?>"> 
-                    <i class="fa fa-edit fw-fa"></i> Edit
-                </a> 
-                <button type="button" class="btn btn-danger btn-sm deleteBtn" 
-                    data-toggle="modal" 
-                    data-target="#deleteModal" 
-                    data-id="<?php echo $id; ?>">
-                    <i class="fa fa-trash fw-fa"></i> Delete
-                </button>
+                                <div class="card card-custom">
+    <h5><?php echo $companyData['company']; ?> <span class="jobrole">(<?php echo $companyData['jobrole']; ?>)</span></h5>
+    
+    <div class="row">
+        <!-- Company Card -->
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    <h6>Company Criteria</h6>
+                </div>
+                <div class="card-body" id="companyCriteria">
+                    <?php foreach ($companyData['companyCriteria'] as $companyCriteriaItem) { ?>
+                        <p class="criteria-item"><strong><?php echo $companyCriteriaItem['companyCriteria']; ?></strong> - <?php echo $companyCriteriaItem['companyPercentage']; ?>%</p>
+                        <p class="text-muted"> <?php echo $companyCriteriaItem['companyDescription']; ?> </p>
+                    <?php } ?>
+                </div>
+                <div class="card-footer actions">
+                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
+                        data-toggle="modal" 
+                        data-target="#editModal"
+                        data-id="<?php echo $id; ?>"
+                        data-company="<?php echo $companyData['company']; ?>"> 
+                        <i class="fa fa-edit fw-fa"></i> Edit
+                    </a> 
+                    <button type="button" class="btn btn-danger btn-sm deleteBtn" 
+                        data-toggle="modal" 
+                        data-target="#deleteModal" 
+                        data-id="<?php echo $id; ?>">
+                        <i class="fa fa-trash fw-fa"></i> Delete
+                    </button>
+                </div>
             </div>
         </div>
-        
-        <!--Adviser Section Criteria -->
-        <div class="card-body mb-2" id="adviserCriteria">
-            <label for="adviserCriteria">Adviser Criteria</label>
-            <?php if (isset($adviserCriteriaGrouped[$id]['adviserCriteria']) && !empty($adviserCriteriaGrouped[$id]['adviserCriteria'])) { ?>
-                <?php foreach ($adviserCriteriaGrouped[$id]['adviserCriteria'] as $criteriaItem) { ?>
-                    <p class="criteria-item"><strong><?php echo $criteriaItem['adviserCriteria']; ?></strong> - <?php echo $criteriaItem['adviserPercentage']; ?>%</p>
-                    <p class="text-muted"><?php echo $criteriaItem['adviserDescription']; ?></p>
-                <?php } ?>
-            <?php } else { ?>
-                <p>No adviser criteria found.</p>
-            <?php } ?>
-            <div class="actions">
-                <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
-                    data-toggle="modal" 
-                    data-target="#editModal"
-                    data-id="<?php echo $id; ?>"
-                    data-company="<?php echo $companyData['company']; ?>"> 
-                    <i class="fa fa-edit fw-fa"></i> Edit
-                </a> 
-                <button type="button" class="btn btn-danger btn-sm deleteBtn" 
-                    data-toggle="modal" 
-                    data-target="#deleteModal" 
-                    data-id="<?php echo $id; ?>">
-                    <i class="fa fa-trash fw-fa"></i> Delete
-                </button>
+
+        <!-- Adviser Card -->
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    <h6>Adviser Criteria</h6>
+                </div>
+                <div class="card-body" id="adviserCriteria">
+                    <?php if (isset($adviserCriteriaGrouped[$id]['adviserCriteria']) && !empty($adviserCriteriaGrouped[$id]['adviserCriteria'])) { ?>
+                        <?php foreach ($adviserCriteriaGrouped[$id]['adviserCriteria'] as $criteriaItem) { ?>
+                            <p class="criteria-item"><strong><?php echo $criteriaItem['adviserCriteria']; ?></strong> - <?php echo $criteriaItem['adviserPercentage']; ?>%</p>
+                            <p class="text-muted"><?php echo $criteriaItem['adviserDescription']; ?></p>
+                        <?php } ?>
+                    <?php } else { ?>
+                        <p>No adviser criteria found.</p>
+                    <?php } ?>
+                </div>
+                <div class="card-footer actions">
+                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
+                        data-toggle="modal" 
+                        data-target="#editModal"
+                        data-id="<?php echo $id; ?>"
+                        data-company="<?php echo $companyData['company']; ?>"> 
+                        <i class="fa fa-edit fw-fa"></i> Edit
+                    </a> 
+                    <button type="button" class="btn btn-danger btn-sm deleteBtn" 
+                        data-toggle="modal" 
+                        data-target="#deleteModal" 
+                        data-id="<?php echo $id; ?>">
+                        <i class="fa fa-trash fw-fa"></i> Delete
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+</div>
+
 <?php } ?>
 
                     </div>
