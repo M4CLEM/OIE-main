@@ -105,7 +105,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         }
         .card-custom .actions {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             gap: 5px;
         }
     </style>
@@ -147,79 +147,64 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
                         <div class="card-header py-3">
                             <a class="btn btn-primary btn-sm" href="grading.php" style="font-size: 13px;">+ Add Criteria</a> 
                         </div>
-                        <iv class="card-body mb-1">
+                        <div class="card-body mb-1">
                             <?php foreach ($companyCriteriaGrouped as $id => $companyData) { ?>
-                                <div class="card card-custom">
-    <h5><?php echo $companyData['company']; ?> <span class="jobrole">(<?php echo $companyData['jobrole']; ?>)</span></h5>
+                        <div class="card card-custom">
+                            <h5><?php echo $companyData['company']; ?> <span class="jobrole">(<?php echo $companyData['jobrole']; ?>)</span></h5>
     
-    <div class="row">
-        <!-- Company Card -->
-        <div class="col-md-6">
-            <div class="card mb-2">
-                <div class="card-header">
-                    <h6>Company Criteria</h6>
-                </div>
-                <div class="card-body" id="companyCriteria">
-                    <?php foreach ($companyData['companyCriteria'] as $companyCriteriaItem) { ?>
-                        <p class="criteria-item"><strong><?php echo $companyCriteriaItem['companyCriteria']; ?></strong> - <?php echo $companyCriteriaItem['companyPercentage']; ?>%</p>
-                        <p class="text-muted"> <?php echo $companyCriteriaItem['companyDescription']; ?> </p>
-                    <?php } ?>
-                </div>
-                <div class="card-footer actions">
-                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
-                        data-toggle="modal" 
-                        data-target="#editModal"
-                        data-id="<?php echo $id; ?>"
-                        data-company="<?php echo $companyData['company']; ?>"> 
-                        <i class="fa fa-edit fw-fa"></i> Edit
-                    </a> 
-                    <button type="button" class="btn btn-danger btn-sm deleteBtn" 
-                        data-toggle="modal" 
-                        data-target="#deleteModal" 
-                        data-id="<?php echo $id; ?>">
-                        <i class="fa fa-trash fw-fa"></i> Delete
-                    </button>
-                </div>
-            </div>
-        </div>
+                    <div class="row">
+                        <!-- Company Card -->
+                        <div class="col-md-6">
+                            <div class="card mb-2">
+                                <div class="card-header">
+                                    <h6>Company Criteria</h6>
+                                </div>
+                                <div class="card-body" id="companyCriteria">
+                                    <?php foreach ($companyData['companyCriteria'] as $companyCriteriaItem) { ?>
+                                        <p class="criteria-item"><strong><?php echo $companyCriteriaItem['companyCriteria']; ?></strong> - <?php echo $companyCriteriaItem['companyPercentage']; ?>%</p>
+                                        <p class="text-muted"> <?php echo $companyCriteriaItem['companyDescription']; ?> </p>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- Adviser Card -->
-        <div class="col-md-6">
-            <div class="card mb-2">
-                <div class="card-header">
-                    <h6>Adviser Criteria</h6>
-                </div>
-                <div class="card-body" id="adviserCriteria">
-                    <?php if (isset($adviserCriteriaGrouped[$id]['adviserCriteria']) && !empty($adviserCriteriaGrouped[$id]['adviserCriteria'])) { ?>
-                        <?php foreach ($adviserCriteriaGrouped[$id]['adviserCriteria'] as $criteriaItem) { ?>
-                            <p class="criteria-item"><strong><?php echo $criteriaItem['adviserCriteria']; ?></strong> - <?php echo $criteriaItem['adviserPercentage']; ?>%</p>
-                            <p class="text-muted"><?php echo $criteriaItem['adviserDescription']; ?></p>
-                        <?php } ?>
-                    <?php } else { ?>
-                        <p>No adviser criteria found.</p>
-                    <?php } ?>
-                </div>
-                <div class="card-footer actions">
-                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
-                        data-toggle="modal" 
-                        data-target="#editModal"
-                        data-id="<?php echo $id; ?>"
-                        data-company="<?php echo $companyData['company']; ?>"> 
-                        <i class="fa fa-edit fw-fa"></i> Edit
-                    </a> 
-                    <button type="button" class="btn btn-danger btn-sm deleteBtn" 
-                        data-toggle="modal" 
-                        data-target="#deleteModal" 
-                        data-id="<?php echo $id; ?>">
-                        <i class="fa fa-trash fw-fa"></i> Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                        <!-- Adviser Card -->
+                        <div class="col-md-6">
+                            <div class="card mb-2">
+                                <div class="card-header">
+                                    <h6>Adviser Criteria</h6>
+                                </div>
+                                <div class="card-body" id="adviserCriteria">
+                                    <?php if (isset($adviserCriteriaGrouped[$id]['adviserCriteria']) && !empty($adviserCriteriaGrouped[$id]['adviserCriteria'])) { ?>
+                                        <?php foreach ($adviserCriteriaGrouped[$id]['adviserCriteria'] as $criteriaItem) { ?>
+                                            <p class="criteria-item"><strong><?php echo $criteriaItem['adviserCriteria']; ?></strong> - <?php echo $criteriaItem['adviserPercentage']; ?>%</p>
+                                            <p class="text-muted"><?php echo $criteriaItem['adviserDescription']; ?></p>
+                                        <?php } ?>
+                                    <?php } else { ?>
+                                        <p>No adviser criteria found.</p>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                <div class = "card-footer actions">
+                                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
+                                        data-toggle="modal" 
+                                        data-target="#editModal"
+                                        data-id="<?php echo $id; ?>"
+                                        data-company="<?php echo $companyData['company']; ?>"> 
+                                        <i class="fa fa-edit fw-fa"></i> Edit
+                                    </a> 
+                                    <button type="button" class="btn btn-danger btn-sm deleteBtn" 
+                                        data-toggle="modal" 
+                                        data-target="#deleteModal" 
+                                        data-id="<?php echo $id; ?>">
+                                        <i class="fa fa-trash fw-fa"></i> Delete
+                                    </button>
+                                </div>
+                        </div>
 
-<?php } ?>
+                            <?php } ?>
 
                     </div>
                 </div>
@@ -249,25 +234,33 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document"> <!-- Larger modal -->
         <div class="modal-content">
             <form id="editForm" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Criteria</h5>
+                    <h5 class="modal-title" id="editModalLabel">Edit Criteria - <span id="companyName"></span> - <span id="jobrole"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" style="max-height: 400px; overflow-y: auto;"> <!-- Scrollable modal body -->
+                <div class="modal-body" style="max-height: 500px; overflow-y: auto;"> <!-- Scrollable -->
                     <input type="hidden" id="editId" name="editId">
                     
-                    <div id="editCriteriaContainer">
-                        <!-- Criteria details will be dynamically inserted here -->
+                    <div class="row"> <!-- Two columns -->
+                        <div class="col-md-6">
+                            <h6>Company Criteria</h6>
+                            <div id="companyCriteriaContainer"></div>
+                            <button type="button" class="btn btn-sm btn-primary mt-2" id="addCompanyCriteriaBtn">Add Criteria</button>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Adviser Criteria</h6>
+                            <div id="adviserCriteriaContainer"></div>
+                            <button type="button" class="btn btn-sm btn-primary mt-2" id="addAdviserCriteriaBtn">Add Criteria</button>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="addCriteriaBtn">Add Criteria</button>
-                    <button type="button" class="btn btn-danger" id="deleteCriteriaBtn" disabled>Delete Selected</button> <!-- Disable initially -->
+                    <button type="button" class="btn btn-danger" id="deleteCriteriaBtn" disabled>Delete Selected</button>
                     <button class="btn btn-primary" type="submit">Save</button>
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
                 </div>
@@ -275,6 +268,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         </div>
     </div>
 </div>
+
 
 
 
@@ -306,22 +300,31 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         // Get data attributes from clicked button
         var id = $(this).data('id');
         var company = $(this).data('company');
+        var jobrole = $(this).data('jobrole'); // Adding job role
         var card = $(this).closest('.card-custom');
         
-        // Extract existing criteria details
-        var criteriaItems = card.find('.criteria-item');
-        var descriptionItems = card.find('.text-muted');
+        // Extract existing criteria details for Company
+        var companyCriteriaItems = card.find('#companyCriteria .criteria-item');
+        var companyDescriptionItems = card.find('#companyCriteria .text-muted');
         
-        // Prepare edit container
-        $('#editCriteriaContainer').empty();
+        // Extract existing criteria details for Adviser
+        var adviserCriteriaItems = card.find('#adviserCriteria .criteria-item');
+        var adviserDescriptionItems = card.find('#adviserCriteria .text-muted');
+        
+        // Prepare edit containers
+        $('#companyCriteriaContainer').empty();
+        $('#adviserCriteriaContainer').empty();
         selectedCards = [];
 
-        // Process each criteria item
-        criteriaItems.each(function(index) {
-            // Extract data from DOM elements
+        // Set company and job role in the modal
+        $('#companyName').text(company);
+        $('#jobrole').text(jobrole);
+
+        // Process company criteria items
+        companyCriteriaItems.each(function(index) {
             var title = $(this).find('strong').text();
             var percentage = $(this).text().match(/(\d+)%/)[1];
-            var description = descriptionItems.eq(index).text().trim();
+            var description = companyDescriptionItems.eq(index).text().trim();
 
             // Generate percentage dropdown options
             var percentageOptions = '';
@@ -344,30 +347,82 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
             // Build description dropdown options
             var descriptionSelectOptions = '';
             criteriaOptions.forEach(function(option){
-                descriptionSelectOptions += `<option value="${option.description}" ${option.description === description? 'selected' : ''}>${option.description}</option>`
+                descriptionSelectOptions += `<option value="${option.description}" ${option.description === description ? 'selected' : ''}>${option.description}</option>`;
             });
 
-            // Append new criteria card to container
-            $('#editCriteriaContainer').append(`
+            // Append company criteria to container
+            $('#companyCriteriaContainer').append(`
                 <div class="card mb-3 criteria-card" data-index="${index}">
                     <div class="card-body">
                         <div class="form-group">
                             <label><strong>Criteria Title</strong></label>
-                            <select class="form-control criteria-dropdown" name="criteria[${index}]" data-index="${index}">
+                            <select class="form-control criteria-dropdown" name="companyCriteria[${index}]" data-index="${index}">
                                 ${criteriaSelectOptions}
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label><strong>Percentage</strong></label>
-                            <select class="form-control" name="percentage[${index}]">
+                            <select class="form-control" name="companyPercentage[${index}]">
                                 ${percentageOptions}
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label><strong>Description</strong></label>
-                            <textarea class="form-control description-textarea" name="description[${index}]" rows="1">${description}</textarea>
+                            <textarea class="form-control description-textarea" name="companyDescription[${index}]" rows="1">${description}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+
+        // Process adviser criteria items (same as company criteria)
+        adviserCriteriaItems.each(function(index) {
+            var title = $(this).find('strong').text();
+            var percentage = $(this).text().match(/(\d+)%/)[1];
+            var description = adviserDescriptionItems.eq(index).text().trim();
+
+            // Generate percentage dropdown options
+            var percentageOptions = '';
+            for (var i = 5; i <= 100; i += 5) {
+                var selected = (i == percentage) ? 'selected' : '';
+                percentageOptions += `<option value="${i}" ${selected}>${i}%</option>`;
+            }
+
+            // Build criteria dropdown options
+            var criteriaSelectOptions = '';
+            criteriaPresets.forEach(function(option) {
+                criteriaSelectOptions += `<option value="${option.criteria}" ${option.criteria === title ? 'selected' : ''}>${option.criteria}</option>`;
+            });
+
+            // Build description dropdown options
+            var descriptionSelectOptions = '';
+            criteriaPresets.forEach(function(option){
+                descriptionSelectOptions += `<option value="${option.description}" ${option.description === description ? 'selected' : ''}>${option.description}</option>`;
+            });
+
+            // Append adviser criteria to container
+            $('#adviserCriteriaContainer').append(`
+                <div class="card mb-3 criteria-card" data-index="${index}">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label><strong>Criteria Title</strong></label>
+                            <select class="form-control criteria-dropdown" name="adviserCriteria[${index}]" data-index="${index}">
+                                ${criteriaSelectOptions}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><strong>Percentage</strong></label>
+                            <select class="form-control" name="adviserPercentage[${index}]">
+                                ${percentageOptions}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><strong>Description</strong></label>
+                            <textarea class="form-control description-textarea" name="adviserDescription[${index}]" rows="1">${description}</textarea>
                         </div>
                     </div>
                 </div>
@@ -384,6 +439,8 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
             this.style.height = (this.scrollHeight) + 'px';
         });
     });
+});
+
 
     // Add new criteria card
     $('#addCriteriaBtn').click(function() {
@@ -520,9 +577,8 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         // Update corresponding description field
         $('textarea[name="description[' + index + ']"]').val(selectedDescription);
     });
-
-});
 </script>
+
 
 <style>
     /* Optional additional styling for modal body */
