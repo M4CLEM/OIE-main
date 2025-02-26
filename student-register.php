@@ -100,7 +100,7 @@ if (isset($_POST['register'])) {
 				</div>
 
 				<div class="input-group mb-3">
-					<input type="email" name="email" class="form-control form-control-lg bg-light fs-6" placeholder="Enter Institutional Email" autocomplete="off" required pattern=".+@plmun\.edu\.ph">
+					<input type="email" name="email" class="form-control form-control-lg bg-light fs-6" placeholder="Enter Institutional Email" autocomplete="off" required pattern=".+@gmail\.com">
 				</div>
 
 				<div class="input-group mb-3">
