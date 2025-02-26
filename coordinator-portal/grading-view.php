@@ -10,7 +10,9 @@ $program = $_SESSION['program'];
 
 // Query the database to get criteria lists for the current program
 // Includes company and job role information from the view
-$result = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE program = '$program'");
+$companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE program = '$program'");
+$adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE program = '$program'");
+
 
 // Query preset criteria templates from the database
 $criteriaPresetsQuery = mysqli_query($connect, "SELECT * FROM criteria_presets");
@@ -24,25 +26,53 @@ while ($row = mysqli_fetch_assoc($criteriaPresetsQuery)) {
 }
 
 // Initialize an array to group criteria by their ID
-$criteriaGrouped = [];
-// Process each row from the criteria list results
-while ($row = mysqli_fetch_assoc($result)) {
+$companyCriteriaGrouped = [];
+// Process each row from the company criteria results
+while ($row = mysqli_fetch_assoc($companyResult)) {
     // Decode the JSON-formatted criteria string into an array
     $criteriaData = json_decode($row['criteria'], true);
     
     // Create a new group entry if it doesn't exist
-    if (!isset($criteriaGrouped[$row['id']])) {
-        $criteriaGrouped[$row['id']] = [
+    if (!isset($companyCriteriaGrouped[$row['id']])) {
+        $companyCriteriaGrouped[$row['id']] = [
             'company' => $row['company'],       // Store company name
             'jobrole' => $row['jobrole'],       // Store job role
-            'designation' => $row['designation'],
-            'criteria' => []                    // Initialize criteria array
+            'companyCriteria' => []             // Initialize company criteria array
         ];
     }
     
-    // Add each criteria item to the group's criteria array
-    foreach ($criteriaData as $criteriaItem) {
-        $criteriaGrouped[$row['id']]['criteria'][] = $criteriaItem;
+    // Add each criteria item to the group's company criteria array
+    foreach ($criteriaData as $companyCriteriaItem) {
+        $companyCriteriaGrouped[$row['id']]['companyCriteria'][] = [
+            'companyCriteria' => $companyCriteriaItem['companyCriteria'],
+            'companyPercentage' => $companyCriteriaItem['companyPercentage'],
+            'companyDescription' => $companyCriteriaItem['companyDescription']
+        ];
+    }
+}
+
+$adviserCriteriaGrouped = [];
+
+// Process each row from the adviser criteria results
+while ($row = mysqli_fetch_assoc($adviserResult)) {
+    $criteriaData = json_decode($row['criteria'], true);
+
+    // Create a new group entry if it doesn't exist
+    if (!isset($adviserCriteriaGrouped[$row['id']])) {
+        $adviserCriteriaGrouped[$row['id']] = [
+            'company' => $row['company'],
+            'jobrole' => $row['jobrole'],
+            'adviserCriteria' => []             // Initialize adviser criteria array
+        ];
+    }
+
+    // Add each criteria item to the adviser's criteria array
+    foreach ($criteriaData as $adviserCriteriaItem) {
+        $adviserCriteriaGrouped[$row['id']]['adviserCriteria'][] = [
+            'adviserCriteria' => $adviserCriteriaItem['adviserCriteria'],
+            'adviserPercentage' => $adviserCriteriaItem['adviserPercentage'],
+            'adviserDescription' => $adviserCriteriaItem['adviserDescription']
+        ];
     }
 }
 ?>
@@ -117,35 +147,69 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <div class="card-header py-3">
                             <a class="btn btn-primary btn-sm" href="grading.php" style="font-size: 13px;">+ Add Criteria</a> 
                         </div>
-                        <div class="card-body">
-                            <?php foreach ($criteriaGrouped as $id => $data) { ?>
-                                <div class="card card-custom">
-                                    <h5><?php echo $data['company']; ?> <span class="jobrole">(<?php echo $data['jobrole']; ?>) <?php echo $data['designation'];?></span></h5>
-                                    <?php foreach ($data['criteria'] as $criteriaItem) { ?>
-                                        <p class="criteria-item"><strong><?php echo $criteriaItem['criteria']; ?></strong> - <?php echo $criteriaItem['percentage']; ?>%</p>
-                                        <p class="text-muted"> <?php echo $criteriaItem['description']; ?> </p>
-                                    <?php } ?>
-                                    <div class="actions">
-                                        <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
-                                            data-toggle="modal" 
-                                            data-target="#editModal"
-                                            data-id="<?php echo $id; ?>"
-                                            data-company="<?php echo $data['company']; ?>"> 
-                                            <i class="fa fa-edit fw-fa"></i> Edit
-                                        </a> 
-                                        <button type="button" class="btn btn-danger btn-sm deleteBtn" 
-                                            data-toggle="modal" 
-                                            data-target="#deleteModal" 
-                                            data-id="<?php echo $id; ?>">
-                                            <i class="fa fa-trash fw-fa"></i> Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            <?php } ?>
-                        </div>
+                        <iv class="card-body mb-1">
+                            <?php foreach ($companyCriteriaGrouped as $id => $companyData) { ?>
+    <div class="card card-custom">
+        <h5><?php echo $companyData['company']; ?> <span class="jobrole">(<?php echo $companyData['jobrole']; ?>)</span></h5>
+        
+        <!--Company Section Criteria -->
+        <div class="card-body mb-2" id="companyCriteria">
+            <label for="companyCriteria">Company Criteria</label>
+            <?php foreach ($companyData['companyCriteria'] as $companyCriteriaItem) { ?>
+                <p class="criteria-item"><strong><?php echo $companyCriteriaItem['companyCriteria']; ?></strong> - <?php echo $companyCriteriaItem['companyPercentage']; ?>%</p>
+                <p class="text-muted"> <?php echo $companyCriteriaItem['companyDescription']; ?> </p>
+            <?php } ?>
+            <div class="actions">
+                <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
+                    data-toggle="modal" 
+                    data-target="#editModal"
+                    data-id="<?php echo $id; ?>"
+                    data-company="<?php echo $companyData['company']; ?>"> 
+                    <i class="fa fa-edit fw-fa"></i> Edit
+                </a> 
+                <button type="button" class="btn btn-danger btn-sm deleteBtn" 
+                    data-toggle="modal" 
+                    data-target="#deleteModal" 
+                    data-id="<?php echo $id; ?>">
+                    <i class="fa fa-trash fw-fa"></i> Delete
+                </button>
+            </div>
+        </div>
+        
+        <!--Adviser Section Criteria -->
+        <div class="card-body mb-2" id="adviserCriteria">
+            <label for="adviserCriteria">Adviser Criteria</label>
+            <?php if (isset($adviserCriteriaGrouped[$id]['adviserCriteria']) && !empty($adviserCriteriaGrouped[$id]['adviserCriteria'])) { ?>
+                <?php foreach ($adviserCriteriaGrouped[$id]['adviserCriteria'] as $criteriaItem) { ?>
+                    <p class="criteria-item"><strong><?php echo $criteriaItem['adviserCriteria']; ?></strong> - <?php echo $criteriaItem['adviserPercentage']; ?>%</p>
+                    <p class="text-muted"><?php echo $criteriaItem['adviserDescription']; ?></p>
+                <?php } ?>
+            <?php } else { ?>
+                <p>No adviser criteria found.</p>
+            <?php } ?>
+            <div class="actions">
+                <a href="modal.php" class="btn btn-primary btn-sm editBtn" 
+                    data-toggle="modal" 
+                    data-target="#editModal"
+                    data-id="<?php echo $id; ?>"
+                    data-company="<?php echo $companyData['company']; ?>"> 
+                    <i class="fa fa-edit fw-fa"></i> Edit
+                </a> 
+                <button type="button" class="btn btn-danger btn-sm deleteBtn" 
+                    data-toggle="modal" 
+                    data-target="#deleteModal" 
+                    data-id="<?php echo $id; ?>">
+                    <i class="fa fa-trash fw-fa"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
