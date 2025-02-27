@@ -614,21 +614,58 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     });
 
     // Criteria dropdown change handler
-    $(document).on('change', '.criteria-dropdown', function() {
-        var index = $(this).data('index');
-        var selectedCriteria = $(this).val();
+    $(document).ready(function() {
+    var selectedCards = [];
 
-        // Find matching description
-        var selectedDescription = '';
-        criteriaPresets.forEach(function(option) {
-            if (option.criteria === selectedCriteria) {
-                selectedDescription = option.description;
+    var criteriaPresets = <?php
+        // Server-side code to fetch criteria presets for current program
+        $program = $_SESSION['program'];
+        $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE program = '$program'");
+        $criteriaData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $criteriaData[] = $row;
+        }
+        echo json_encode($criteriaData, JSON_PRETTY_PRINT);
+    ?>;
+
+    function updateDescription(container) {
+        $(document).on('change', `${container} .criteria-dropdown`, function() {
+            var index = $(this).data('index');
+            var selectedCriteria = $(this).val();
+
+            console.log(`Dropdown changed in ${container}:`, selectedCriteria); // Debugging
+
+            // Ensure criteriaPresets is defined
+            if (typeof criteriaPresets === 'undefined' || !Array.isArray(criteriaPresets)) {
+                console.error("criteriaPresets is undefined or not an array.");
+                return;
+            }
+
+            // Find matching description
+            var selectedDescription = '';
+            criteriaPresets.forEach(function(option) {
+                if (option.criteria === selectedCriteria) {
+                    selectedDescription = option.description;
+                }
+            });
+
+            console.log(`Updating description for index ${index}:`, selectedDescription); // Debugging
+
+            // Update corresponding description field
+            var descriptionField = $(`${container} .criteria-card[data-index="${index}"] .description-textarea`);
+            if (descriptionField.length > 0) {
+                descriptionField.val(selectedDescription);
+            } else {
+                console.error(`Description field not found for index ${index} in ${container}`);
             }
         });
+    }
 
-        // Update corresponding description field
-        $('textarea[name="description[' + index + ']"]').val(selectedDescription);
-    });
+    // Apply update function to both company and adviser criteria
+    updateDescription('#companyCriteriaContainer');
+    updateDescription('#adviserCriteriaContainer');
+});
+
 });
 
 </script>
