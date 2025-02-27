@@ -439,12 +439,10 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
             this.style.height = (this.scrollHeight) + 'px';
         });
     });
-});
 
-
-    // Add new criteria card
-    $('#addCriteriaBtn').click(function() {
-        var newIndex = $('#editCriteriaContainer .criteria-card').length;
+    // Add new company criteria card
+    $('#addCompanyCriteriaBtn').click(function() {
+        var newIndex = $('#companyCriteriaContainer .criteria-card').length;
 
         // Generate percentage options
         var percentageOptions = '<option value="" selected disabled>Select percentage</option>';
@@ -464,41 +462,93 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         });
 
         // Append new empty card
-        $('#editCriteriaContainer').append(`
+        $('#companyCriteriaContainer').append(`
             <div class="card mb-3 criteria-card" data-index="${newIndex}">
                 <div class="card-body">
                     <div class="form-group">
                         <label><strong>Criteria Title</strong></label>
-                        <select class="form-control criteria-dropdown" name="criteria[${newIndex}]" data-index="${newIndex}">
+                        <select class="form-control criteria-dropdown" name="companyCriteria[${newIndex}]" data-index="${newIndex}">
                             ${criteriaSelectOptions}
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label><strong>Percentage</strong></label>
-                        <select class="form-control" name="percentage[${newIndex}]">
+                        <select class="form-control" name="companyPercentage[${newIndex}]">
                             ${percentageOptions}
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label><strong>Description</strong></label>
-                        <textarea class="form-control description-textarea" name="description[${newIndex}]" rows="1"></textarea>
+                        <textarea class="form-control description-textarea" name="companyDescription[${newIndex}]" rows="1"></textarea>
                     </div>
                 </div>
             </div>
         `);
     });
 
-    // Card selection handler
+    // Add new adviser criteria card
+    $('#addAdviserCriteriaBtn').click(function() {
+        var newIndex = $('#adviserCriteriaContainer .criteria-card').length;
+
+        // Generate percentage options
+        var percentageOptions = '<option value="" selected disabled>Select percentage</option>';
+        for (var i = 5; i <= 100; i += 5) {
+            percentageOptions += `<option value="${i}">${i}%</option>`;
+        }
+
+        // Filter criteria by program
+        var criteriaOptions = criteriaPresets.filter(function(item) {
+            return item.program === '<?php echo $program; ?>';
+        });
+
+        // Build criteria dropdown
+        var criteriaSelectOptions = '<option value="" selected disabled>Select criteria</option>';
+        criteriaOptions.forEach(function(option) {
+            criteriaSelectOptions += `<option value="${option.criteria}">${option.criteria}</option>`;
+        });
+
+        // Append new empty card
+        $('#adviserCriteriaContainer').append(`
+            <div class="card mb-3 criteria-card" data-index="${newIndex}">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label><strong>Criteria Title</strong></label>
+                        <select class="form-control criteria-dropdown" name="adviserCriteria[${newIndex}]" data-index="${newIndex}">
+                            ${criteriaSelectOptions}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><strong>Percentage</strong></label>
+                        <select class="form-control" name="adviserPercentage[${newIndex}]">
+                            ${percentageOptions}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><strong>Description</strong></label>
+                        <textarea class="form-control description-textarea" name="adviserDescription[${newIndex}]" rows="1"></textarea>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+});
+
+    $(document).ready(function() {
+    var selectedCards = [];
+
+    // Card selection handler (applies to both company and adviser criteria)
     $(document).on('click', '.criteria-card', function() {
         var card = $(this);
         var index = card.data('index');
-        
+
         // Toggle selection
         if (card.hasClass('selected-card')) {
             card.removeClass('selected-card');
-            selectedCards = selectedCards.filter(function(i) { return i !== index; });
+            selectedCards = selectedCards.filter(i => i !== index);
         } else {
             card.addClass('selected-card');
             selectedCards.push(index);
@@ -508,29 +558,31 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         $('#deleteCriteriaBtn').prop('disabled', selectedCards.length === 0);
     });
 
-    // Delete selected cards
+    // Delete selected cards (for both containers)
     $(document).on('click', '#deleteCriteriaBtn', function() {
-    if (selectedCards.length === 0) return;
-    
-    selectedCards.sort(function(a, b) { return b - a; });
-    selectedCards.forEach(function(index) {
-        $('#editCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
+        if (selectedCards.length === 0) return;
+
+        selectedCards.sort((a, b) => b - a);
+        selectedCards.forEach(function(index) {
+            $('.criteria-card[data-index="' + index + '"]').remove();
+        });
+
+        // Renumber remaining criteria cards within each container separately
+        ['#companyCriteriaContainer', '#adviserCriteriaContainer'].forEach(container => {
+            $(container + ' .criteria-card').each(function(i) {
+                $(this).attr('data-index', i);
+                $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
+                $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
+                $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
+            });
+        });
+
+        // Ensure form validation is updated properly after deletion
+        $('input, select, textarea').trigger('change');
+
+        selectedCards = [];
+        $('#deleteCriteriaBtn').prop('disabled', true);
     });
-    
-    // Renumber remaining criteria-card indices to maintain order
-    $('#editCriteriaContainer .criteria-card').each(function(i) {
-        $(this).attr('data-index', i);
-        $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
-        $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
-        $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
-    });
-    
-    // Ensure form validation is updated properly after deletion
-    $('#editCriteriaContainer input, #editCriteriaContainer select, #editCriteriaContainer textarea').trigger('change');
-    
-    selectedCards = [];
-    $('#deleteCriteriaBtn').prop('disabled', true);
-});
 
     // Auto-resize textareas
     $(document).on('input', '.description-textarea', function() {
@@ -565,7 +617,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     $(document).on('change', '.criteria-dropdown', function() {
         var index = $(this).data('index');
         var selectedCriteria = $(this).val();
-        
+
         // Find matching description
         var selectedDescription = '';
         criteriaPresets.forEach(function(option) {
@@ -577,6 +629,8 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         // Update corresponding description field
         $('textarea[name="description[' + index + ']"]').val(selectedDescription);
     });
+});
+
 </script>
 
 
