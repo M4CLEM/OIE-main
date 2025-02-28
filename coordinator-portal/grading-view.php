@@ -440,28 +440,37 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         });
     });
 
-    // Add new company criteria card
+    $(document).ready(function() {
+    var selectedCompanyCards = [];
+    var selectedAdviserCards = [];
+
+    function updateIndices(containerSelector, prefix) {
+        $(containerSelector + ' .criteria-card').each(function(i) {
+            $(this).attr('data-index', i);
+            $(this).find('.criteria-dropdown').attr('name', prefix + 'Criteria[' + i + ']');
+            $(this).find('select[name^="' + prefix + 'Percentage"]').attr('name', prefix + 'Percentage[' + i + ']');
+            $(this).find('.description-textarea').attr('name', prefix + 'Description[' + i + ']');
+        });
+    }
+
+    // Add company criteria card
     $('#addCompanyCriteriaBtn').click(function() {
         var newIndex = $('#companyCriteriaContainer .criteria-card').length;
 
-        // Generate percentage options
         var percentageOptions = '<option value="" selected disabled>Select percentage</option>';
         for (var i = 5; i <= 100; i += 5) {
             percentageOptions += `<option value="${i}">${i}%</option>`;
         }
 
-        // Filter criteria by program
         var criteriaOptions = criteriaPresets.filter(function(item) {
             return item.program === '<?php echo $program; ?>';
         });
 
-        // Build criteria dropdown
         var criteriaSelectOptions = '<option value="" selected disabled>Select criteria</option>';
         criteriaOptions.forEach(function(option) {
             criteriaSelectOptions += `<option value="${option.criteria}">${option.criteria}</option>`;
         });
 
-        // Append new empty card
         $('#companyCriteriaContainer').append(`
             <div class="card mb-3 criteria-card" data-index="${newIndex}">
                 <div class="card-body">
@@ -488,28 +497,24 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         `);
     });
 
-    // Add new adviser criteria card
+    // Add adviser criteria card
     $('#addAdviserCriteriaBtn').click(function() {
         var newIndex = $('#adviserCriteriaContainer .criteria-card').length;
 
-        // Generate percentage options
         var percentageOptions = '<option value="" selected disabled>Select percentage</option>';
         for (var i = 5; i <= 100; i += 5) {
             percentageOptions += `<option value="${i}">${i}%</option>`;
         }
 
-        // Filter criteria by program
         var criteriaOptions = criteriaPresets.filter(function(item) {
             return item.program === '<?php echo $program; ?>';
         });
 
-        // Build criteria dropdown
         var criteriaSelectOptions = '<option value="" selected disabled>Select criteria</option>';
         criteriaOptions.forEach(function(option) {
             criteriaSelectOptions += `<option value="${option.criteria}">${option.criteria}</option>`;
         });
 
-        // Append new empty card
         $('#adviserCriteriaContainer').append(`
             <div class="card mb-3 criteria-card" data-index="${newIndex}">
                 <div class="card-body">
@@ -535,18 +540,12 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
             </div>
         `);
     });
-});
 
-$(document).ready(function() {
-    var selectedCompanyCards = [];
-    var selectedAdviserCards = [];
-
-    // Card selection handler for company criteria
+    // Select company criteria card
     $(document).on('click', '#companyCriteriaContainer .criteria-card', function() {
         var card = $(this);
         var index = card.data('index');
 
-        // Toggle selection for company criteria
         if (card.hasClass('selected-card')) {
             card.removeClass('selected-card');
             selectedCompanyCards = selectedCompanyCards.filter(i => i !== index);
@@ -555,16 +554,14 @@ $(document).ready(function() {
             selectedCompanyCards.push(index);
         }
 
-        // Update delete button state
         $('#deleteCriteriaBtn').prop('disabled', selectedCompanyCards.length === 0 && selectedAdviserCards.length === 0);
     });
 
-    // Card selection handler for adviser criteria
+    // Select adviser criteria card
     $(document).on('click', '#adviserCriteriaContainer .criteria-card', function() {
         var card = $(this);
         var index = card.data('index');
 
-        // Toggle selection for adviser criteria
         if (card.hasClass('selected-card')) {
             card.removeClass('selected-card');
             selectedAdviserCards = selectedAdviserCards.filter(i => i !== index);
@@ -573,11 +570,10 @@ $(document).ready(function() {
             selectedAdviserCards.push(index);
         }
 
-        // Update delete button state
         $('#deleteCriteriaBtn').prop('disabled', selectedCompanyCards.length === 0 && selectedAdviserCards.length === 0);
     });
 
-    // Delete selected criteria cards from both containers
+    // Delete selected criteria cards
     $(document).on('click', '#deleteCriteriaBtn', function() {
         if (selectedCompanyCards.length === 0 && selectedAdviserCards.length === 0) return;
 
@@ -588,14 +584,7 @@ $(document).ready(function() {
                 $('#companyCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
             });
 
-            // Renumber remaining company criteria cards
-            $('#companyCriteriaContainer .criteria-card').each(function(i) {
-                $(this).attr('data-index', i);
-                $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
-                $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
-                $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
-            });
-
+            updateIndices('#companyCriteriaContainer', 'company');
             selectedCompanyCards = [];
         }
 
@@ -606,23 +595,15 @@ $(document).ready(function() {
                 $('#adviserCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
             });
 
-            // Renumber remaining adviser criteria cards
-            $('#adviserCriteriaContainer .criteria-card').each(function(i) {
-                $(this).attr('data-index', i);
-                $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
-                $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
-                $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
-            });
-
+            updateIndices('#adviserCriteriaContainer', 'adviser');
             selectedAdviserCards = [];
         }
 
-        // Ensure form validation is updated properly after deletion
         $('input, select, textarea').trigger('change');
-
-        // Disable delete button after deletion
         $('#deleteCriteriaBtn').prop('disabled', true);
     });
+});
+
 });
 
     // Auto-resize textareas
