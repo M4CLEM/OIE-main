@@ -537,52 +537,93 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     });
 });
 
-    $(document).ready(function() {
-    var selectedCards = [];
+$(document).ready(function() {
+    var selectedCompanyCards = [];
+    var selectedAdviserCards = [];
 
-    // Card selection handler (applies to both company and adviser criteria)
-    $(document).on('click', '.criteria-card', function() {
+    // Card selection handler for company criteria
+    $(document).on('click', '#companyCriteriaContainer .criteria-card', function() {
         var card = $(this);
         var index = card.data('index');
 
-        // Toggle selection
+        // Toggle selection for company criteria
         if (card.hasClass('selected-card')) {
             card.removeClass('selected-card');
-            selectedCards = selectedCards.filter(i => i !== index);
+            selectedCompanyCards = selectedCompanyCards.filter(i => i !== index);
         } else {
             card.addClass('selected-card');
-            selectedCards.push(index);
+            selectedCompanyCards.push(index);
         }
 
         // Update delete button state
-        $('#deleteCriteriaBtn').prop('disabled', selectedCards.length === 0);
+        $('#deleteCriteriaBtn').prop('disabled', selectedCompanyCards.length === 0 && selectedAdviserCards.length === 0);
     });
 
-    // Delete selected cards (for both containers)
+    // Card selection handler for adviser criteria
+    $(document).on('click', '#adviserCriteriaContainer .criteria-card', function() {
+        var card = $(this);
+        var index = card.data('index');
+
+        // Toggle selection for adviser criteria
+        if (card.hasClass('selected-card')) {
+            card.removeClass('selected-card');
+            selectedAdviserCards = selectedAdviserCards.filter(i => i !== index);
+        } else {
+            card.addClass('selected-card');
+            selectedAdviserCards.push(index);
+        }
+
+        // Update delete button state
+        $('#deleteCriteriaBtn').prop('disabled', selectedCompanyCards.length === 0 && selectedAdviserCards.length === 0);
+    });
+
+    // Delete selected criteria cards from both containers
     $(document).on('click', '#deleteCriteriaBtn', function() {
-        if (selectedCards.length === 0) return;
+        if (selectedCompanyCards.length === 0 && selectedAdviserCards.length === 0) return;
 
-        selectedCards.sort((a, b) => b - a);
-        selectedCards.forEach(function(index) {
-            $('.criteria-card[data-index="' + index + '"]').remove();
-        });
+        // Delete company cards
+        if (selectedCompanyCards.length > 0) {
+            selectedCompanyCards.sort((a, b) => b - a);
+            selectedCompanyCards.forEach(function(index) {
+                $('#companyCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
+            });
 
-        // Renumber remaining criteria cards within each container separately
-        ['#companyCriteriaContainer', '#adviserCriteriaContainer'].forEach(container => {
-            $(container + ' .criteria-card').each(function(i) {
+            // Renumber remaining company criteria cards
+            $('#companyCriteriaContainer .criteria-card').each(function(i) {
                 $(this).attr('data-index', i);
                 $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
                 $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
                 $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
             });
-        });
+
+            selectedCompanyCards = [];
+        }
+
+        // Delete adviser cards
+        if (selectedAdviserCards.length > 0) {
+            selectedAdviserCards.sort((a, b) => b - a);
+            selectedAdviserCards.forEach(function(index) {
+                $('#adviserCriteriaContainer .criteria-card[data-index="' + index + '"]').remove();
+            });
+
+            // Renumber remaining adviser criteria cards
+            $('#adviserCriteriaContainer .criteria-card').each(function(i) {
+                $(this).attr('data-index', i);
+                $(this).find('.criteria-dropdown').attr('name', 'criteria[' + i + ']');
+                $(this).find('select[name^="percentage"]').attr('name', 'percentage[' + i + ']');
+                $(this).find('.description-textarea').attr('name', 'description[' + i + ']');
+            });
+
+            selectedAdviserCards = [];
+        }
 
         // Ensure form validation is updated properly after deletion
         $('input, select, textarea').trigger('change');
 
-        selectedCards = [];
+        // Disable delete button after deletion
         $('#deleteCriteriaBtn').prop('disabled', true);
     });
+});
 
     // Auto-resize textareas
     $(document).on('input', '.description-textarea', function() {
@@ -666,7 +707,6 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     updateDescription('#adviserCriteriaContainer');
 });
 
-});
 
 </script>
 
