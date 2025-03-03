@@ -182,7 +182,8 @@ if (!$companyQuery) {
             <button type="button" class="btn btn-primary" id="addAdviserCriteria">+</button>
         </div>
     </div>
-
+    
+    <a class="btn btn btn-secondary" href="criteria-presets.php">View Presets</a>
     <button type="submit" class="btn btn-success">Submit</button>
 </form>
 
