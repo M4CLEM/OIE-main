@@ -90,7 +90,9 @@ $result=mysqli_query($connect,$query);
                             $result = mysqli_query($connect, $query) or die(mysqli_error($connect));
                             while($rows = mysqli_fetch_array($result))
                             {   
-                                $No = $rows['No'];            
+                                $No = $rows['No'];
+                                $companyName = $rows['companyName'];
+                                $jobrole = $rows['jobrole'];            
                                 $companyaddress = $rows['companyaddress'];
                                 $jobdescription = $rows['jobdescription'];
                                 $jobreq = $rows['jobreq'];
@@ -104,23 +106,34 @@ $result=mysqli_query($connect,$query);
                     <div class="col-md-10">                    
                         <input type="hidden" name="No" value="<?php echo $No; ?>">
                             <dl class="row">
-                            <dt class="col-sm-4">companyName : </dt>
-                            <dd class="col-sm-8"><?php echo$companyaddress ?></dd>
-                        </dl>
+                                <dt class="col-sm-4">Company Name: </dt>
+                                <dd class="col-sm-8"><?php echo $companyName ?></dd>
+                            </dl>
+
                             <dl class="row">
-                            <dt class="col-sm-4">Job Description:  </dt>
-                            <dd class="col-sm-8"> <?php echo $jobdescription;?> </dd>
-                        </dl>
+                                <dt class="col-sm-4">Company Address: </dt>
+                                <dd class="col-sm-8"><?php echo$companyaddress ?></dd>
+                            </dl>
+
+                            <dl class="row">
+                                <dt class="col-sm-4">Job Role: </dt>
+                                <dd class="col-sm-8"><?php echo$jobrole ?></dd>
+                            </dl>
+
+                            <dl class="row">
+                                <dt class="col-sm-4">Job Description:  </dt>
+                                <dd class="col-sm-8"> <?php echo $jobdescription;?> </dd>
+                            </dl>
                     
                             <dl class="row">
-                            <dt class="col-sm-4">Requirements/Qualification: </dt>
-                            <dd class="col-sm-8"> <?php echo $jobreq;?> </dd>
-                        </dl>
+                                <dt class="col-sm-4">Requirements/Qualification: </dt>
+                                <dd class="col-sm-8"> <?php echo $jobreq;?> </dd>
+                            </dl>
 
-                        <dl class="row">
-                            <dt class="col-sm-4">Link: </dt>
-                            <dd class="col-sm-8"> <a href="<?php echo $link;?>"><?php echo $link;?></a></dd>
-                        </dl>
+                            <dl class="row">
+                                <dt class="col-sm-4">Link: </dt>
+                                <dd class="col-sm-8"> <a href="<?php echo $link;?>"><?php echo $link;?></a></dd>
+                            </dl>
                     </div>
                 </div>
             </div>
