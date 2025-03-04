@@ -7,25 +7,15 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $program = $_SESSION['program'];
+    $department = $_SESSION['department'];
     $coordinatorRole = $_SESSION['coordinator']; // Get coordinator role
     $company = isset($_POST['companyDropdown']) ? trim($_POST['companyDropdown']) : ''; // Ensure company is not NULL
     $jobrole = isset($_POST['jobrole']) ? trim($_POST['jobrole']) : '';
 
-    // Fetch the department corresponding to the program
-    $departmentQuery = $connect->prepare("SELECT department FROM course_list WHERE course = ?");
-    $departmentQuery->bind_param("s", $program);
-    $departmentQuery->execute();
-    $departmentResult = $departmentQuery->get_result();
-    $departmentRow = $departmentResult->fetch_assoc();
-    $department = $departmentRow['department'] ?? '';
-    $department = $_SESSION['department'];
-    $departmentQuery->close();
-
     // Function to check if criteria already exist
-    function criteriaExists($connect, $table, $program, $department, $companyName, $jobRole) {
-        $query = $connect->prepare("SELECT 1 FROM $table WHERE program = ? AND department = ? AND company = ? AND jobrole = ? LIMIT 1");
-        $query->bind_param("ssss", $program, $department, $companyName, $jobRole);
+    function criteriaExists($connect, $table, $department, $companyName, $jobRole) {
+        $query = $connect->prepare("SELECT 1 FROM $table WHERE department = ? AND company = ? AND jobrole = ? LIMIT 1");
+        $query->bind_param("sss", $department, $companyName, $jobRole);
         $query->execute();
         $query->store_result();
         $exists = $query->num_rows > 0;
@@ -60,23 +50,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $jobRole = trim($row['jobrole']);
 
                 // Skip if criteria already exist
-                if (criteriaExists($connect, "criteria_list_view", $program, $department,$companyName, $jobRole)) {
+                if (criteriaExists($connect, "criteria_list_view", $department,$companyName, $jobRole)) {
                     error_log("Skipping: Criteria already exist for company=$companyName, jobrole=$jobRole");
                     continue;
                 }
 
                 if (!empty($companyName) && !empty($jobRole)) {
-                    $stmt = $connect->prepare("INSERT INTO criteria_list_view (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
-                    $stmt->bind_param("sssss", $program, $department, $companyCriteriaJson, $companyName, $jobRole);
+                    $stmt = $connect->prepare("INSERT INTO criteria_list_view (department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
+                    $stmt->bind_param("ssss", $department, $companyCriteriaJson, $companyName, $jobRole);
                     $stmt->execute();
                     $stmt->close();
                 }
             }
             $companyQuery->close();
         } else { // Insert for selected company and job role
-            if (!criteriaExists($connect, "criteria_list_view", $program, $department, $company, $jobrole)) {
-                $stmt = $connect->prepare("INSERT INTO criteria_list_view (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
-                $stmt->bind_param("sssss", $program, $department, $companyCriteriaJson, $company, $jobrole);
+            if (!criteriaExists($connect, "criteria_list_view", $department, $company, $jobrole)) {
+                $stmt = $connect->prepare("INSERT INTO criteria_list_view (department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
+                $stmt->bind_param("ssss", $department, $companyCriteriaJson, $company, $jobrole);
                 $stmt->execute();
                 $stmt->close();
             } else {
@@ -112,23 +102,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $jobRole = trim($row['jobrole']);
 
                 // Skip if criteria already exist
-                if (criteriaExists($connect, "adviser_criteria", $program, $department,$companyName, $jobRole)) {
+                if (criteriaExists($connect, "adviser_criteria", $department,$companyName, $jobRole)) {
                     error_log("Skipping: Adviser criteria already exist for company=$companyName, jobrole=$jobRole");
                     continue;
                 }
 
                 if (!empty($companyName) && !empty($jobRole)) {
-                    $stmt = $connect->prepare("INSERT INTO adviser_criteria (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
-                    $stmt->bind_param("sssss", $program, $department, $adviserCriteriaJson, $companyName, $jobRole);
+                    $stmt = $connect->prepare("INSERT INTO adviser_criteria (department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
+                    $stmt->bind_param("ssss", $department, $adviserCriteriaJson, $companyName, $jobRole);
                     $stmt->execute();
                     $stmt->close();
                 }
             }
             $companyQuery->close();
         } else { // Insert for selected company and job role
-            if (!criteriaExists($connect, "adviser_criteria", $program, $department,$company, $jobrole)) {
-                $stmt = $connect->prepare("INSERT INTO adviser_criteria (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
-                $stmt->bind_param("sssss", $program, $adviserCriteriaJson, $company, $jobrole);
+            if (!criteriaExists($connect, "adviser_criteria", $department,$company, $jobrole)) {
+                $stmt = $connect->prepare("INSERT INTO adviser_criteria (department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
+                $stmt->bind_param("ssss", $department, $adviserCriteriaJson, $company, $jobrole);
                 $stmt->execute();
                 $stmt->close();
             } else {

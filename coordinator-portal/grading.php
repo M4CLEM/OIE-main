@@ -6,20 +6,8 @@ session_start();
 include_once("../includes/connection.php");
 
 // Retrieve the program from the session
-$program = $_SESSION['program'];
+$department = $_SESSION['department'];
 $coordinatorRole = $_SESSION['coordinator']; // Get coordinator role
-
-// Fetch the department corresponding to the program from the course_list database
-$departmentQuery = mysqli_query($connect, "SELECT department FROM course_list WHERE course = '$program'");
-if (!$departmentQuery) {
-    die("Query Failed: " . mysqli_error($connect));
-}
-
-// Fetch the department from the result
-$departmentRow = mysqli_fetch_assoc($departmentQuery);
-$department = $departmentRow['department']; // Ensure 'department' is a valid field in the table
-
-$_SESSION['department'] = $department;
 
 // Fetch company names and job roles filtered by the department from the companylist database
 $companyQuery = mysqli_query($connect, "SELECT companyName, jobrole FROM companylist WHERE dept = '$department'");

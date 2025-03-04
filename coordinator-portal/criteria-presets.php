@@ -3,7 +3,6 @@ session_start();
 
 include("../includes/connection.php");
 
-$program = $_SESSION['program'];
 $department = $_SESSION['department'];
 $coordinatorRole = $_SESSION['coordinator'];
 

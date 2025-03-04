@@ -5,11 +5,10 @@ session_start();
 // Include the database connection file from the parent directory
 include_once("../includes/connection.php");
 
-// Get the program value stored in the session
-$program = $_SESSION['program'];
+// Get the department value stored in the session
 $department = $_SESSION['department'];
 
-// Query the database to get criteria lists for the current program
+// Query the database to get criteria lists for the current department
 // Includes company and job role information from the view
 $companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE department = '$department'");
 $adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE department = '$department'");
@@ -279,10 +278,9 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     // Track selected cards for deletion
     var selectedCards = [];
 
-    // PHP-generated criteria presets filtered by program
+    // PHP-generated criteria presets filtered by department
     var criteriaPresets = <?php
-        // Server-side code to fetch criteria presets for current program
-        //$program = $_SESSION['program'];
+        // Server-side code to fetch criteria presets for current department
         $department = $_SESSION['department'];
         $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
         $criteriaData = [];
@@ -335,7 +333,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
                 percentageOptions += `<option value="${i}" ${selected}>${i}%</option>`;
             }
 
-            // Filter criteria options by program
+            // Filter criteria options by department
             var criteriaOptions = criteriaPresets.filter(function(item) {
                 return item.department === '<?php echo $department; ?>';
             });
@@ -642,7 +640,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     var selectedCards = [];
 
     var criteriaPresets = <?php
-        // Server-side code to fetch criteria presets for current program
+        // Server-side code to fetch criteria presets for current department
         $department = $_SESSION['department'];
         $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
         $criteriaData = [];

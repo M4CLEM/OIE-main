@@ -36,7 +36,7 @@ if (isset($_POST['login'])) {
 			} else if ($role == "coordinator") {
 
 				$_SESSION['coordinator'] = $uname;
-				$stmt = $connect->prepare("SELECT program FROM users WHERE username = ?");
+				$stmt = $connect->prepare("SELECT department FROM users WHERE username = ?");
 				$stmt->bind_param("s", $uname);
 				$stmt->execute();
 				$result = $stmt->get_result();
@@ -45,11 +45,9 @@ if (isset($_POST['login'])) {
 				if ($result->num_rows > 0) {
 					// Fetch the program value from the result set
 					$row = $result->fetch_assoc();
-					$program = $row['program'];
 					$department = $row['department'];
 
 					// Assign the program value to the session variable
-					$_SESSION['program'] = $program;
 					$_SESSION['department'] = $department;
 				} else {
 					// Handle the case when the query returns no rows
