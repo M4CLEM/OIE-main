@@ -108,6 +108,28 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
             justify-content: flex-start;
             gap: 5px;
         }
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Optional additional styling for textareas */
+        .description-textarea {
+            min-height: 50px;
+            resize: none; /* Disable manual resizing */
+        }
+
+        /* Additional styling for individual criterion cards in the modal */
+        .card {
+            margin-bottom: 15px;
+        }
+
+        /* Styling for selected cards */
+        .criteria-card.selected-card {
+            border: 2px solid #007bff; /* Highlight selected card */
+            background-color: #e9f7fe;
+        }
     </style>
 </head>
 <body id="page-top">
@@ -694,28 +716,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
 
 <style>
     /* Optional additional styling for modal body */
-    .modal-body {
-        padding: 20px;
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    /* Optional additional styling for textareas */
-    .description-textarea {
-        min-height: 50px;
-        resize: none; /* Disable manual resizing */
-    }
-
-    /* Additional styling for individual criterion cards in the modal */
-    .card {
-        margin-bottom: 15px;
-    }
-
-    /* Styling for selected cards */
-    .criteria-card.selected-card {
-        border: 2px solid #007bff; /* Highlight selected card */
-        background-color: #e9f7fe;
-    }
+    
 </style>
         </div>
     </div>
