@@ -8,18 +8,33 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     if (isset($_POST['id']) && !empty($_POST['id'])) {
         $id = intval($_POST['id']); // Ensure it's an integer
 
-        // Use a prepared statement to prevent SQL injection
-        $query = "DELETE FROM criteria_list_view WHERE id = ?";
-        $stmt = $connect->prepare($query);
-        $stmt->bind_param("i", $id);
+        // Start transaction
+        $connect->begin_transaction();
 
-        if ($stmt->execute()) {
+        try {
+            // Delete from adviser_criteria first to maintain referential integrity
+            $query1 = "DELETE FROM adviser_criteria WHERE id = ?";
+            $stmt1 = $connect->prepare($query1);
+            $stmt1->bind_param("i", $id);
+            $stmt1->execute();
+            $stmt1->close();
+
+            // Delete from criteria_list_view
+            $query2 = "DELETE FROM criteria_list_view WHERE id = ?";
+            $stmt2 = $connect->prepare($query2);
+            $stmt2->bind_param("i", $id);
+            $stmt2->execute();
+            $stmt2->close();
+
+            // Commit transaction
+            $connect->commit();
+
             echo json_encode(['status' => 'success', 'message' => 'Record deleted successfully.']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Error deleting record: ' . $stmt->error]);
+        } catch (Exception $e) {
+            // Rollback in case of error
+            $connect->rollback();
+            echo json_encode(['status' => 'error', 'message' => 'Error deleting record: ' . $e->getMessage()]);
         }
-
-        $stmt->close();
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Invalid ID received.']);
     }
