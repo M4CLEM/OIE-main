@@ -7,11 +7,12 @@ include_once("../includes/connection.php");
 
 // Get the program value stored in the session
 $program = $_SESSION['program'];
+$department = $_SESSION['department'];
 
 // Query the database to get criteria lists for the current program
 // Includes company and job role information from the view
-$companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE program = '$program'");
-$adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE program = '$program'");
+$companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE department = '$department'");
+$adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE department = '$department'");
 
 
 // Query preset criteria templates from the database
@@ -281,8 +282,9 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     // PHP-generated criteria presets filtered by program
     var criteriaPresets = <?php
         // Server-side code to fetch criteria presets for current program
-        $program = $_SESSION['program'];
-        $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE program = '$program'");
+        //$program = $_SESSION['program'];
+        $department = $_SESSION['department'];
+        $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
         $criteriaData = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $criteriaData[] = $row;
@@ -335,7 +337,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
 
             // Filter criteria options by program
             var criteriaOptions = criteriaPresets.filter(function(item) {
-                return item.program === '<?php echo $program; ?>';
+                return item.department === '<?php echo $department; ?>';
             });
 
             // Build criteria dropdown options
@@ -463,7 +465,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         }
 
         var criteriaOptions = criteriaPresets.filter(function(item) {
-            return item.program === '<?php echo $program; ?>';
+            return item.department === '<?php echo $department; ?>';
         });
 
         var criteriaSelectOptions = '<option value="" selected disabled>Select criteria</option>';
@@ -507,7 +509,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
         }
 
         var criteriaOptions = criteriaPresets.filter(function(item) {
-            return item.program === '<?php echo $program; ?>';
+            return item.department === '<?php echo $department; ?>';
         });
 
         var criteriaSelectOptions = '<option value="" selected disabled>Select criteria</option>';
@@ -641,8 +643,8 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
 
     var criteriaPresets = <?php
         // Server-side code to fetch criteria presets for current program
-        $program = $_SESSION['program'];
-        $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE program = '$program'");
+        $department = $_SESSION['department'];
+        $result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
         $criteriaData = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $criteriaData[] = $row;

@@ -19,12 +19,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $departmentResult = $departmentQuery->get_result();
     $departmentRow = $departmentResult->fetch_assoc();
     $department = $departmentRow['department'] ?? '';
+    $department = $_SESSION['department'];
     $departmentQuery->close();
 
     // Function to check if criteria already exist
-    function criteriaExists($connect, $table, $program, $companyName, $jobRole) {
-        $query = $connect->prepare("SELECT 1 FROM $table WHERE program = ? AND company = ? AND jobrole = ? LIMIT 1");
-        $query->bind_param("sss", $program, $companyName, $jobRole);
+    function criteriaExists($connect, $table, $program, $department, $companyName, $jobRole) {
+        $query = $connect->prepare("SELECT 1 FROM $table WHERE program = ? AND department = ? AND company = ? AND jobrole = ? LIMIT 1");
+        $query->bind_param("ssss", $program, $department, $companyName, $jobRole);
         $query->execute();
         $query->store_result();
         $exists = $query->num_rows > 0;
@@ -59,23 +60,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $jobRole = trim($row['jobrole']);
 
                 // Skip if criteria already exist
-                if (criteriaExists($connect, "criteria_list_view", $program, $companyName, $jobRole)) {
+                if (criteriaExists($connect, "criteria_list_view", $program, $department,$companyName, $jobRole)) {
                     error_log("Skipping: Criteria already exist for company=$companyName, jobrole=$jobRole");
                     continue;
                 }
 
                 if (!empty($companyName) && !empty($jobRole)) {
-                    $stmt = $connect->prepare("INSERT INTO criteria_list_view (program, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
-                    $stmt->bind_param("ssss", $program, $companyCriteriaJson, $companyName, $jobRole);
+                    $stmt = $connect->prepare("INSERT INTO criteria_list_view (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
+                    $stmt->bind_param("sssss", $program, $department, $companyCriteriaJson, $companyName, $jobRole);
                     $stmt->execute();
                     $stmt->close();
                 }
             }
             $companyQuery->close();
         } else { // Insert for selected company and job role
-            if (!criteriaExists($connect, "criteria_list_view", $program, $company, $jobrole)) {
-                $stmt = $connect->prepare("INSERT INTO criteria_list_view (program, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
-                $stmt->bind_param("ssss", $program, $companyCriteriaJson, $company, $jobrole);
+            if (!criteriaExists($connect, "criteria_list_view", $program, $department, $company, $jobrole)) {
+                $stmt = $connect->prepare("INSERT INTO criteria_list_view (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
+                $stmt->bind_param("sssss", $program, $department, $companyCriteriaJson, $company, $jobrole);
                 $stmt->execute();
                 $stmt->close();
             } else {
@@ -111,23 +112,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $jobRole = trim($row['jobrole']);
 
                 // Skip if criteria already exist
-                if (criteriaExists($connect, "adviser_criteria", $program, $companyName, $jobRole)) {
+                if (criteriaExists($connect, "adviser_criteria", $program, $department,$companyName, $jobRole)) {
                     error_log("Skipping: Adviser criteria already exist for company=$companyName, jobrole=$jobRole");
                     continue;
                 }
 
                 if (!empty($companyName) && !empty($jobRole)) {
-                    $stmt = $connect->prepare("INSERT INTO adviser_criteria (program, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
-                    $stmt->bind_param("ssss", $program, $adviserCriteriaJson, $companyName, $jobRole);
+                    $stmt = $connect->prepare("INSERT INTO adviser_criteria (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
+                    $stmt->bind_param("sssss", $program, $department, $adviserCriteriaJson, $companyName, $jobRole);
                     $stmt->execute();
                     $stmt->close();
                 }
             }
             $companyQuery->close();
         } else { // Insert for selected company and job role
-            if (!criteriaExists($connect, "adviser_criteria", $program, $company, $jobrole)) {
-                $stmt = $connect->prepare("INSERT INTO adviser_criteria (program, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, 'Pending')");
-                $stmt->bind_param("ssss", $program, $adviserCriteriaJson, $company, $jobrole);
+            if (!criteriaExists($connect, "adviser_criteria", $program, $department,$company, $jobrole)) {
+                $stmt = $connect->prepare("INSERT INTO adviser_criteria (program, department, criteria, company, jobrole, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
+                $stmt->bind_param("sssss", $program, $adviserCriteriaJson, $company, $jobrole);
                 $stmt->execute();
                 $stmt->close();
             } else {

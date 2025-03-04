@@ -46,9 +46,11 @@ if (isset($_POST['login'])) {
 					// Fetch the program value from the result set
 					$row = $result->fetch_assoc();
 					$program = $row['program'];
+					$department = $row['department'];
 
 					// Assign the program value to the session variable
 					$_SESSION['program'] = $program;
+					$_SESSION['department'] = $department;
 				} else {
 					// Handle the case when the query returns no rows
 					echo "No program found for the user.";

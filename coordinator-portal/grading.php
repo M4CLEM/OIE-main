@@ -9,12 +9,6 @@ include_once("../includes/connection.php");
 $program = $_SESSION['program'];
 $coordinatorRole = $_SESSION['coordinator']; // Get coordinator role
 
-// Fetch criteria list based on the program
-$result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE program = '$program'");
-if (!$result) {
-    die("Query Failed: " . mysqli_error($connect));
-}
-
 // Fetch the department corresponding to the program from the course_list database
 $departmentQuery = mysqli_query($connect, "SELECT department FROM course_list WHERE course = '$program'");
 if (!$departmentQuery) {
@@ -25,9 +19,17 @@ if (!$departmentQuery) {
 $departmentRow = mysqli_fetch_assoc($departmentQuery);
 $department = $departmentRow['department']; // Ensure 'department' is a valid field in the table
 
+$_SESSION['department'] = $department;
+
 // Fetch company names and job roles filtered by the department from the companylist database
 $companyQuery = mysqli_query($connect, "SELECT companyName, jobrole FROM companylist WHERE dept = '$department'");
 if (!$companyQuery) {
+    die("Query Failed: " . mysqli_error($connect));
+}
+
+// Fetch criteria list based on the program
+$result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
+if (!$result) {
     die("Query Failed: " . mysqli_error($connect));
 }
 ?>

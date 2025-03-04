@@ -4,9 +4,10 @@ session_start();
 include("../includes/connection.php");
 
 $program = $_SESSION['program'];
+$department = $_SESSION['department'];
 $coordinatorRole = $_SESSION['coordinator'];
 
-$result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE program = '$program'");
+$result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
 if (!$result) {
     die("Query Failed: " . mysqli_error($connect));
 }
