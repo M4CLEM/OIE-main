@@ -202,103 +202,122 @@ if (!$result) {
                 }
             }
         });
+
+        // Company Add Function
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listener for adding company criteria
+            document.getElementById('addCompanyCriteria').addEventListener('click', function() {
+                var companyCards = document.getElementById('companyCards');
+                var newCompanyCriteria = document.createElement('div');
+                newCompanyCriteria.innerHTML = `
+                <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
+                    <div class="card shadow mb-4">
+                        <div class="card-body" id="companyCards">
+                            <div class="form-group row">
+                                <div class="col-md-8">
+                                    <label for="companyTitle">Grading Criteria Title</label>
+                                    <select class="form-control grading-title" name="companyTitle[]" required>
+                                        <option value="">Select Criteria</option>
+                                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                                    data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                                <?php echo htmlspecialchars($row['criteria']); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="companyPercentage">Percentage</label>
+                                    <select class="form-control" name="companyPercentage[]">
+                                        <?php for ($i = 5; $i <= 100; $i += 5) {
+                                            echo "<option value='$i'>$i%</option>";
+                                        } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="companyDescription">Description</label>
+                                <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
+                            </div>     
+                        </div> 
+                    </div>
+                `;
+            companyCards.appendChild(newCompanyCriteria);
+            });
+
+            // Use event delegation to handle change events on dynamically created select elements
+            document.body.addEventListener('change', function(event) {
+                if (event.target && event.target.classList.contains('grading-title')) {
+                    // Get the selected option's description
+                    var selectedOption = event.target.options[event.target.selectedIndex];
+                    var description = selectedOption.getAttribute("data-description");
+
+                    // Find the corresponding description textarea
+                    var descriptionTextarea = event.target.closest('div').nextElementSibling.querySelector('.description');
+                    if (descriptionTextarea) {
+                        descriptionTextarea.value = description;
+                    }
+                }
+            });
+        }); 
         
+        // Adviser Add Function
         document.addEventListener('DOMContentLoaded', function () {
-    // Event listener for adding company criteria
-    document.getElementById('addCompanyCriteria').addEventListener('click', function() {
-        var companyCards = document.getElementById('companyCards');
-        var newCompanyCriteria = document.createElement('div');
-        newCompanyCriteria.innerHTML = `
-        <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
-            <div class="card shadow mb-4">
-                <div class="card-body" id="companyCards">
-                    <div class="form-group row">
-                        <div class="col-md-8">
-                            <label for="companyTitle">Grading Criteria Title</label>
-                            <select class="form-control grading-title" name="companyTitle[]" required>
-                                <option value="">Select Criteria</option>
-                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
-                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                        <?php echo htmlspecialchars($row['criteria']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="companyPercentage">Percentage</label>
-                            <select class="form-control" name="companyPercentage[]">
-                                <?php for ($i = 5; $i <= 100; $i += 5) {
-                                    echo "<option value='$i'>$i%</option>";
-                                } ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="companyDescription">Description</label>
-                        <textarea class="form-control description" name="companyDescription[]" rows="3" required></textarea>
-                    </div>     
-                </div> 
-            </div>
-        `;
-        companyCards.appendChild(newCompanyCriteria);
-    });
-
-    // Event listener for adding adviser criteria
-    document.getElementById('addAdviserCriteria').addEventListener('click', function() {
-        var adviserCards = document.getElementById('adviserCards');
-        var newAdviserCriteria = document.createElement('div');
-        newAdviserCriteria.innerHTML = `
-        <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
-            <div class="card shadow mb-4">
-                <div class="card-body" id="adviserCards">
-                    <div class="form-group row">
-                        <div class="col-md-8">
-                            <label for="adviserTitle">Grading Criteria Title</label>
-                            <select class="form-control grading-title" name="adviserTitle[]" required>
-                                <option value="">Select Criteria</option>
-                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
-                                            data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                        <?php echo htmlspecialchars($row['criteria']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="adviserPercentage">Percentage</label>
-                            <select class="form-control" name="adviserPercentage[]">
-                                <?php for ($i = 5; $i <= 100; $i += 5) {
-                                    echo "<option value='$i'>$i%</option>";
-                                } ?>
-                            </select>
+            // Event listener for adding adviser criteria
+            document.getElementById('addAdviserCriteria').addEventListener('click', function() {
+                var adviserCards = document.getElementById('adviserCards');
+                var newAdviserCriteria = document.createElement('div');
+                newAdviserCriteria.innerHTML = `
+                <?php mysqli_data_seek($result, 0); // Reset result pointer before using again ?>
+                    <div class="card shadow mb-4">
+                        <div class="card-body" id="adviserCards">
+                            <div class="form-group row">
+                                <div class="col-md-8">
+                                    <label for="adviserTitle">Grading Criteria Title</label>
+                                    <select class="form-control grading-title" name="adviserTitle[]" required>
+                                        <option value="">Select Criteria</option>
+                                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                                                    data-description="<?php echo htmlspecialchars($row['description']); ?>">
+                                                <?php echo htmlspecialchars($row['criteria']); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="adviserPercentage">Percentage</label>
+                                    <select class="form-control" name="adviserPercentage[]">
+                                        <?php for ($i = 5; $i <= 100; $i += 5) {
+                                            echo "<option value='$i'>$i%</option>";
+                                        } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="adviserDescription">Description</label>
+                                <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="adviserDescription">Description</label>
-                        <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
-                    </div>
-                </div>
-            </div>
-        `;
-        adviserCards.appendChild(newAdviserCriteria);
-    });
+                `;
+                adviserCards.appendChild(newAdviserCriteria);
+            });
 
-    // Use event delegation to handle change events on dynamically created select elements
-    document.body.addEventListener('change', function(event) {
-        if (event.target && event.target.classList.contains('grading-title')) {
-            // Get the selected option's description
-            var selectedOption = event.target.options[event.target.selectedIndex];
-            var description = selectedOption.getAttribute("data-description");
+            // Use event delegation to handle change events on dynamically created select elements
+            document.body.addEventListener('change', function(event) {
+                if (event.target && event.target.classList.contains('grading-title')) {
+                    // Get the selected option's description
+                    var selectedOption = event.target.options[event.target.selectedIndex];
+                    var description = selectedOption.getAttribute("data-description");
 
-            // Find the corresponding description textarea
-            var descriptionTextarea = event.target.closest('div').nextElementSibling.querySelector('.description');
-            if (descriptionTextarea) {
-                descriptionTextarea.value = description;
-            }
-        }
-    });
-});
+                    // Find the corresponding description textarea
+                    var descriptionTextarea = event.target.closest('div').nextElementSibling.querySelector('.description');
+                    if (descriptionTextarea) {
+                        descriptionTextarea.value = description;
+                    }
+                }
+            });
+        });
 
 
         // SEARCH BOX FUNCTIONALITY
