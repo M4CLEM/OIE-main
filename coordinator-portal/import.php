@@ -87,22 +87,22 @@ if (isset($_POST['submit'])) {
             $excelCourse = $sheetData[$i][4]; // Course
             $year = $sheetData[$i][5]; // Year level
 
-            // Check if student already exists in the database
-            $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = '$studentid'";
+            // Check if student with the same semester already exists in the database
+            $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = '$studentid' AND semester = '$semester'";
             $checkResult = mysqli_query($conn, $checkQuery);
 
             if (mysqli_num_rows($checkResult) == 0) {
-                // Insert new student into the database
-                $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, year, section) 
-                        VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section')";
+                // Insert new student record with semester
+                $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, year, section, semester, schoolYear) 
+                        VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section', '$semester' , '$SY')";
 
                 if (mysqli_query($conn, $sql)) {
-                    echo "$lastName $firstName added to database and folder created.<br>";
+                    echo "$lastName $firstName added to database with semester $semester and folder created.<br>";
                 } else {
                     echo "Error inserting $lastName $firstName: " . mysqli_error($conn) . "<br>";
                 }
             } else {
-                echo "$lastName $firstName already exists in database, only creating folder.<br>";
+                echo "$lastName $firstName already exists in database for semester $semester, only creating folder.<br>";
             }
 
             // Create a Google Drive folder for the student
