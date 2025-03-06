@@ -69,11 +69,11 @@ if(isset($_POST['save'])) {
 
     if ($checkResult->num_rows == 0) {
         // Insert student into database
-        $query = "INSERT INTO student_masterlist (studentID, lastName, firstName, course, section, year, semester) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO student_masterlist (studentID, lastName, firstName, course, section, year, semester, schoolYear) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $connect->prepare($query);
-        $stmt->bind_param("sssssss", $studentID, $lastName, $firstName, $course, $section, $year, $semester);
+        $stmt->bind_param("ssssssss", $studentID, $lastName, $firstName, $course, $section, $year, $semester, $SY);
         
         if ($stmt->execute()) {
             echo "$lastName $firstName added to database.";

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-$conn = mysqli_connect("localhost", "root", "", "plmunoiedb");
+include_once("../../includes/connection.php");
 
 use Google\Client as Google_Client;
 use Google\Service\Drive as Google_Service_Drive;
@@ -48,7 +48,7 @@ if (isset($_POST['submit'])) {
 
     // Insert section details into the database
     $query = "INSERT INTO sections_list (department, course, section, school_year) VALUES ('$dept', '$course', '$section', '$SY')";
-    $result = mysqli_query($conn, $query);
+    $result = mysqli_query($connect, $query);
 
     $file_mimes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 
@@ -89,17 +89,17 @@ if (isset($_POST['submit'])) {
 
             // Check if student with the same semester already exists in the database
             $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = '$studentid' AND semester = '$semester'";
-            $checkResult = mysqli_query($conn, $checkQuery);
+            $checkResult = mysqli_query($connect, $checkQuery);
 
             if (mysqli_num_rows($checkResult) == 0) {
                 // Insert new student record with semester
                 $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, year, section, semester, schoolYear) 
                         VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section', '$semester' , '$SY')";
 
-                if (mysqli_query($conn, $sql)) {
+                if (mysqli_query($connect, $sql)) {
                     echo "$lastName $firstName added to database with semester $semester and folder created.<br>";
                 } else {
-                    echo "Error inserting $lastName $firstName: " . mysqli_error($conn) . "<br>";
+                    echo "Error inserting $lastName $firstName: " . mysqli_error($connect) . "<br>";
                 }
             } else {
                 echo "$lastName $firstName already exists in database for semester $semester, only creating folder.<br>";
