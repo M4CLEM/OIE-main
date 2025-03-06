@@ -221,13 +221,19 @@ $department = $_SESSION['department'];
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
+                                <input class="form-control input-sm" id="dept" name="dept" type="text" value="" autocomplete="none" placeholder="Department" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
                                 <input class="form-control input-sm" id="section" name="section" type="text" value="" required  onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" placeholder="Section" required>
                             </div>
                         </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="year" name="year"  type="text" value="" autocomplete="none" placeholder="Year" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                <input class="form-control input-sm" id="year" name="year"  type="text" value="" autocomplete="none" placeholder="Year Level" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                             </div>
                         </div>
 
@@ -240,6 +246,13 @@ $department = $_SESSION['department'];
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input class="form-control input-sm" id="SY" name="SY" type="text" value="" autocomplete="none" placeholder="School Year" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off">
+                            </div>
+                        </div>
+
                         <div class="modal-footer">
                             <button class="btn btn-primary btn-sm" name="save" type="submit" ><span class="fa fa-save fw-fa"></span> Save</button>
                             <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>

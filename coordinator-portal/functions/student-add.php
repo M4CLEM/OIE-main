@@ -1,10 +1,41 @@
 <?php 
-// Include the database connection
+require_once __DIR__ . '/../../vendor/autoload.php';
 include_once("../../includes/connection.php");
+
+use Google\Client as Google_Client;
+use Google\Service\Drive as Google_Service_Drive;
+use Google\Service\Drive\DriveFile as Google_Service_Drive_DriveFile;
+
+set_time_limit(300); // Increase script execution time
+
+// Initialize Google Client
+$client = new Google_Client();
+$client->setAuthConfig(__DIR__ . '/../credentials.json'); 
+$client->addScope(Google_Service_Drive::DRIVE_FILE);
+$client->setAccessType('offline');
+
+// Load access token
+if (file_exists(__DIR__ . '/../token.json')) {
+    $accessToken = json_decode(file_get_contents(__DIR__ . '/../token.json'), true);
+    $client->setAccessToken($accessToken);
+
+    if ($client->isAccessTokenExpired()) {
+        if ($client->getRefreshToken()) {
+            $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            file_put_contents(__DIR__ . '/../token.json', json_encode($newToken));
+            $client->setAccessToken($newToken);
+        } else {
+            die("Token expired. Please reauthorize.");
+        }
+    }
+} else {
+    die("No token found. Please authenticate first.");
+}
+
+$driveService = new Google_Service_Drive($client);
 
 if(isset($_POST['save'])) {
 
-    // Ensure $connect is properly defined
     if (!isset($connect)) {
         die("Database connection error.");
     }
@@ -14,32 +45,66 @@ if(isset($_POST['save'])) {
     $lastName = trim($_POST['lastName']); 
     $firstName = trim($_POST['firstName']);
     $course = trim($_POST['course']);
+    $dept = trim($_POST['dept']);
     $section = trim($_POST['section']);
     $year = trim($_POST['year']);
     $semester = trim($_POST['semester']);
+    $SY = trim($_POST['SY']);
 
-    // Prepare the SQL statement
-    $query = "INSERT INTO student_masterlist (studentID, lastName, firstName, course, section, year, semester) 
-              VALUES (?, ?, ?, ?, ?, ?, ?)";
+    // Ensure "documents" folder exists
+    $documentsFolderId = createFolder($driveService, "documents", null);
+    $deptFolderId = createFolder($driveService, $dept, $documentsFolderId);
+    $courseFolderId = createFolder($driveService, $course, $deptFolderId);
+    $SYFolderId = createFolder($driveService, $SY, $courseFolderId);
+    $semesterFolderId = createFolder($driveService, $semester, $SYFolderId);
+    $sectionFolderId = createFolder($driveService, $section, $semesterFolderId);
 
-    if ($stmt = $connect->prepare($query)) {
+    // Check if student exists
+    $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = ?";
+    $stmt = $connect->prepare($checkQuery);
+    $stmt->bind_param("s", $studentID);
+    $stmt->execute();
+    $checkResult = $stmt->get_result();
+    $stmt->close();
+
+    if ($checkResult->num_rows == 0) {
+        // Insert student into database
+        $query = "INSERT INTO student_masterlist (studentID, lastName, firstName, course, section, year, semester) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt = $connect->prepare($query);
         $stmt->bind_param("sssssss", $studentID, $lastName, $firstName, $course, $section, $year, $semester);
         
-        // Execute and check if successful
         if ($stmt->execute()) {
-            echo "New record created successfully!";
-            header("Location: ../masterlist.php");
-            exit(); // Ensure script stops after redirection
+            echo "$lastName $firstName added to database.";
         } else {
-            echo "Error: " . $stmt->error;
+            echo "Error inserting $lastName $firstName: " . $stmt->error;
         }
-
         $stmt->close();
     } else {
-        echo "Error preparing statement: " . $connect->error;
+        echo "$lastName $firstName already exists in database.";
     }
 
-    // Close the database connection
+    // Create Google Drive folder for student
+    $studentFolderName = "{$course}_{$studentID}";
+    createFolder($driveService, $studentFolderName, $sectionFolderId);
+
+    // Close DB connection
     $connect->close();
+}
+
+function createFolder($driveService, $folderName, $parentFolderId) {
+    $query = "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+    if ($parentFolderId) $query .= " and '$parentFolderId' in parents";
+
+    $existingFolders = $driveService->files->listFiles(['q' => $query]);
+
+    if (count($existingFolders->getFiles()) > 0) {
+        return $existingFolders->getFiles()[0]->getId();
+    }
+
+    $fileMetadata = new Google_Service_Drive_DriveFile(['name' => $folderName, 'mimeType' => 'application/vnd.google-apps.folder', 'parents' => $parentFolderId ? [$parentFolderId] : []]);
+    $folder = $driveService->files->create($fileMetadata, ['fields' => 'id']);
+    return $folder->id;
 }
 ?>
