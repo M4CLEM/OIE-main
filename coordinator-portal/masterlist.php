@@ -203,13 +203,13 @@ $department = $_SESSION['department'];
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                    <input class="form-control input-sm" id="firstname" name="firstname" type="text" value="" autocomplete="none" placeholder="Firstname" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                    <input class="form-control input-sm" id="lastName" name="lastName" type="text" value="" autocomplete="none" placeholder="Last Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                                 </div>
                             </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="lastname" name="lastname" type="text" value="" autocomplete="none" placeholder="Lastname" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                <input class="form-control input-sm" id="firstName" name="firstName" type="text" value="" autocomplete="none" placeholder="First Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                             </div>
                         </div>
 
@@ -221,22 +221,22 @@ $department = $_SESSION['department'];
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="department" name="department" type="text" value="" required  onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" placeholder="department" required>
+                                <input class="form-control input-sm" id="section" name="section" type="text" value="" required  onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" placeholder="Section" required>
                             </div>
                         </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="email" name="email"  type="text" value="" autocomplete="none" placeholder="email" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                <input class="form-control input-sm" id="year" name="year"  type="text" value="" autocomplete="none" placeholder="Year" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                             </div>
                         </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">  
-                                <select name="status" class="form-control my-2">
-                                    <option hidden disable value="select ">Select status</option>
-                                    <option value="Graduating">Graduating</option>
-                                    <option value = "Almuni">Almuni</option>          
+                                <select name="semester" class="form-control my-2">
+                                    <option hidden disable value="select ">Select Semester</option>
+                                    <option value="1st Semester">1st Semester</option>
+                                    <option value = "2nd Semester">2nd Semester</option>          
                                 </select>
                             </div>
                         </div>
