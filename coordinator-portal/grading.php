@@ -136,36 +136,36 @@ if (!$result) {
             <h5>Adviser's Criteria</h5>
             <div class="card shadow mb-4">
                 <div class="card-body" id="adviserCards">
-                <div class="card shadow mb-4">
-                <div class="card-body" id="adviserCards">
-                    <div class="form-group row">
-                        <div class="col-md-8">
-                            <label for="adviserTitle">Grading Criteria Title</label>
-                            <select class="form-control grading-title" name="adviserTitle[]" required>
-                                <option value="">Select Criteria</option>
-                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                    <div class="card shadow mb-4">
+                        <div class="card-body" id="adviserCards">
+                            <div class="form-group row">
+                                <div class="col-md-8">
+                                    <label for="adviserTitle">Grading Criteria Title</label>
+                                    <select class="form-control grading-title" name="adviserTitle[]" required>
+                                        <option value="">Select Criteria</option>
+                                            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
                                             data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                        <?php echo htmlspecialchars($row['criteria']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="adviserPercentage">Percentage</label>
-                            <select class="form-control" name="adviserPercentage[]">
-                                <?php for ($i = 5; $i <= 100; $i += 5) {
-                                    echo "<option value='$i'>$i%</option>";
-                                } ?>
-                            </select>
+                                            <?php echo htmlspecialchars($row['criteria']); ?>
+                                            </option>
+                                            <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="adviserPercentage">Percentage</label>
+                                    <select class="form-control" name="adviserPercentage[]">
+                                        <?php for ($i = 5; $i <= 100; $i += 5) {
+                                            echo "<option value='$i'>$i%</option>";
+                                        } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="adviserDescription">Description</label>
+                                <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="adviserDescription">Description</label>
-                        <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
-                    </div>
-                </div>
-            </div>
                 </div>
             </div>
             <!-- Only one Add button, placed outside the scrollable section -->
@@ -477,17 +477,17 @@ if (!$result) {
                         let descriptionTextarea = cardBody.querySelector(".description");
                         if (descriptionTextarea) {
                             descriptionTextarea.value = description;
+                        }
+                    }
                 }
-            }
-        }
-    });
-});
+            });
+        });
 
         document.getElementById('companyDropdown').addEventListener('change', function() {
             var selectedOption = this.options[this.selectedIndex];
             var jobrole = selectedOption.getAttribute('data-jobrole');
             document.getElementById('jobroleInput').value = jobrole;
-    });
+        });
 
     </script>
 </body>

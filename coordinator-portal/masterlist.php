@@ -3,6 +3,8 @@ session_start();
 include_once("../includes/connection.php");
 $query = "select * from listadviser";
 $result = mysqli_query($connect, $query);
+
+$department = $_SESSION['department'];
 ?>
     
 <!DOCTYPE html>
@@ -105,7 +107,7 @@ $result = mysqli_query($connect, $query);
 
                                                     $stmtSec = $connect->prepare("SELECT * FROM course_list WHERE department = ?");
 
-                                                    $stmtSec->bind_param("s", $_SESSION['dept_adv']);
+                                                    $stmtSec->bind_param("s", $_SESSION['department']);
 
                                                     if (!$stmtSec->execute()) {
                                                         die("Error executing the statement: " . $stmtSec->error);
@@ -129,8 +131,7 @@ $result = mysqli_query($connect, $query);
                                                     }else {
                                                         echo "No data found.";
                                                     }  
-                                                    ?> 	
-
+                                                ?> 	
                                             </ul>
                                         </div>
 
