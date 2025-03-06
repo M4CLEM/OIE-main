@@ -81,6 +81,18 @@ if(isset($_POST['save'])) {
             echo "Error inserting $lastName $firstName: " . $stmt->error;
         }
         $stmt->close();
+
+        // Make sure the message is flushed to the browser immediately
+        ob_flush();
+        flush();
+
+        // Add JavaScript to redirect to masterlist.php after 3 seconds
+        echo "<script type='text/javascript'>
+                setTimeout(function() {
+                    window.location.href = '../masterlist.php';
+                }, 5000); // 5-second delay
+            </script>";
+        exit(); // Make sure to stop the rest of the script from executing after this point
     } else {
         echo "$lastName $firstName already exists in database.";
     }
