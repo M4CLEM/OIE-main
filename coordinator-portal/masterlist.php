@@ -3,6 +3,8 @@ session_start();
 include_once("../includes/connection.php");
 $query = "select * from listadviser";
 $result = mysqli_query($connect, $query);
+
+$department = $_SESSION['department'];
 ?>
     
 <!DOCTYPE html>
@@ -83,13 +85,13 @@ $result = mysqli_query($connect, $query);
                     <!-- Illustrations -->
                     <div class="card shadow mb-4">
 
-                        <div class="card-body" style="font-size: 13px; height: 300px;">
+                        <div class="card-body" style="font-size: 13px; height: 550px;">
                             <style>
                                 .table td, .table th {
                                     font-size:  12px;
                                 }
                             </style>
-                            <div class="table-responsive" style=" height: 300px;">
+                            <div class="table-responsive" style=" height: 550px;">
                             
                                 <div class="row">
                                     <div class="d-flex align-items-center mb-3">
@@ -105,7 +107,7 @@ $result = mysqli_query($connect, $query);
 
                                                     $stmtSec = $connect->prepare("SELECT * FROM course_list WHERE department = ?");
 
-                                                    $stmtSec->bind_param("s", $_SESSION['dept_adv']);
+                                                    $stmtSec->bind_param("s", $_SESSION['department']);
 
                                                     if (!$stmtSec->execute()) {
                                                         die("Error executing the statement: " . $stmtSec->error);
@@ -129,8 +131,7 @@ $result = mysqli_query($connect, $query);
                                                     }else {
                                                         echo "No data found.";
                                                     }  
-                                                    ?> 	
-
+                                                ?> 	
                                             </ul>
                                         </div>
 
@@ -202,13 +203,13 @@ $result = mysqli_query($connect, $query);
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                    <input class="form-control input-sm" id="firstname" name="firstname" type="text" value="" autocomplete="none" placeholder="Firstname" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                    <input class="form-control input-sm" id="lastName" name="lastName" type="text" value="" autocomplete="none" placeholder="Last Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                                 </div>
                             </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="lastname" name="lastname" type="text" value="" autocomplete="none" placeholder="Lastname" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                <input class="form-control input-sm" id="firstName" name="firstName" type="text" value="" autocomplete="none" placeholder="First Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                             </div>
                         </div>
 
@@ -220,25 +221,38 @@ $result = mysqli_query($connect, $query);
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="department" name="department" type="text" value="" required  onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" placeholder="department" required>
+                                <input class="form-control input-sm" id="dept" name="dept" type="text" value="" autocomplete="none" placeholder="Department" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                             </div>
                         </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <input class="form-control input-sm" id="email" name="email"  type="text" value="" autocomplete="none" placeholder="email" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                                <input class="form-control input-sm" id="section" name="section" type="text" value="" required  onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" placeholder="Section" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input class="form-control input-sm" id="year" name="year"  type="text" value="" autocomplete="none" placeholder="Year Level" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
                             </div>
                         </div>
 
                         <div class="form-group md-5">
                             <div class="col-md-10">  
-                                <select name="status" class="form-control my-2">
-                                    <option hidden disable value="select ">Select status</option>
-                                    <option value="Graduating">Graduating</option>
-                                    <option value = "Almuni">Almuni</option>          
+                                <select name="semester" class="form-control my-2">
+                                    <option hidden disable value="select ">Select Semester</option>
+                                    <option value="1st Semester">1st Semester</option>
+                                    <option value = "2nd Semester">2nd Semester</option>          
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input class="form-control input-sm" id="SY" name="SY" type="text" value="" autocomplete="none" placeholder="School Year" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off">
+                            </div>
+                        </div>
+
                         <div class="modal-footer">
                             <button class="btn btn-primary btn-sm" name="save" type="submit" ><span class="fa fa-save fw-fa"></span> Save</button>
                             <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>

@@ -136,36 +136,36 @@ if (!$result) {
             <h5>Adviser's Criteria</h5>
             <div class="card shadow mb-4">
                 <div class="card-body" id="adviserCards">
-                <div class="card shadow mb-4">
-                <div class="card-body" id="adviserCards">
-                    <div class="form-group row">
-                        <div class="col-md-8">
-                            <label for="adviserTitle">Grading Criteria Title</label>
-                            <select class="form-control grading-title" name="adviserTitle[]" required>
-                                <option value="">Select Criteria</option>
-                                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                                    <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
+                    <div class="card shadow mb-4">
+                        <div class="card-body" id="adviserCards">
+                            <div class="form-group row">
+                                <div class="col-md-8">
+                                    <label for="adviserTitle">Grading Criteria Title</label>
+                                    <select class="form-control grading-title" name="adviserTitle[]" required>
+                                        <option value="">Select Criteria</option>
+                                            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                            <option value="<?php echo htmlspecialchars($row['criteria']); ?>" 
                                             data-description="<?php echo htmlspecialchars($row['description']); ?>">
-                                        <?php echo htmlspecialchars($row['criteria']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="adviserPercentage">Percentage</label>
-                            <select class="form-control" name="adviserPercentage[]">
-                                <?php for ($i = 5; $i <= 100; $i += 5) {
-                                    echo "<option value='$i'>$i%</option>";
-                                } ?>
-                            </select>
+                                            <?php echo htmlspecialchars($row['criteria']); ?>
+                                            </option>
+                                            <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="adviserPercentage">Percentage</label>
+                                    <select class="form-control" name="adviserPercentage[]">
+                                        <?php for ($i = 5; $i <= 100; $i += 5) {
+                                            echo "<option value='$i'>$i%</option>";
+                                        } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="adviserDescription">Description</label>
+                                <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="adviserDescription">Description</label>
-                        <textarea class="form-control description" name="adviserDescription[]" rows="3" required></textarea>
-                    </div>
-                </div>
-            </div>
                 </div>
             </div>
             <!-- Only one Add button, placed outside the scrollable section -->
@@ -243,6 +243,50 @@ if (!$result) {
                     </div>
                 `;
             companyCards.appendChild(newCompanyCriteria);
+
+            // Function to update company percentage options based on the total selected percentages
+            function updateCompanyOptions() {
+                let totalUsedPercentage = 0;
+                const companySelects = document.querySelectorAll("select[name='companyPercentage[]']");
+
+                // Calculate total selected percentage
+                companySelects.forEach(select => {
+                    totalUsedPercentage += parseInt(select.value) || 0;
+                });
+
+                // Update available options for each company dropdown
+                companySelects.forEach(select => {
+                    const currentValue = parseInt(select.value) || 0;
+                    const maxAllowed = 100 - (totalUsedPercentage - currentValue);
+
+                    // Clear existing options
+                    select.innerHTML = "";
+
+                    // Populate new options based on remaining percentage
+                    for (let i = 5; i <= maxAllowed; i += 5) {
+                        let option = document.createElement("option");
+                        option.value = i;
+                        option.textContent = i + "%";
+                        if (i === currentValue) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                });
+            }
+
+            // Event listener for changes in company percentage dropdowns
+            document.addEventListener("change", function (event) {
+                if (event.target.matches("select[name='companyPercentage[]']")) {
+                    updateCompanyOptions(); // Update company options whenever a selection changes
+                }
+            });
+
+            // Initialize company options on page load
+            document.addEventListener("DOMContentLoaded", function () {
+                updateCompanyOptions(); // Update company options when the page loads
+            });
+
             });
 
             // Use event delegation to handle change events on dynamically created select elements
@@ -301,6 +345,50 @@ if (!$result) {
                     </div>
                 `;
                 adviserCards.appendChild(newAdviserCriteria);
+
+                // Function to update company percentage options based on the total selected percentages
+                function updateAdviserOptions() {
+                    let totalUsedPercentage = 0;
+                    const adviserSelects = document.querySelectorAll("select[name='adviserPercentage[]']");
+
+                    // Calculate total selected percentage
+                    adviserSelects.forEach(select => {
+                        totalUsedPercentage += parseInt(select.value) || 0;
+                    });
+
+                    // Update available options for each company dropdown
+                    adviserSelects.forEach(select => {
+                        const currentValue = parseInt(select.value) || 0;
+                        const maxAllowed = 100 - (totalUsedPercentage - currentValue);
+
+                        // Clear existing options
+                        select.innerHTML = "";
+
+                        // Populate new options based on remaining percentage
+                        for (let i = 5; i <= maxAllowed; i += 5) {
+                            let option = document.createElement("option");
+                            option.value = i;
+                            option.textContent = i + "%";
+                            if (i === currentValue) {
+                                option.selected = true;
+                            }
+                            select.appendChild(option);
+                        }
+                    });
+                }
+
+                // Event listener for changes in company percentage dropdowns
+                document.addEventListener("change", function (event) {
+                    if (event.target.matches("select[name='adviserPercentage[]']")) {
+                        updateAdviserOptions(); // Update company options whenever a selection changes
+                    }
+                });
+
+                // Initialize company options on page load
+                document.addEventListener("DOMContentLoaded", function () {
+                    updateAdviserOptions(); // Update company options when the page loads
+                });
+
             });
 
             // Use event delegation to handle change events on dynamically created select elements
@@ -389,17 +477,17 @@ if (!$result) {
                         let descriptionTextarea = cardBody.querySelector(".description");
                         if (descriptionTextarea) {
                             descriptionTextarea.value = description;
+                        }
+                    }
                 }
-            }
-        }
-    });
-});
+            });
+        });
 
         document.getElementById('companyDropdown').addEventListener('change', function() {
             var selectedOption = this.options[this.selectedIndex];
             var jobrole = selectedOption.getAttribute('data-jobrole');
             document.getElementById('jobroleInput').value = jobrole;
-    });
+        });
 
     </script>
 </body>
