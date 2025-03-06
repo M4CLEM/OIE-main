@@ -85,13 +85,13 @@ $department = $_SESSION['department'];
                     <!-- Illustrations -->
                     <div class="card shadow mb-4">
 
-                        <div class="card-body" style="font-size: 13px; height: 300px;">
+                        <div class="card-body" style="font-size: 13px; height: 550px;">
                             <style>
                                 .table td, .table th {
                                     font-size:  12px;
                                 }
                             </style>
-                            <div class="table-responsive" style=" height: 300px;">
+                            <div class="table-responsive" style=" height: 550px;">
                             
                                 <div class="row">
                                     <div class="d-flex align-items-center mb-3">
