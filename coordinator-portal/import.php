@@ -47,14 +47,25 @@ if (isset($_POST['submit'])) {
     $dept = $_POST['dept']; // Department name
 
     // Check if course, section, and school year already exist
-    $check_query = "SELECT * FROM sections_list WHERE course = '$course' AND section = '$section' AND school_year = '$SY'";
+    $check_query = "SELECT * FROM sections_list WHERE course = '$course' AND section = '$section'";
     $check_result = mysqli_query($connect, $check_query);
 
     if (mysqli_num_rows($check_result) > 0) {
-        echo"Skipping insertion: Course '$course', Section '$section' for School Year '$SY' already exists.";
+        echo"Skipping insertion: Course '$course', Section '$section' already exists.";
     } else {
         // Insert section details into the database
-        $query = "INSERT INTO sections_list (department, course, section, school_year) VALUES ('$dept', '$course', '$section', '$SY')";
+        $query = "INSERT INTO sections_list (department, course, section,) VALUES ('$dept', '$course', '$section')";
+        $result = mysqli_query($connect, $query);
+    }
+
+    // SCHOOL YEAR QUERY
+    $checkSY_query = "SELECT * FROM school_year WHERE schoolYear = '$SY'";
+    $checkSY_result = mysqli_query($connect, $checkSY_query);
+
+    if (mysqli_num_rows($checkSY_result) > 0) {
+        //----------------------B  L A N K ---------------------//
+    } else {
+        $query = "INSERT INTO school_year (schoolYear) VALUES ('$SY')";
         $result = mysqli_query($connect, $query);
     }
     
