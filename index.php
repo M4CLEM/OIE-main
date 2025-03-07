@@ -51,7 +51,7 @@ if (isset($_POST['login'])) {
 					$_SESSION['department'] = $department;
 				} else {
 					// Handle the case when the query returns no rows
-					echo "No program found for the user.";
+					echo "No department found for the user.";
 				}
 
 				header("Location: coordinator-portal/masterlist.php");
@@ -96,18 +96,23 @@ if (isset($_POST['login'])) {
 				$stmtStudent->execute();
 				$studentResult = $stmtStudent->get_result();
 			
-				if ($studentRow = $studentResult->fetch_assoc()) {
-					$_SESSION['department'] = $studentRow['department']; // Store program in session
+				if ($studentResult->num_rows > 0) {
+					$rowsStudent = $studentResult->fetch_assoc();
+					$department = $rowsStudent['department'];
+					$_SESSION['department'] = $department;
+				} else {
+					echo "No Department found for the user";
+				}
 
-					//Get the student's course based on the username
-					$stmtCourse = $connect->prepare("SELECT course FROM studentinfo WHERE email = ?");
-					$stmtCourse->bind_param("s", $uname);
-					$stmtCourse->execute();
-					$courseResult = $stmtCourse->get_result();
+				$stmtCourse = $connect->prepare("SELECT course FROM studentinfo WHERE email = ?");
+				$stmtCourse->bind_param("s", $uname);
+				$stmtCourse->execute();
+				$courseResult = $stmtCourse->get_result();
 
-					if ($courseRow = $courseResult->fetch_assoc()) {
-						$_SESSION['course'] = $courseRow['course'];
-					}
+				if ($courseResult->num_rows > 0) {
+					$rowsCourse = $courseResult->fetch_assoc();
+					$course = $rowsCourse['course'];
+					$_SESSION['course'] = $course;
 				}
 			
 				header("Location: student-portal/student.php");
