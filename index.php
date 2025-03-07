@@ -120,15 +120,26 @@ if (isset($_POST['login'])) {
 			 else if ($role == "IndustryPartner") {
 
 				$_SESSION['IndustryPartner'] = $uname;
-				$sql = "SELECT companyCode FROM company_info WHERE trainerEmail = ?";
 
+				$stmtCompany = $connect->prepare("SELECT companyName FROM users WHERE username = ?");
+				$stmtCompany->bind_param("s", $uname);
+				$stmtCompany->execute();
+				$companyNameResult = $stmtCompany->get_result();
+
+				if ($companyNameResult->num_rows > 0) {
+					$rowsCompanyName = $companyNameResult->fetch_assoc();
+					$companyName = $rowsCompanyName['department'];
+					$_SESSION['companyName'] = $companyName;
+				}
+
+
+
+				$sql = "SELECT companyCode FROM company_info WHERE trainerEmail = ?";
 				// Prepare statement
 				$stmt = $connect->prepare($sql);
 				$stmt->bind_param("s", $uname);
-
 				// Execute the query
 				$stmt->execute();
-
 				// Bind the result to a variable
 				$stmt->bind_result($companyCode);
 
