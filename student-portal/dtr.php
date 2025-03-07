@@ -21,6 +21,7 @@ if (mysqli_num_rows($result) == 1) {
     $_SESSION['stud_course'] = $row['course'];
     $_SESSION['stud_section'] = $row['section'];
     $_SESSION['stud_company'] = $row['companyCode'];
+    $_SESSION['stud_SY'] = $row['school_year'];
 }
 
 $studentNumber = $_SESSION['stud_code'];
@@ -31,6 +32,7 @@ $dept = $_SESSION['stud_dept'];
 $course = $_SESSION['stud_course'];
 $section = $_SESSION['stud_section'];
 $companyCode = $_SESSION['stud_company'];
+$schoolYear = $_SESSION['stud_SY'];
 $currentTime = date("h:i:sa");
 $logState = "";
 
@@ -130,7 +132,7 @@ if ($row !== null) {
 
                         
                             <div class='card-body col-md-9 border mt-2 rounded p-4'>
-                                <h2 class='card-title'>On the Job Training: 2023 - 2024</h5><br>
+                                <h2 class='card-title'>On the Job Training: <?php echo $schoolYear?></h5><br>
                                 <?php $post->loadInfo($connect, $dept, $course, $studentNumber, $section); ?>
                             </div>
 
