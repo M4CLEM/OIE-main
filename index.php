@@ -91,22 +91,22 @@ if (isset($_POST['login'])) {
 				$_SESSION['student'] = $uname;
 			
 				// Get the student's program
-				$stmtStudent = $connect->prepare("SELECT program FROM users WHERE username = ?");
+				$stmtStudent = $connect->prepare("SELECT department FROM users WHERE username = ?");
 				$stmtStudent->bind_param("s", $uname);
 				$stmtStudent->execute();
 				$studentResult = $stmtStudent->get_result();
 			
 				if ($studentRow = $studentResult->fetch_assoc()) {
-					$_SESSION['course'] = $studentRow['program']; // Store program in session
-			
-					// Get the department based on the course
-					$stmtDept = $connect->prepare("SELECT department FROM course_list WHERE course = ?");
-					$stmtDept->bind_param("s", $_SESSION['course']);
-					$stmtDept->execute();
-					$deptResult = $stmtDept->get_result();
-			
-					if ($deptRow = $deptResult->fetch_assoc()) {
-						$_SESSION['department'] = $deptRow['department']; // Store department in session
+					$_SESSION['department'] = $studentRow['department']; // Store program in session
+
+					//Get the student's course based on the username
+					$stmtCourse = $connect->prepare("SELECT course FROM studentinfo WHERE email = ?");
+					$stmtCourse->bind_param("s", $uname);
+					$stmtCourse->execute();
+					$courseResult = $stmtCourse->get_result();
+
+					if ($courseRow = $courseResult->fetch_assoc()) {
+						$_SESSION['course'] = $courseRow['course'];
 					}
 				}
 			
