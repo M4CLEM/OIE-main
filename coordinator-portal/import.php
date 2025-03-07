@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-include_once("../../includes/connection.php");
+include_once("../includes/connection.php");
 
 use Google\Client as Google_Client;
 use Google\Service\Drive as Google_Service_Drive;
@@ -46,9 +46,18 @@ if (isset($_POST['submit'])) {
     $section = $_POST['section']; // Section name
     $dept = $_POST['dept']; // Department name
 
-    // Insert section details into the database
-    $query = "INSERT INTO sections_list (department, course, section, school_year) VALUES ('$dept', '$course', '$section', '$SY')";
-    $result = mysqli_query($connect, $query);
+    // Check if course, section, and school year already exist
+    $check_query = "SELECT * FROM sections_list WHERE course = '$course' AND section = '$section' AND school_year = '$SY'";
+    $check_result = mysqli_query($connect, $check_query);
+
+    if (mysqli_num_rows($check_result) > 0) {
+        echo"Skipping insertion: Course '$course', Section '$section' for School Year '$SY' already exists.";
+    } else {
+        // Insert section details into the database
+        $query = "INSERT INTO sections_list (department, course, section, school_year) VALUES ('$dept', '$course', '$section', '$SY')";
+        $result = mysqli_query($connect, $query);
+    }
+    
 
     $file_mimes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 
