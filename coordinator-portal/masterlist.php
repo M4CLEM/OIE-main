@@ -3,7 +3,8 @@ session_start();
 include_once("../includes/connection.php");
 $query = "select * from listadviser";
 $result = mysqli_query($connect, $query);
-
+$SYquery = "Select * from school_year";
+$SYresult = mysqli_query($connect, $SYquery);
 $department = $_SESSION['department'];
 ?>
     
@@ -102,7 +103,6 @@ $department = $_SESSION['department'];
                                             </button>
 
                                             <ul class="dropdown-menu" aria-labelledby="dropdowncourse">
-                                                <!--  COURSE DROPDOWN FIX ISSUE     -->
                                                 <?php 
 
                                                     $stmtSec = $connect->prepare("SELECT * FROM course_list WHERE department = ?");
@@ -143,6 +143,19 @@ $department = $_SESSION['department'];
                                         </div>
 
                                         <div class="dropdown">
+                                            <div class="col-md-12">
+                                                <select name="schoolYear" id="schoolYearDropdown" class="form-control my-2 text-center" style="background-color: #6b6d7d; color: white ;">
+                                                    <option value="">Select School Year</option>
+                                                    <?php while ($rowSY = mysqli_fetch_assoc($SYresult)) {?>
+                                                        <option value="<?php echo htmlspecialchars($rowSY['schoolYear']);?>" data-SY="<?php echo htmlspecialchars($rowSY['schoolYear']);?>">
+                                                            <?php echo htmlspecialchars($rowSY['schoolYear']);?>
+                                                        </option>
+                                                    <?php }?>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="dropdown">
                                             <div class="col-md-12 ">  
                                                 <select name="status" id="statusDropdown" class="form-control my-2 text-center" style="background-color: green; color: white;">
                                                     <option hidden disable value="select ">Select Status</option>
@@ -159,10 +172,11 @@ $department = $_SESSION['department'];
                             <table class="table table-bordered" width="100%" cellspacing="0"> 
                                 <thead>
                                     <tr>
-                                        <th width="15%"scope="col">StudentID</th>
+                                        <th width="10"scope="col">StudentID</th>
                                         <th width="25%" scope="col">Name</th>
                                         <th width="30%" scope="col">Email</th>
                                         <th scope="col">Status</th>
+                                        <th scope="col">School Year</th>
                                         <th scope="col">Grade</th>
                                         <th width="12%" align="center">Action</th>
                                     </tr>
@@ -173,8 +187,8 @@ $department = $_SESSION['department'];
                     </div>
                 </div>
                 
-                <a class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addModal" style="font-size: 13px;">  <i class="fa fa-plus-circle fw-fa"></i> Add new student</a> 
-                <a class="btn btn-primary btn-sm" href="addmasterlist.php" style="font-size: 13px;"> Add masterlist</a>
+                <a class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addModal" style="font-size: 13px;">  <i class="fa fa-plus-circle fw-fa"></i> Add New Student</a> 
+                <a class="btn btn-primary btn-sm" href="addmasterlist.php" style="font-size: 13px;"> Add Masterlist</a>
 
             </div>
         </div>
@@ -298,14 +312,15 @@ $department = $_SESSION['department'];
             });
         }
 
-        function showStudents(department, course, section) {
+        function showStudents(department, course, section, schoolYear) {
             $.ajax({
                 url: 'functions/get_students.php',
                 type: 'GET',
                 data: {
                     department: department,
                     course: course,
-                    section: section
+                    section: section,
+                    schoolYear: schoolYear,
                 },
                 success: function(data) {
                     document.querySelector('.student-list').innerHTML = data;
@@ -343,6 +358,26 @@ $department = $_SESSION['department'];
         }
 
         document.getElementById('statusDropdown').addEventListener('change', filterTableByStatus);
+
+        function filterTableBySY() {
+            var schoolYear = document.getElementById('schoolYearDropdown').value; // Get the selected status
+            var table = document.querySelector('.table'); // Get the table
+            var rows = table.getElementsByTagName('tr'); // Get all table rows
+
+            for (var i = 0; i < rows.length; i++) {
+                var schoolYearCell = rows[i].getElementsByTagName('td')[4]; // Assuming the status is in the 4th column
+                if (schoolYearCell) {
+                    var txtValue = schoolYearCell.textContent || schoolYearCell.innerText;
+                    if (txtValue.indexOf(schoolYear) > -1) {
+                        rows[i].style.display = ""; // Show the row if the status matches
+                    } else {
+                        rows[i].style.display = "none"; // Hide the row if the status doesn't match
+                    }
+                }
+            }
+        }
+
+        document.getElementById('schoolYearDropdown').addEventListener('change', filterTableBySY);
         
     </script>
 
