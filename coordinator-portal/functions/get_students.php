@@ -1,50 +1,47 @@
 <?php  
 include_once("../../includes/connection.php");
-$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
-
 
 if (isset($_GET['department'], $_GET['course'], $_GET['section'])) {
     $department = $_GET['department'];
     $course = $_GET['course'];
     $section = $_GET['section'];
 
-    $stmt = $connect->prepare("SELECT * FROM student_masterlist WHERE course = ? AND section = ?");
+    // Query ensures all students from `student_masterlist` appear
+    $stmt = $connect->prepare("
+        SELECT sm.studentID, sm.firstName, sm.lastName, sm.schoolYear,
+               COALESCE(si.email, 'N/A') AS email, 
+               COALESCE(si.status, 'N/A') AS status,
+               COALESCE(SUM(sg.grade), 0) AS totalGrade
+        FROM student_masterlist sm
+        LEFT JOIN studentinfo si ON sm.studentID = si.studentID
+        LEFT JOIN student_grade sg ON sm.studentID = sg.studentID
+        WHERE sm.course = ? AND sm.section = ?
+        GROUP BY sm.studentID, sm.firstName, sm.lastName, si.email, si.status, sm.schoolYear
+    ");
+    
     $stmt->bind_param("ss", $course, $section);
     $stmt->execute();
-    //$isDeployed
-    
     $students = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     foreach ($students as $student) {
-
-        $stmtGrade = $connect->prepare("SELECT * FROM student_grade WHERE studentID = ?");
-        $stmtGrade->bind_param("s", $student['studentID']);
-        $stmtGrade->execute();
-        $resultGrade = $stmtGrade->get_result();
-    
-        $totalGrade = 0;
-    
-        while($rowGrade = $resultGrade->fetch_assoc()){
-            $totalGrade += intval($rowGrade['grade']);
-        }
-
-
         echo "<tr>
-                <td>{$student['studentID']}</td>
-                <td>{$student['firstName']} {$student['lastName']}</td>
-                <td>{$student['course']}</td>
-                <td>{$student['section']}</td>
-                <td> <p>{$totalGrade}</p></td>
-
-                <td> 
-                    <a title='Edit' href='student-edit.php?id={$student['studentID']}' class='btn btn-xs'><span class='fa fa-edit fw-fa'></span>
-                    <a title='Delete' href='functions/student-delete-process.php?id={$student['studentID']}' class='btn btn-xs'><span class='fa fa-trash'></a></span>
-                </td>
-
-            </tr>";
+            <td>{$student['studentID']}</td>
+            <td>{$student['firstName']} {$student['lastName']}</td>
+            <td>{$student['email']}</td>
+            <td>{$student['status']}</td>
+            <td>{$student['schoolYear']}</td>
+            <td><p>{$student['totalGrade']}</p></td>
+            <td> 
+                <a title='Edit' href='student-edit.php?id={$student['studentID']}' class='btn btn-xs'>
+                    <span class='fa fa-edit fw-fa'></span>
+                </a>
+                <a title='Delete' href='functions/student-delete-process.php?id={$student['studentID']}' class='btn btn-xs'>
+                    <span class='fa fa-trash'></span>
+                </a>
+            </td>
+        </tr>";
     }
 } else {
     echo "Required parameters are missing.";
 }
-
 ?>
