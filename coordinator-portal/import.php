@@ -9,24 +9,21 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 
-set_time_limit(300); // Increase script execution time
+set_time_limit(300);
 
-// Initialize Google Client
 $client = new Google_Client();
-$client->setAuthConfig(__DIR__ . '/credentials.json'); // Set path to credentials
+$client->setAuthConfig(__DIR__ . '/credentials.json');
 $client->addScope(Google_Service_Drive::DRIVE_FILE);
 $client->setAccessType('offline');
 
-// Load access token
 if (file_exists(__DIR__ . '/token.json')) {
     $accessToken = json_decode(file_get_contents(__DIR__ . '/token.json'), true);
     $client->setAccessToken($accessToken);
 
-    // Refresh token if expired
     if ($client->isAccessTokenExpired()) {
         if ($client->getRefreshToken()) {
             $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            file_put_contents(__DIR__ . '/token.json', json_encode($newToken)); // Save new token
+            file_put_contents(__DIR__ . '/token.json', json_encode($newToken));
             $client->setAccessToken($newToken);
         } else {
             die("Token expired. Please reauthorize.");
@@ -38,99 +35,117 @@ if (file_exists(__DIR__ . '/token.json')) {
 
 $driveService = new Google_Service_Drive($client);
 
-// Process form submission
-if (isset($_POST['submit'])) {
-    $SY = $_POST['SY']; // School year
-    $course = $_POST['course']; // Course name
-    $semester = $_POST['Semester']; // Semester
-    $section = $_POST['section']; // Section name
-    $dept = $_POST['dept']; // Department name
+echo '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .alert {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center text-primary">Import Status</h2>
+        <div class="mt-4">';
 
-    // Check if course, section, and school year already exist
+$messages = [];
+
+if (isset($_POST['submit'])) {
+    $SY = $_POST['SY'];
+    $course = $_POST['course'];
+    $semester = $_POST['Semester'];
+    $section = $_POST['section'];
+    $dept = $_POST['dept'];
+
     $check_query = "SELECT * FROM sections_list WHERE course = '$course' AND section = '$section'";
     $check_result = mysqli_query($connect, $check_query);
 
     if (mysqli_num_rows($check_result) > 0) {
-        echo"Skipping insertion: Course '$course', Section '$section' already exists.";
+        $messages[] = "Skipping insertion: Course '$course', Section '$section' already exists.";
     } else {
-        // Insert section details into the database
-        $query = "INSERT INTO sections_list (department, course, section,) VALUES ('$dept', '$course', '$section')";
-        $result = mysqli_query($connect, $query);
+        $query = "INSERT INTO sections_list (department, course, section) VALUES ('$dept', '$course', '$section')";
+        mysqli_query($connect, $query);
     }
 
-    // SCHOOL YEAR QUERY
     $checkSY_query = "SELECT * FROM school_year WHERE schoolYear = '$SY'";
     $checkSY_result = mysqli_query($connect, $checkSY_query);
 
-    if (mysqli_num_rows($checkSY_result) > 0) {
-        //----------------------B  L A N K ---------------------//
-    } else {
+    if (mysqli_num_rows($checkSY_result) == 0) {
         $query = "INSERT INTO school_year (schoolYear) VALUES ('$SY')";
-        $result = mysqli_query($connect, $query);
+        mysqli_query($connect, $query);
     }
-    
 
     $file_mimes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 
-    // Check if file is uploaded and is a valid format (CSV or XLSX)
     if (isset($_FILES['file']['name']) && in_array($_FILES['file']['type'], $file_mimes)) {
         $arr_file = explode('.', $_FILES['file']['name']);
         $extension = end($arr_file);
-
-        // Determine file type and load spreadsheet
         $reader = $extension === 'csv' ? new Csv() : new Xlsx();
         $spreadsheet = $reader->load($_FILES['file']['tmp_name']);
         $sheetData = $spreadsheet->getActiveSheet()->toArray();
 
-        // Validate that the sheet has data
         if (empty($sheetData[0]) || !array_filter($sheetData[0])) {
             die("No data found in the sheet.");
         }
 
-        // Ensure "documents" folder exists in Google Drive
         $documentsFolderId = createFolder($driveService, "documents", null);
-        
-        // Create nested folders in Google Drive for department, course, school year, semester, and section
         $deptFolderId = createFolder($driveService, $dept, $documentsFolderId);
         $courseFolderId = createFolder($driveService, $course, $deptFolderId);
         $SYFolderId = createFolder($driveService, $SY, $courseFolderId);
         $semesterFolderId = createFolder($driveService, $semester, $SYFolderId);
         $sectionFolderId = createFolder($driveService, $section, $semesterFolderId);
 
-        // Process student data from the uploaded file (starting from row 6)
         for ($i = 6; $i < count($sheetData); $i++) {
             if (empty($sheetData[$i]) || !array_filter($sheetData[$i])) continue;
             
-            $studentid = $sheetData[$i][1]; // Student ID
-            $lastName = $sheetData[$i][2]; // Last name
-            $firstName = $sheetData[$i][3]; // First name
-            $excelCourse = $sheetData[$i][4]; // Course
-            $year = $sheetData[$i][5]; // Year level
+            $studentid = $sheetData[$i][1];
+            $lastName = $sheetData[$i][2];
+            $firstName = $sheetData[$i][3];
+            $excelCourse = $sheetData[$i][4];
+            $year = $sheetData[$i][5];
 
-            // Check if student with the same semester already exists in the database
             $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = '$studentid' AND semester = '$semester'";
             $checkResult = mysqli_query($connect, $checkQuery);
 
             if (mysqli_num_rows($checkResult) == 0) {
-                // Insert new student record with semester
                 $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, year, section, semester, schoolYear) 
                         VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section', '$semester' , '$SY')";
 
                 if (mysqli_query($connect, $sql)) {
-                    echo "$lastName $firstName added to database with semester $semester and folder created.<br>";
+                    $messages[] = "$lastName $firstName added to database with semester $semester and folder created.";
                 } else {
-                    echo "Error inserting $lastName $firstName: " . mysqli_error($connect) . "<br>";
+                    $messages[] = "Error inserting $lastName $firstName: " . mysqli_error($connect);
                 }
             } else {
-                echo "$lastName $firstName already exists in database for semester $semester, only creating folder.<br>";
+                $messages[] = "$lastName $firstName already exists in database for semester $semester, only creating folder.";
             }
-
-            // Create a Google Drive folder for the student
-            $studentFolderName = "{$course}_{$studentid}";
-            createFolder($driveService, $studentFolderName, $sectionFolderId);
+            createFolder($driveService, "{$course}_{$studentid}", $sectionFolderId);
         }
     }
 }
+
+foreach ($messages as $message) {
+    echo "<div class='alert " . (strpos($message, 'Skipping insertion') !== false ? "alert-warning" : "alert-info") . "'>$message</div>";
+}
+
+echo "</div>
+    </div>
+    <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'></script>
+</body>
+</html>";
 
 /**
  * Function to create a folder in Google Drive
