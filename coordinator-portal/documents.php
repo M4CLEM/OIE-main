@@ -9,6 +9,8 @@
     if (!$result) {
         die("Query Failed: " . mysqli_error($connect));
     }
+
+    $documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM documents_list WHERE department = '$department'");
 ?>
 
 <!DOCTYPE html>
@@ -82,19 +84,21 @@
                                             <tr>
                                                 <th width="20%" scope="col">Document Name</th>
                                                 <th width="20%" scope="col">Document Type</th>
-                                                <th width="35%" scope="col">Template</th>
-                                                <th width="22%" scope="col">Action</th>
+                                                <th width="30%" scope="col">Template</th>
+                                                <th width="30%" scope="col">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
                                                 while ($rows = mysqli_fetch_assoc($result)) {
+                                                    $file = $rows['file_template'];
+                                                    $doc_template = basename($file);
                                             ?>
                                             <tr>
                                                 <td><?php echo $rows['documentName'];?></td>
                                                 <td><?php echo $rows['documentType'];?></td>
                                                 <td>
-                                                    
+                                                    <?php echo $doc_template;?>
                                                 </td>
                                                 <td>
                                                     <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" 
@@ -102,10 +106,12 @@
                                                     data-documentName="<?php echo $rows['documentName'];?>"
                                                     data-documentType="<?php echo $rows['documentType'];?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
 
-                                                    <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="$deleteModal" data-id="<?php echo $rows['id'];?>">
+                                                    <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $rows['id'];?>">
                                                         <i class="fa fa-trash fw-fa"></i>Delete
                                                     </button>
-                                                    
+
+                                                    <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $file; ?>')"><i class="far fa-eye"></i>View</button>
+
                                                     <!-- FILE UPLOAD -->
                                                     <button class="btn btn-success btn-sm" onclick="document.getElementById('fileInput_').click();">
                                                         <i class="fa fa-upload"></i>Update File
@@ -144,7 +150,7 @@
                                 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
-                                            <form action="functions/document-edit.php" id="editForm" method="post">
+                                            <form action="functions/document-edit.php" id="editForm" method="POST">
                                                 <div class="modal-body">
                                                     <h5>Edit Document Info</h5>
                                                     <input type="hidden" id="editId" name="id">
@@ -171,20 +177,26 @@
                                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
-                                            <form action="" method="post" id="documentForm">
+                                            <form action="functions/add_docs.php" method="post" id="documentForm" enctype="multipart/form-data">
                                                 <div class="modal-body">
                                                     <h5>Add Document</h5>
                                                     <div class="form-group">
                                                         <div class="col-md-12">
                                                             <label for="addDocumentName">Document Name:</label>
-                                                            <input class="form-control input-sm" id="addDocumentName" type="text" value="" autocomplete="none">
+                                                            <input class="form-control input-sm" id="addDocumentName" type="text" value="" autocomplete="none" name="addDocumentName">
                                                         </div>
                                                         <div class="col-md-12">
                                                             <label for="addDocumentType">Document Type:</label>
                                                             <select class="col-md-12 typeDropdown" name="documentTypeDropdown" id="documentTypeDropdown">
                                                                 <option value="">Select Document Type</option>
+                                                                <?php
+                                                                    while ($rows = mysqli_fetch_assoc($documentType)) { ?>
+                                                                    <option value="<?php echo htmlspecialchars($rows['documentType']);?>"><?php echo htmlspecialchars($rows['documentType']);?></option>
+                                                                <?php    
+                                                                }
+                                                                ?>
                                                             </select>
-                                                            <input class="form-control input-sm" id="addDocumentType" placeholder="If Document type is not available, enter here..." type="text" value="" autocomplete="none">
+                                                            <input class="form-control input-sm" id="addDocumentType" placeholder="If Document type is not available, enter here..." type="text" value="" autocomplete="none" name="addDocumentType">
                                                         </div>
                                                     </div>
                                                     <div class="form-group">
@@ -193,13 +205,14 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button class="btn btn-primary btn-sm" name="submit" type="submit"><span class="fa fa-save fw-fa"></span> Submit</button>
+                                                    <button class="btn btn-primary btn-sm" name="submit" type="submit"><span class="fa fa-save fw-fa"></span>Submit</button>
                                                     <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
                                                 </div>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -233,7 +246,7 @@
             $('#confirmDelete').click(function() {
                 var id = $(this).data('id');
                 $.ajax({
-                    url: 'functions/criteria-delete.php',
+                    url: 'functions/document-delete.php',
                     type: 'POST',
                     data: {id: id},
                     success: function(response) {
@@ -246,6 +259,11 @@
                 })
             });
         });
+
+        function viewPDF(pdfPath) {
+            // Open the PDF in a new tab/window
+            window.open(pdfPath, '_blank');
+        }
     </script>
 
 </html>
