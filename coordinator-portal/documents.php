@@ -101,10 +101,16 @@
                                                     data-id="<?php echo $rows['id'];?>" 
                                                     data-documentName="<?php echo $rows['documentName'];?>"
                                                     data-documentType="<?php echo $rows['documentType'];?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
+
                                                     <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="$deleteModal" data-id="<?php echo $rows['id'];?>">
                                                         <i class="fa fa-trash fw-fa"></i>Delete
                                                     </button>
-                                                    <button class="btn btn-success btn-sm"><i class="fa fa-upload"></i>Update File</button>
+                                                    
+                                                    <!-- FILE UPLOAD -->
+                                                    <button class="btn btn-success btn-sm" onclick="document.getElementById('fileInput_').click();">
+                                                        <i class="fa fa-upload"></i>Update File
+                                                        <input type="file" id="fileInput_" style="display: none;" accept=".docx,.pdf" onchange="">
+                                                    </button>
                                                 </td>
                                             </tr>
                                             <?php
