@@ -52,5 +52,11 @@
             <span>Advisers</span>
         </a>
     </li>
+    <li class="sidebar-item">
+        <a href="documents.php" class="sidebar-link">
+            <i class="fas fa-folder fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Documents</span>
+        </a>
+    </li>
 
 </ul>
