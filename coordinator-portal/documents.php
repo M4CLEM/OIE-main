@@ -84,8 +84,8 @@
                                             <tr>
                                                 <th width="20%" scope="col">Document Name</th>
                                                 <th width="20%" scope="col">Document Type</th>
-                                                <th width="30%" scope="col">Template</th>
-                                                <th width="30%" scope="col">Action</th>
+                                                <th scope="col">Template</th>
+                                                <th width="19%" scope="col">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -111,12 +111,6 @@
                                                     </button>
 
                                                     <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $doc_template; ?>')"><i class="far fa-eye"></i>View</button>
-
-                                                    <!-- FILE UPLOAD -->
-                                                    <button class="btn btn-success btn-sm" onclick="document.getElementById('fileInput_').click();">
-                                                        <i class="fa fa-upload"></i>Update File
-                                                        <input type="file" id="fileInput_" style="display: none;" accept=".docx,.pdf" onchange="">
-                                                    </button>
                                                 </td>
                                             </tr>
                                             <?php
@@ -163,6 +157,10 @@
                                                             <label for="editDocumentType">Document Type</label>
                                                             <input class="form-control input-sm" type="text" name="editDocumentType" id="editDocumentType" value="" autocomplete="none">
                                                         </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="uploadTemplate">Update Template</label>
+                                                        <input type="file" class="form-control-file" id="updateFile" name="updateFile" accept=".docx,.pdf">
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
