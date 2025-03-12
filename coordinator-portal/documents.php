@@ -91,14 +91,14 @@
                                         <tbody>
                                             <?php
                                                 while ($rows = mysqli_fetch_assoc($result)) {
-                                                    $file = $rows['file_template'];
-                                                    $doc_template = basename($file);
+                                                    $file = $rows['file_name'];
+                                                    $doc_template = $rows['file_template'];
                                             ?>
                                             <tr>
                                                 <td><?php echo $rows['documentName'];?></td>
                                                 <td><?php echo $rows['documentType'];?></td>
                                                 <td>
-                                                    <?php echo $doc_template;?>
+                                                    <?php echo $file;?>
                                                 </td>
                                                 <td>
                                                     <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" 
@@ -110,7 +110,7 @@
                                                         <i class="fa fa-trash fw-fa"></i>Delete
                                                     </button>
 
-                                                    <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $file; ?>')"><i class="far fa-eye"></i>View</button>
+                                                    <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $doc_template; ?>')"><i class="far fa-eye"></i>View</button>
 
                                                     <!-- FILE UPLOAD -->
                                                     <button class="btn btn-success btn-sm" onclick="document.getElementById('fileInput_').click();">

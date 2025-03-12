@@ -6,7 +6,7 @@ use Google\Client as Google_Client;
 use Google\Service\Drive as Google_Service_Drive;
 use Google\Service\Drive\DriveFile as Google_Service_Drive_DriveFile;
 
-set_time_limit(300); // Increase script execution time
+set_time_limit(300);
 
 // Initialize Google Client
 $client = new Google_Client();
@@ -52,17 +52,17 @@ if(isset($_POST['save'])) {
     $SY = trim($_POST['SY']);
 
     // Ensure "documents" folder exists
-    $documentsFolderId = createFolder($driveService, "documents", null);
+    $documentsFolderId = createFolder($driveService, "OJT Student Requirements", null);
     $deptFolderId = createFolder($driveService, $dept, $documentsFolderId);
     $courseFolderId = createFolder($driveService, $course, $deptFolderId);
     $SYFolderId = createFolder($driveService, $SY, $courseFolderId);
     $semesterFolderId = createFolder($driveService, $semester, $SYFolderId);
     $sectionFolderId = createFolder($driveService, $section, $semesterFolderId);
 
-    // Check if student exists
-    $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = ?";
+    // Check if student already exists for the same semester
+    $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = ? AND semester = ?";
     $stmt = $connect->prepare($checkQuery);
-    $stmt->bind_param("s", $studentID);
+    $stmt->bind_param("ss", $studentID, $semester);
     $stmt->execute();
     $checkResult = $stmt->get_result();
     $stmt->close();
@@ -76,25 +76,29 @@ if(isset($_POST['save'])) {
         $stmt->bind_param("ssssssss", $studentID, $lastName, $firstName, $course, $section, $year, $semester, $SY);
         
         if ($stmt->execute()) {
-            echo "$lastName $firstName added to database.";
+            echo "<div style='padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; 
+                        border-radius: 5px; text-align: center; width: 50%; margin: 20px auto;'>
+                    <strong>Success!</strong> " . htmlspecialchars($lastName) . " " . htmlspecialchars($firstName) . " added for " . htmlspecialchars($semester) . ".
+                    <br><br>
+                    <a href='../masterlist.php' 
+                        style='display: inline-block; padding: 5px 10px; background-color: #155724; color: #fff; text-decoration: none; border-radius: 5px;'>
+                        Close
+                    </a>
+                  </div>";
         } else {
-            echo "Error inserting $lastName $firstName: " . $stmt->error;
+            echo "Error inserting student: " . $stmt->error;
         }
         $stmt->close();
-
-        // Make sure the message is flushed to the browser immediately
-        ob_flush();
-        flush();
-
-        // Add JavaScript to redirect to masterlist.php after 3 seconds
-        echo "<script type='text/javascript'>
-                setTimeout(function() {
-                    window.location.href = '../masterlist.php';
-                }, 5000); // 5-second delay
-            </script>";
-        exit(); // Make sure to stop the rest of the script from executing after this point
     } else {
-        echo "$lastName $firstName already exists in database.";
+        echo "<div style='padding: 10px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; 
+                    border-radius: 5px; text-align: center; width: 50%; margin: 20px auto; position: relative;'>
+                <strong>Error!</strong> " . htmlspecialchars($lastName) . " " . htmlspecialchars($firstName) . " already exists for " . htmlspecialchars($semester) . ".
+                <br><br>
+                <a href='../masterlist.php' 
+                   style='display: inline-block; padding: 5px 10px; background-color: #721c24; color: #fff; text-decoration: none; border-radius: 5px;'>
+                    Close
+                </a>
+              </div>";
     }
 
     // Create Google Drive folder for student
@@ -115,7 +119,11 @@ function createFolder($driveService, $folderName, $parentFolderId) {
         return $existingFolders->getFiles()[0]->getId();
     }
 
-    $fileMetadata = new Google_Service_Drive_DriveFile(['name' => $folderName, 'mimeType' => 'application/vnd.google-apps.folder', 'parents' => $parentFolderId ? [$parentFolderId] : []]);
+    $fileMetadata = new Google_Service_Drive_DriveFile([
+        'name' => $folderName,
+        'mimeType' => 'application/vnd.google-apps.folder',
+        'parents' => $parentFolderId ? [$parentFolderId] : []
+    ]);
     $folder = $driveService->files->create($fileMetadata, ['fields' => 'id']);
     return $folder->id;
 }

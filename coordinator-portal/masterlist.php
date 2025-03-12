@@ -381,6 +381,31 @@ $department = $_SESSION['department'];
         
     </script>
 
+<!-- Loading Modal -->
+<div id="loadingModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; text-align: center;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p>Processing... Please wait.</p>
+    </div>
+</div>
+
+<!-- Loading script to show the loading Modal -->
+<script>
+    function showLoading() {
+        document.getElementById("loadingModal").style.display = "block";
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        let saveButton = document.querySelector("button[name='save']");
+        if (saveButton) {
+            saveButton.addEventListener("click", function() {
+                showLoading();
+            });
+        }
+    });
+</script>
 
 </body>
 </html>	
