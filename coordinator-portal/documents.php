@@ -177,45 +177,46 @@
                                     </div>
                                 </div> 
                                 -->
-                                            <!-- Add Document Modal -->
-                                <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <form action="functions/add_docs.php" method="post" id="documentForm" enctype="multipart/form-data">
-                                                <div class="modal-body">
-                                                    <h5>Add Document</h5>
-                                                    <div class="form-group">
-                                                        <div class="col-md-12">
-                                                            <label for="addDocumentName">Document Name:</label>
-                                                            <input class="form-control input-sm" id="addDocumentName" type="text" value="" autocomplete="none" name="addDocumentName">
-                                                        </div>
-                                                        <div class="col-md-12">
-                                                            <label for="addDocumentType">Document Type:</label>
-                                                            <select class="col-md-12 typeDropdown" name="documentTypeDropdown" id="documentTypeDropdown">
-                                                                <option value="">Select Document Type</option>
-                                                                <?php
-                                                                    while ($rows = mysqli_fetch_assoc($documentType)) { ?>
-                                                                    <option value="<?php echo htmlspecialchars($rows['documentType']);?>"><?php echo htmlspecialchars($rows['documentType']);?></option>
-                                                                <?php    
-                                                                }
-                                                                ?>
-                                                            </select>
-                                                            <input class="form-control input-sm" id="addDocumentType" placeholder="If Document type is not available, enter here..." type="text" value="" autocomplete="none" name="addDocumentType">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="uploadTemplate">Upload Template</label>
-                                                        <input type="file" class="form-control-file" id="newFile" name="newFile" accept=".docx,.pdf">
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button class="btn btn-primary btn-sm" name="submit" type="submit"><span class="fa fa-save fw-fa"></span>Submit</button>
-                                                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
+<!-- Add Document Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="functions/add_docs.php" method="post" id="documentForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <h5>Add Document</h5>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label for="addDocumentName">Document Name:</label>
+                            <input class="form-control input-sm" id="addDocumentName" type="text" value="" autocomplete="none" name="addDocumentName">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="addDocumentType">Document Type:</label>
+                            <select class="col-md-12 typeDropdown" name="documentTypeDropdown" id="documentTypeDropdown">
+                                <option value="">Select Document Type</option>
+                                <?php while ($rows = mysqli_fetch_assoc($documentType)) { ?>
+                                    <option value="<?php echo htmlspecialchars($rows['documentType']);?>">
+                                        <?php echo htmlspecialchars($rows['documentType']);?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                            <input class="form-control input-sm" id="addDocumentType" placeholder="If Document type is not available, enter here..." type="text" value="" autocomplete="none" name="addDocumentType">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="uploadTemplate">Upload Template</label>
+                        <input type="file" class="form-control-file" id="newFile" name="newFile" accept=".docx,.pdf">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary btn-sm" type="submit" id="submitBtn">
+                        <span class="fa fa-save fw-fa"></span> Submit
+                    </button>
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
                             </div>
                         </div>
@@ -229,8 +230,59 @@
             integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
             crossorigin="anonymous"></script>
     <script src="../assets/js/sidebarscript.js"></script>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 200px;">
+                <h5 class="text-primary">Please Wait...</h5>
+                <div class="spinner-border text-primary my-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                <p>Uploading document...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content text-center p-4">
+            <h5 class="text-success">Success!</h5>
+            <i class="fa fa-check-circle text-success fa-3x my-3"></i>
+            <p>Document uploaded successfully.</p>
+            <button class="btn btn-success" type="button" data-dismiss="modal" id="closeSuccessModal">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.getElementById("documentForm").addEventListener("submit", function() {
+    $("#addModal").modal("hide"); // Hide Add Document modal
+    $("#loadingModal").modal("show"); // Show loading modal
+});
+
+// Show success modal if the URL contains "success=1"
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success')) {
+        $("#loadingModal").modal("hide"); // Ensure loading modal is closed
+        $("#successModal").modal("show"); // Show success modal
+
+        // Remove "success=1" from the URL without reloading
+        const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
+        window.history.replaceState(null, '', newUrl);
+    }
+};
+
+// Ensure "OK" button properly closes the success modal
+document.getElementById("closeSuccessModal").addEventListener("click", function() {
+    $("#successModal").modal("hide");
+});
+</script>
     
-<!--
+<!--Script for Delete and View function -->
     <script>
         $(document).ready(function() {
             $('.editBtn').click(function () {
@@ -270,5 +322,4 @@
             window.open(pdfPath, '_blank');
         }
     </script>
--->
 </html>

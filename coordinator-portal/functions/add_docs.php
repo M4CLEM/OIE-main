@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     if ($stmt) {
         $stmt->bind_param("sssss", $documentName, $documentType, $department, $driveFileLink, $fileName);
         if ($stmt->execute()) {
-            header("Location: ../documents.php");
+            header("Location: ../documents.php?success=1");
             exit();
         } else {
             echo "Error executing statement: " . $stmt->error;
