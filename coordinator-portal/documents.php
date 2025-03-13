@@ -101,10 +101,13 @@
                                                     <?php echo $file;?>
                                                 </td>
                                                 <td>
+
+                                                <!--    
                                                     <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" 
                                                     data-id="<?php echo $rows['id'];?>" 
                                                     data-documentName="<?php echo $rows['documentName'];?>"
                                                     data-documentType="<?php echo $rows['documentType'];?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
+                                                -->
 
                                                     <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $rows['id'];?>">
                                                         <i class="fa fa-trash fw-fa"></i>Delete
@@ -140,8 +143,10 @@
                                         </div>
                                     </div>
                                 </div>
+
                                             <!--Edit Modal-->
-                                <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                              <!-- 
+                              <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <form action="functions/document-edit.php" id="editForm" method="POST">
@@ -170,7 +175,8 @@
                                             </form>
                                         </div>
                                     </div>
-                                </div>
+                                </div> 
+                                -->
                                             <!-- Add Document Modal -->
                                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
@@ -223,7 +229,8 @@
             integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
             crossorigin="anonymous"></script>
     <script src="../assets/js/sidebarscript.js"></script>
-
+    
+<!--
     <script>
         $(document).ready(function() {
             $('.editBtn').click(function () {
@@ -263,5 +270,5 @@
             window.open(pdfPath, '_blank');
         }
     </script>
-
+-->
 </html>
