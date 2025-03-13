@@ -113,10 +113,10 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                 <thead>
                                     <tr>
                                         <th scope="col">Document</th>
-                                        <th width="30%" scope="col">File Name</th>
+                                        <th width="25%" scope="col">File Name</th>
                                         <th scope="col">Status</th>
                                         <th scope="col">Date</th>
-                                        <th width="27%" align="center">Action</th>
+                                        <th width="34%" align="center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -131,12 +131,13 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                             <td></td>
                                             <td></td>
                                             <td>
+                                                <button class="btn btn-success btn-sm"><i class="fas fa-download"></i>Download Template</button>
+
+                                                <button class="btn btn-success btn-sm uploadButton" id="uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($row['documentName']); ?>"><i class="fas fa-upload">Upload</i></button>
+
                                                 <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $file; ?>')"><i class="far fa-eye"></i>View</button>
 
-                                                <input type="file" style="display: none;" id="fileInput_<?php echo $rowId; ?>" accept=".docx,.pdf" onchange="uploadFile(<?php echo $rowId; ?>, '<?php echo $documentType; ?>')">
-                                                <button class="btn btn-success btn-sm" onclick="document.getElementById('fileInput_<?php echo $rowId; ?>').click();"><i class="fas fa-upload"></i>Upload</button>
-
-                                                <button class="btn btn-success btn-sm"><i class="fas fa-download">Download Template</i></button>
+                                                <button class="btn btn-danger btn-sm"><i class="fa fa-trash">Delete</i></button>
                                             </td>
                                         </tr>
                                     <?php
@@ -153,24 +154,73 @@ if (mysqli_num_rows($departmentResult) > 0) {
             </div>
             
                                     <!-- LOG OUT MODAL-->
-        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                        <a class="btn btn-primary" href="../logout.php">Logout</a>
+            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                            <a class="btn btn-primary" href="../logout.php">Logout</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <!--Upload File Modal-->
+            <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModal" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="upload_docs.php" enctype="multipart/form-data" method="POST">
+                                <div class="form-group">
+                                    <label for="documentTypeLabel">Document Type:</label>
+                                    <input type="text" class="form-control input-sm" id="documentType" name="documentType" value="" autocomplete="none" readonly>
+                                    <label for="fileUploadLabel">Upload File</label>
+                                    <input type="file" class="form-control-file" id="uploadFile" name="uploadFile" accept=".docx,.pdf">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+        <script src="../assets/js/sidebarscript.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                // Select all upload buttons
+                let uploadButtons = document.querySelectorAll(".uploadButton");
+
+                uploadButtons.forEach(button => {
+                    button.addEventListener("click", function() {
+                        // Get document name from data attribute
+                        let documentName = this.getAttribute("data-document");
+            
+                        // Set it in the modal's input field
+                        document.getElementById("documentType").value = documentName;
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
