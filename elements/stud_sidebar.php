@@ -61,7 +61,7 @@
     </li>
 
     <li class="sidebar-item">
-        <a href="student_docs.php" class="sidebar-link">
+        <a href="stud_documents.php" class="sidebar-link">
             <i class="fas fa-folder fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Documents</span></a>
         </a>
