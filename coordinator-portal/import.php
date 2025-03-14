@@ -12,18 +12,18 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 set_time_limit(300);
 
 $client = new Google_Client();
-$client->setAuthConfig(__DIR__ . '/credentials.json');
+$client->setAuthConfig(__DIR__ . '../../credentials/credentials.json');
 $client->addScope(Google_Service_Drive::DRIVE_FILE);
 $client->setAccessType('offline');
 
-if (file_exists(__DIR__ . '/token.json')) {
-    $accessToken = json_decode(file_get_contents(__DIR__ . '/token.json'), true);
+if (file_exists(__DIR__ . '../../credentials/token.json')) {
+    $accessToken = json_decode(file_get_contents(__DIR__ . '../../credentials/token.json'), true);
     $client->setAccessToken($accessToken);
 
     if ($client->isAccessTokenExpired()) {
         if ($client->getRefreshToken()) {
             $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            file_put_contents(__DIR__ . '/token.json', json_encode($newToken));
+            file_put_contents(__DIR__ . '../../credentials/token.json', json_encode($newToken));
             $client->setAccessToken($newToken);
         } else {
             die("Token expired. Please reauthorize.");

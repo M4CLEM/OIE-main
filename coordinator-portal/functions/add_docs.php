@@ -44,9 +44,9 @@ function getOrCreateFolder($driveService, $parentFolderId, $folderName) {
  */
 function uploadToGoogleDrive($file, $department, $documentType) {
     $client = new Google_Client();
-    $client->setAuthConfig('../credentials.json');
+    $client->setAuthConfig(__DIR__ . '/../../credentials/credentials.json');
     $client->addScope(Google_Service_Drive::DRIVE_FILE);
-    $client->setAccessToken(json_decode(file_get_contents('../token.json'), true));
+    $client->setAccessToken(json_decode(file_get_contents(__DIR__ . '/../../credentials/token.json'), true));
 
     if ($client->isAccessTokenExpired()) {
         // Handle token refresh logic if needed

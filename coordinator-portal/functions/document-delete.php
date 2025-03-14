@@ -8,9 +8,9 @@ use Google\Service\Drive as Google_Service_Drive;
 
 function deleteFromGoogleDrive($fileId) {
     $client = new Google_Client();
-    $client->setAuthConfig('../credentials.json'); // Ensure correct path
+    $client->setAuthConfig(__DIR__ . '/../../credentials/credentials.json'); // Ensure correct path
     $client->addScope(Google_Service_Drive::DRIVE_FILE);
-    $client->setAccessToken(json_decode(file_get_contents('../token.json'), true));
+    $client->setAccessToken(json_decode(file_get_contents(__DIR__ . '/../../credentials/token.json'), true));
 
     if ($client->isAccessTokenExpired()) {
         // Handle token refresh logic here if needed

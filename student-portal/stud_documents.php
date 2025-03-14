@@ -202,10 +202,10 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                     <label for="fileUploadLabel">Upload File</label>
                                     <input type="file" class="form-control-file" id="uploadFile" name="uploadFile" accept=".docx,.pdf">
                                 </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
                             </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Upload</button>
                         </div>
                     </div>
                 </div>
