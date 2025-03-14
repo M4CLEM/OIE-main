@@ -125,57 +125,65 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                         <th width="25%" scope="col">File Name</th>
                                         <th scope="col">Status</th>
                                         <th scope="col">Date</th>
-                                        <th width="34%" align="center">Action</th>
+                                        <th width="36%" align="center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php
-                                    // Check if both result sets have rows
-                                    if (mysqli_num_rows($studDocumentResult) > 0 && mysqli_num_rows($documentResult) > 0) {
-                                        // Loop through the student documents
-                                        while ($rows = mysqli_fetch_assoc($studDocumentResult)) {
-                                            // Loop through the document result
-                                            $stud_email = $rows['email'];
-                                            $document = $rows['document']; //Value must match with $documentName to display the information on the table
-                                            $fileName = $rows['file_name']; //This should be placed on File Name column
-                                            $fileLink = $rows['file_link'];
-                                            $status = $rows['status']; // This should be placed on Status  column
-                                            $date = $rows['date'];  // This should be placed on Date column
+                                <?php
+        // Store student-uploaded documents in an associative array
+        $studentDocuments = [];
+        while ($row = mysqli_fetch_assoc($studDocumentResult)) {
+            $studentDocuments[$row['document']] = [
+                'file_name' => $row['file_name'],
+                'file_link' => $row['file_link'],
+                'status' => $row['status'],
+                'date' => $row['date']
+            ];
+        }
 
-                                            while ($row = mysqli_fetch_assoc($documentResult)) {
-                                                $doc_template = $row['file_template'];
-                                                $documentName = $row['documentName'];
+        // Display all document templates, matching any student-uploaded files
+        while ($row = mysqli_fetch_assoc($documentResult)) {
+            $documentName = $row['documentName'];
+            $doc_template = $row['file_template'];
 
-                                                // Extract file ID from the stored Google Drive URL
-                                                preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
-                                                $file_id = $matches[1] ?? '';
+            // Extract file ID from Google Drive URL
+            preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
+            $file_id = $matches[1] ?? '';
 
-                                                if ($file_id) {
-                                                    $drive_file_url = "https://drive.google.com/uc?export=download&id=" . urlencode($file_id);
-                                                } else {
-                                                    $drive_file_url = "#"; // Handle case when file ID is missing or URL is incorrect
-                                                }
-                                            ?>
-                                            <tr>
-                                                <td><?php echo htmlspecialchars($row['documentName']); ?></td>
-                                                <td><?php echo htmlspecialchars($rows['file_name']); ?></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>
-                                                    <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm"><i class="fas fa-download"></i>Download Template</a>
-                                                    <button class="btn btn-success btn-sm uploadButton" id="uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($row['documentName']); ?>"><i class="fas fa-upload">Upload</i></button>
-                                                    <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $file; ?>')"><i class="far fa-eye"></i>View</button>
-                                                    <button class="btn btn-danger btn-sm"><i class="fa fa-trash">Delete</i></button>
-                                                </td>
-                                            </tr>
-                                            <?php
-                                            
-                                        }
-                                    }
-                                } else {
-                                    echo "<tr><td colspan='5'>No documents available.</td></tr>";  // If no documents are found
-                                }
-                                ?>
+            // Construct Google Drive download link
+            $drive_file_url = $file_id ? "https://drive.google.com/uc?export=download&id=" . urlencode($file_id) : "#";
+
+            // Check if a student has uploaded this document
+            $fileName = $studentDocuments[$documentName]['file_name'] ?? '';
+            $fileLink = $studentDocuments[$documentName]['file_link'] ?? '';
+            $status = $studentDocuments[$documentName]['status'] ?? '';
+            $date = $studentDocuments[$documentName]['date'] ?? '';
+        ?>
+            <tr>
+                <td><?php echo htmlspecialchars($documentName); ?></td>
+                <td><?php echo htmlspecialchars($fileName); ?></td>
+                <td><?php echo htmlspecialchars($status); ?></td>
+                <td><?php echo htmlspecialchars($date); ?></td>
+                <td>
+                    <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm">
+                        <i class="fas fa-download"></i> Download Template
+                    </a>
+                    <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                    <?php if ($fileName) { ?>
+                        <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
+                            <i class="far fa-eye"></i> View
+                        </button>
+                        <button class="btn btn-danger btn-sm">
+                            <i class="fa fa-trash"></i> Delete
+                        </button>
+                    <?php } ?>
+                </td>
+            </tr>
+        <?php
+        }
+        ?>
 
                                 </tbody>
                             </table>
