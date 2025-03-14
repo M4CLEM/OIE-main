@@ -39,6 +39,23 @@ if (isset($_POST['register'])) {
 	if (count($error) < 1) {
 
 		$find = "SELECT * FROM student_masterlist WHERE studentID = '$studentID'";
+
+		$courseQuery = "SELECT course FROM student_masterlist WHERE studentID = '$studentID'";
+		$courseResult = mysqli_query($connect, $courseQuery);
+
+		if ($courseResult->num_rows > 0) {
+			$row = $courseResult->fetch_assoc();
+			$course = $row['course'];
+		}
+
+		$departmentQuery = "SELECT department FROM course_list where course = '$course'";
+		$departmentResult = mysqli_query($connect, $departmentQuery);
+
+		if ($departmentResult->num_rows > 0) {
+			$rows = $departmentResult->fetch_assoc();
+			$department = $rows['department'];
+		}
+
 		$execute = mysqli_query($connect, $find);
 
 		if ($execute && mysqli_num_rows($execute) > 0) {
@@ -48,7 +65,7 @@ if (isset($_POST['register'])) {
 			if (mysqli_num_rows($execute) > 0) {
 				$output = "<span class='text-danger'>Institutional Email is already in use</span>";
 			}else{
-				$insert = "INSERT INTO users (username, role, password) VALUES ('$email', 'Student', '$password')";
+				$insert = "INSERT INTO users (username, role, password, department) VALUES ('$email', 'Student', '$password', '$department')";
 				$execute = mysqli_query($connect,$insert);
 
 				header("Location: student-portal/otp-verify.php?email=$email");
