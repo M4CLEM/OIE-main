@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 $connect->close();
 
-header("Location: ../stud_documents.php");
+header("Location: ../stud_documents.php?success=1");
 
 function createFolder($driveService, $folderName, $parentFolderId) {
     $query = "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";

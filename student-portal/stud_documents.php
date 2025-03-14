@@ -184,32 +184,33 @@ if (mysqli_num_rows($departmentResult) > 0) {
                 </div>
             </div>
 
-            <!--Upload File Modal-->
-            <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModal" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="functions/upload_docs.php" enctype="multipart/form-data" method="POST">
-                                <div class="form-group">
-                                    <label for="documentTypeLabel">Document Type:</label>
-                                    <input type="text" class="form-control input-sm" id="documentType" name="documentType" value="" autocomplete="none" readonly>
-                                    <label for="fileUploadLabel">Upload File</label>
-                                    <input type="file" class="form-control-file" id="uploadFile" name="uploadFile" accept=".docx,.pdf">
+                        <!-- Upload File Modal -->
+                        <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModal" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Upload File</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="uploadForm" action="functions/upload_docs.php" method="POST" enctype="multipart/form-data">
+                                            <div class="form-group">
+                                                <label>Document Type:</label>
+                                                <input type="text" class="form-control input-sm" id="documentType" name="documentType" readonly>
+                                                
+                                                <label>Upload File:</label>
+                                                <input type="file" class="form-control-file" id="uploadFile" name="uploadFile" accept=".docx,.pdf">
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-primary">Upload</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-primary">Upload</button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
         </div>
 
@@ -217,6 +218,58 @@ if (mysqli_num_rows($departmentResult) > 0) {
         integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
         crossorigin="anonymous"></script>
         <script src="../assets/js/sidebarscript.js"></script>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 200px;">
+                <h5 class="text-primary">Please Wait...</h5>
+                <div class="spinner-border text-primary my-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                <p>Uploading document...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Upload Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content text-center p-4">
+            <h5 class="text-success">Success!</h5>
+            <i class="fa fa-check-circle text-success fa-3x my-3"></i>
+            <p>Document uploaded successfully.</p>
+            <button class="btn btn-success" type="button" data-dismiss="modal" id="closeSuccessModal">OK</button>
+        </div>
+    </div>
+</div>
+
+<!--Upload JavaScript -->
+<script>
+document.getElementById("uploadForm").addEventListener("submit", function() {
+    $("#uploadFileModal").modal("hide"); // Hide upload modal
+    $("#loadingModal").modal("show"); // Show loading modal
+});
+
+// Show success modal if the URL contains "success=1"
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success')) {
+        $("#loadingModal").modal("hide"); // Ensure loading modal is closed
+        $("#successModal").modal("show"); // Show success modal
+
+        // Remove "success=1" from the URL without reloading
+        const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
+        window.history.replaceState(null, '', newUrl);
+    }
+};
+
+// Close success modal on button click
+document.getElementById("closeSuccessModal").addEventListener("click", function() {
+    $("#successModal").modal("hide");
+});
+</script>
+
 
         <script>
             document.addEventListener("DOMContentLoaded", function() {
