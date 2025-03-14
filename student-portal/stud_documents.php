@@ -124,6 +124,18 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                         // Fetch and display document rows inside the HTML table
                                         if (mysqli_num_rows($documentResult) > 0) {
                                             while ($row = mysqli_fetch_assoc($documentResult)) {
+                                                $doc_template  = $row['file_template'];
+
+                                                
+                                                // Extract file ID from the stored Google Drive URL
+                                                preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
+                                                $file_id = $matches[1] ?? '';
+
+                                                if ($file_id) {
+                                                    $drive_file_url = "https://drive.google.com/uc?export=download&id=" . urlencode($file_id);
+                                                } else {
+                                                    $drive_file_url = "#"; // Handle case when file ID is missing or URL is incorrect
+                                                }
                                     ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($row['documentName']); ?></td>
@@ -131,7 +143,7 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                             <td></td>
                                             <td></td>
                                             <td>
-                                                <button class="btn btn-success btn-sm"><i class="fas fa-download"></i>Download Template</button>
+                                                <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm"><i class="fas fa-download"></i>Download Template</a>
 
                                                 <button class="btn btn-success btn-sm uploadButton" id="uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($row['documentName']); ?>"><i class="fas fa-upload">Upload</i></button>
 
@@ -183,7 +195,7 @@ if (mysqli_num_rows($departmentResult) > 0) {
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form action="upload_docs.php" enctype="multipart/form-data" method="POST">
+                            <form action="functions/upload_docs.php" enctype="multipart/form-data" method="POST">
                                 <div class="form-group">
                                     <label for="documentTypeLabel">Document Type:</label>
                                     <input type="text" class="form-control input-sm" id="documentType" name="documentType" value="" autocomplete="none" readonly>
