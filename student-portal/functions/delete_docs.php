@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
     $documentId = $_POST['id'];
     
     // Retrieve file ID from database
-    $sql = "SELECT file_template FROM documents_list WHERE id = ?";
+    $sql = "SELECT file_link FROM documents WHERE id = ?";
     $stmt = $connect->prepare($sql);
     $stmt->bind_param("i", $documentId);
     $stmt->execute();
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
     }
 
     // Delete from database
-    $deleteSql = "DELETE FROM documents_list WHERE id = ?";
+    $deleteSql = "DELETE FROM documents WHERE id = ?";
     $deleteStmt = $connect->prepare($deleteSql);
     $deleteStmt->bind_param("i", $documentId);
     
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
     }
     
 } else {
-    header("Location: ../documents.php?success=deleted");
+    header("Location: ../stud_documents.php?success=deleted");
         exit();
 }
 

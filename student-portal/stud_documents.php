@@ -130,64 +130,92 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                 </thead>
                                 <tbody>
                                 <?php
-        // Store student-uploaded documents in an associative array
-        $studentDocuments = [];
-        while ($row = mysqli_fetch_assoc($studDocumentResult)) {
-            $studentDocuments[$row['document']] = [
-                'file_name' => $row['file_name'],
-                'file_link' => $row['file_link'],
-                'status' => $row['status'],
-                'date' => $row['date']
-            ];
-        }
+                                // Store student-uploaded documents in an associative array
+                                $studentDocuments = [];
+                                while ($row = mysqli_fetch_assoc($studDocumentResult)) {
+                                    $studentDocuments[$row['document']] = [
+                                        'id' => $row['id'],
+                                        'file_name' => $row['file_name'],
+                                        'file_link' => $row['file_link'],
+                                        'status' => $row['status'],
+                                        'date' => $row['date']
+                                    ];
+                                }
 
-        // Display all document templates, matching any student-uploaded files
-        while ($row = mysqli_fetch_assoc($documentResult)) {
-            $documentName = $row['documentName'];
-            $doc_template = $row['file_template'];
+                                // Display all document templates, matching any student-uploaded files
+                                while ($row = mysqli_fetch_assoc($documentResult)) {
+                                    $documentName = $row['documentName'];
+                                    $doc_template = $row['file_template'];
 
-            // Extract file ID from Google Drive URL
-            preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
-            $file_id = $matches[1] ?? '';
+                                    // Extract file ID from Google Drive URL
+                                    preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
+                                    $file_id = $matches[1] ?? '';
 
-            // Construct Google Drive download link
-            $drive_file_url = $file_id ? "https://drive.google.com/uc?export=download&id=" . urlencode($file_id) : "#";
+                                    // Construct Google Drive download link
+                                    $drive_file_url = $file_id ? "https://drive.google.com/uc?export=download&id=" . urlencode($file_id) : "#";
 
-            // Check if a student has uploaded this document
-            $fileName = $studentDocuments[$documentName]['file_name'] ?? '';
-            $fileLink = $studentDocuments[$documentName]['file_link'] ?? '';
-            $status = $studentDocuments[$documentName]['status'] ?? '';
-            $date = $studentDocuments[$documentName]['date'] ?? '';
-        ?>
-            <tr>
-                <td><?php echo htmlspecialchars($documentName); ?></td>
-                <td><?php echo htmlspecialchars($fileName); ?></td>
-                <td><?php echo htmlspecialchars($status); ?></td>
-                <td><?php echo htmlspecialchars($date); ?></td>
-                <td>
-                    <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm">
-                        <i class="fas fa-download"></i> Download Template
-                    </a>
-                    <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
-                        <i class="fas fa-upload"></i> Upload
-                    </button>
-                    <?php if ($fileName) { ?>
-                        <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
-                            <i class="far fa-eye"></i> View
-                        </button>
-                        <button class="btn btn-danger btn-sm">
-                            <i class="fa fa-trash"></i> Delete
-                        </button>
-                    <?php } ?>
-                </td>
-            </tr>
-        <?php
-        }
-        ?>
-
+                                    // Check if a student has uploaded this document
+                                    $fileName = $studentDocuments[$documentName]['file_name'] ?? '';
+                                    $fileLink = $studentDocuments[$documentName]['file_link'] ?? '';
+                                    $status = $studentDocuments[$documentName]['status'] ?? '';
+                                    $date = $studentDocuments[$documentName]['date'] ?? '';
+                                    $id = $studentDocuments[$documentName]['id'] ?? '';
+                                ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($documentName); ?></td>
+                                        <td><?php echo htmlspecialchars($fileName); ?></td>
+                                        <td>
+                                            <?php if (!empty($status)): ?>
+                                                <div class="text-center p-1 status-<?php echo strtolower($status); ?> bg-<?php echo strtolower($status) === 'pending' ? 'warning text-white' : (strtolower($status) === 'approved' ? 'success text-white' : 'danger text-white'); ?> rounded">
+                                                <?php echo htmlspecialchars($status); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($date); ?></td>
+                                        <td>
+                                            <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm">
+                                                <i class="fas fa-download"></i> Download Template
+                                            </a>
+                                            <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
+                                                <i class="fas fa-upload"></i> Upload
+                                            </button>
+                                            <?php if ($fileName) { ?>
+                                                <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
+                                                    <i class="far fa-eye"></i> View
+                                                </button>
+                                                <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $id;?>">
+                                                    <i class="fa fa-trash"></i> Delete
+                                                </button>
+                                            <?php } ?>
+                                        </td>
+                                    </tr>
+                                <?php
+                                }
+                                ?>
                                 </tbody>
                             </table>
                         </div>
+                                <!-- DELETE MODAL -->
+                                <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure to delete this row?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                     </div>
                 </div>
             </div>
@@ -273,28 +301,28 @@ if (mysqli_num_rows($departmentResult) > 0) {
 
 <!--Upload JavaScript -->
 <script>
-document.getElementById("uploadForm").addEventListener("submit", function() {
-    $("#uploadFileModal").modal("hide"); // Hide upload modal
-    $("#loadingModal").modal("show"); // Show loading modal
-});
+    document.getElementById("uploadForm").addEventListener("submit", function() {
+        $("#uploadFileModal").modal("hide"); // Hide upload modal
+        $("#loadingModal").modal("show"); // Show loading modal
+    });
 
-// Show success modal if the URL contains "success=1"
-window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('success')) {
-        $("#loadingModal").modal("hide"); // Ensure loading modal is closed
-        $("#successModal").modal("show"); // Show success modal
+    // Show success modal if the URL contains "success=1"
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('success')) {
+            $("#loadingModal").modal("hide"); // Ensure loading modal is closed
+            $("#successModal").modal("show"); // Show success modal
 
-        // Remove "success=1" from the URL without reloading
-        const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
-        window.history.replaceState(null, '', newUrl);
-    }
-};
+            // Remove "success=1" from the URL without reloading
+            const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
+            window.history.replaceState(null, '', newUrl);
+        }
+    };
 
-// Close success modal on button click
-document.getElementById("closeSuccessModal").addEventListener("click", function() {
-    $("#successModal").modal("hide");
-});
+    // Close success modal on button click
+    document.getElementById("closeSuccessModal").addEventListener("click", function() {
+        $("#successModal").modal("hide");
+    });
 </script>
 
 
@@ -313,6 +341,35 @@ document.getElementById("closeSuccessModal").addEventListener("click", function(
                     });
                 });
             });
+
+            function viewPDF(pdfPath) {
+                // Open the PDF in a new tab/window
+                window.open(pdfPath, '_blank');
+            }
+
+            $(document).ready(function() {
+                $('.deleteBtn').click(function() {
+                var id = $(this).data('id');
+                $('#confirmDelete').data('id', id);
+                });
+
+                $('#confirmDelete').click(function() {
+                    var id = $(this).data('id');
+                    $.ajax({
+                        url: 'functions/delete_docs.php',
+                        type: 'POST',
+                        data: {id: id},
+                        success: function(response) {
+                            alert(response);
+                            location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            alert('An error occured:' + error);
+                        }
+                    })
+                });
+            })
+
         </script>
     </body>
 </html>
