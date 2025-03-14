@@ -33,9 +33,18 @@ if (mysqli_num_rows($departmentResult) > 0) {
         die("Query Failed: " . mysqli_error($connect));
     }
 
+    $studDocumentQuery = "SELECT * FROM documents WHERE email= '$email'";
+
+    $studDocumentResult = mysqli_query($connect, $studDocumentQuery);
+    if (!$documentResult) {
+        die("" . mysqli_error($connect));
+    }
+
 } else {
     echo "No department found for this student.<br>";  // Debugging if no department is found for the student
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -121,12 +130,22 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                 </thead>
                                 <tbody>
                                     <?php
-                                        // Fetch and display document rows inside the HTML table
-                                        if (mysqli_num_rows($documentResult) > 0) {
-                                            while ($row = mysqli_fetch_assoc($documentResult)) {
-                                                $doc_template  = $row['file_template'];
+                                    // Check if both result sets have rows
+                                    if (mysqli_num_rows($studDocumentResult) > 0 && mysqli_num_rows($documentResult) > 0) {
+                                        // Loop through the student documents
+                                        while ($rows = mysqli_fetch_assoc($studDocumentResult)) {
+                                            // Loop through the document result
+                                            $stud_email = $rows['email'];
+                                            $document = $rows['document']; //Value must match with $documentName to display the information on the table
+                                            $fileName = $rows['file_name']; //This should be placed on File Name column
+                                            $fileLink = $rows['file_link'];
+                                            $status = $rows['status']; // This should be placed on Status  column
+                                            $date = $rows['date'];  // This should be placed on Date column
 
-                                                
+                                            while ($row = mysqli_fetch_assoc($documentResult)) {
+                                                $doc_template = $row['file_template'];
+                                                $documentName = $row['documentName'];
+
                                                 // Extract file ID from the stored Google Drive URL
                                                 preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
                                                 $file_id = $matches[1] ?? '';
@@ -136,28 +155,28 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                                 } else {
                                                     $drive_file_url = "#"; // Handle case when file ID is missing or URL is incorrect
                                                 }
-                                    ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($row['documentName']); ?></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td>
-                                                <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm"><i class="fas fa-download"></i>Download Template</a>
-
-                                                <button class="btn btn-success btn-sm uploadButton" id="uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($row['documentName']); ?>"><i class="fas fa-upload">Upload</i></button>
-
-                                                <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $file; ?>')"><i class="far fa-eye"></i>View</button>
-
-                                                <button class="btn btn-danger btn-sm"><i class="fa fa-trash">Delete</i></button>
-                                            </td>
-                                        </tr>
-                                    <?php
-                                            }
-                                        } else {
-                                            echo "<tr><td colspan='5'>No documents available.</td></tr>";  // If no documents are found
+                                            ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($row['documentName']); ?></td>
+                                                <td><?php echo htmlspecialchars($rows['file_name']); ?></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td>
+                                                    <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm"><i class="fas fa-download"></i>Download Template</a>
+                                                    <button class="btn btn-success btn-sm uploadButton" id="uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($row['documentName']); ?>"><i class="fas fa-upload">Upload</i></button>
+                                                    <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $file; ?>')"><i class="far fa-eye"></i>View</button>
+                                                    <button class="btn btn-danger btn-sm"><i class="fa fa-trash">Delete</i></button>
+                                                </td>
+                                            </tr>
+                                            <?php
+                                            
                                         }
-                                    ?>
+                                    }
+                                } else {
+                                    echo "<tr><td colspan='5'>No documents available.</td></tr>";  // If no documents are found
+                                }
+                                ?>
+
                                 </tbody>
                             </table>
                         </div>
