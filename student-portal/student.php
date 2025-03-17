@@ -75,7 +75,27 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                             <?php (isset($_SESSION['student'])) ?> <?php echo $_SESSION['student']; ?></span>
-                            <img class="img-profile rounded-circle" src="<?php echo $image ? $image : '../img/undraw_profile.svg'; ?>">
+                            <?php
+function get_drive_image_url($image) {
+    // Check if the image is a Google Drive URL
+    if (strpos($image, 'drive.google.com') !== false) {
+        // Extract the File ID from different Drive URL formats
+        preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $image, $matches);
+        $image = $matches[1] ?? null; // Get the File ID if found
+    }
+
+    // If a valid Google Drive File ID is found, return the direct image link
+    if ($image && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $image)) {
+        return "https://lh3.googleusercontent.com/d/{$image}=w1000";
+    }
+
+    // If it's not a Google Drive image, return it as is
+    return $image;
+}
+?>
+
+<img class="img-profile rounded-circle" src="<?php echo $image ? get_drive_image_url($image) : '../img/undraw_profile.svg'; ?>">
+
                         </a>
                         <!-- Dropdown - User Information -->
                         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -132,7 +152,30 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                                 <div class="row">
                                     <div class="form-group col col-md-6">
                                         <div class="d-flex justify-content-center mx-auto">
-                                            <img class="img-profile rounded-circle" id="default" src="<?php echo $image ? $image : '../img/undraw_profile.svg'; ?>" width="200" height="200">
+ <?php
+if (!function_exists('get_drive_image_url')) {
+    function get_drive_image_url($image) {
+        // Check if the image is a Google Drive URL
+        if (strpos($image, 'drive.google.com') !== false) {
+            // Extract the File ID from different Drive URL formats
+            preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $image, $matches);
+            $image = $matches[1] ?? null; // Get the File ID if found
+        }
+
+        // If a valid Google Drive File ID is found, return the direct image link
+        if ($image && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $image)) {
+            return "https://lh3.googleusercontent.com/d/{$image}=w1000";
+        }
+
+        // If it's not a Google Drive image, return it as is
+        return $image;
+    }
+}
+?>
+<img class="img-profile rounded-circle" id="default" 
+     src="<?php echo $image ? get_drive_image_url($image) : '../img/undraw_profile.svg'; ?>" 
+     width="200" height="200">
+
                                         </div>
                                     </div>
                                     <div class="col col-md-6">
