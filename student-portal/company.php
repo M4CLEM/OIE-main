@@ -37,7 +37,14 @@ $result = $stmt->get_result();
         </aside>
 
         <div class="main">
-
+            <?php
+                $email = $_SESSION['student'];
+                $query = "SELECT * FROM studentinfo WHERE email ='$email'";
+                $result = mysqli_query($connect, $query);
+                while ($rows = mysqli_fetch_array($result)) {
+                    $image = $rows['image'];
+                }
+            ?>
             <!-- Topbar -->
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
 
@@ -56,8 +63,24 @@ $result = $stmt->get_result();
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                 <?php echo $_SESSION['student']; ?>
                             </span>
-                            <img class="img-profile rounded-circle"
-                                src="../img/undraw_profile.svg">
+                            <?php
+                                function get_drive_image_url($image) {
+                                    // Check if the image is a Google Drive URL
+                                    if (strpos($image, 'drive.google.com') !== false) {
+                                        // Extract the File ID from different Drive URL formats
+                                        preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $image, $matches);
+                                        $image = $matches[1] ?? null; // Get the File ID if found
+                                    }
+
+                                    // If a valid Google Drive File ID is found, return the direct image link
+                                    if ($image && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $image)) {
+                                        return "https://lh3.googleusercontent.com/d/{$image}=w1000";
+                                    }
+                                    // If it's not a Google Drive image, return it as is
+                                        return $image;
+                                }
+                            ?>
+                            <img class="img-profile rounded-circle" src="<?php echo $image ? get_drive_image_url($image) : '../img/undraw_profile.svg'; ?>">
                         </a>
                         <!-- Dropdown - User Information -->
                         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
