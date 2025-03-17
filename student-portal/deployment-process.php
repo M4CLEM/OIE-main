@@ -7,9 +7,14 @@ $output = "";
 if (isset($_POST['submit'])) {
     $companyName = $_POST['companyName'];
     $companyAddress = $_POST['companyAddress'];
+    $contactPerson = $_POST['contactPerson'];
     $trainerContact = $_POST['trainerContact'];
     $trainerEmail = $_POST['trainerEmail'];
+    $companyLink = $_POST['companyLink'];
     $workType = $_POST['workType'];
+    $jobrole = $_POST['jobrole'];
+    $jobdescription = $_POST['jobDescription'];
+    $jobRequirement = $_POST['jobRequirement'];
 
     echo $companyName, $companyAddress, $trainerContact, $trainerEmail, $workType;
 
@@ -34,6 +39,7 @@ if (isset($_POST['submit'])) {
     $row = $result->fetch_assoc();
     $studentID = $row['studentID'];
     $section = $row['section'];
+    $department = $row['department'];
     $stmt->close();
 
 
@@ -44,7 +50,11 @@ if (isset($_POST['submit'])) {
 
         $res = mysqli_query($connect, $query);
 
-        if ($res) {
+        $companyQuery = "INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, jobdescription, jobreq, link, dept) VALUES ('$companyName', '$companyAddress', '$contactPerson', '$jobrole', '$jobdescription', '$jobRequirement', '$companyLink', '$department')";
+
+        $companyResult = mysqli_query($connect, $companyQuery);
+
+        if ($res || $companyResult) {
             header("Location:deploy.php");
         } else {
             $output = "Registration failed. Please try again.";
