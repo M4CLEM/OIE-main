@@ -5,7 +5,7 @@ include("../includes/connection.php");
 if (isset($_GET['studentId']) && isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
     $studentId = $_GET['studentId'];
 
-    // Fetch companyName and jobrole
+    // Fetch company and job role for selected student
     $studQuery = "SELECT companyName, jobrole FROM company_info WHERE studentID = ?";
     $stmtStud = $connect->prepare($studQuery);
     $stmtStud->bind_param("s", $studentId);
@@ -14,179 +14,175 @@ if (isset($_GET['studentId']) && isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
 
     if ($studResult->num_rows > 0) {
         $row = $studResult->fetch_assoc();
-        $companyName = $row['companyName'];
         $jobrole = $row['jobrole'];
+        $companyName = $row['companyName'];
 
-        // Fetch criteria based on companyName and jobrole
+        $companyCriteriaGrouped = [];
+
+        // Fetch criteria for company and job role
         $criteriaQuery = "SELECT * FROM criteria_list_view WHERE company = ? AND jobrole = ?";
         $stmtCriteria = $connect->prepare($criteriaQuery);
         $stmtCriteria->bind_param("ss", $companyName, $jobrole);
         $stmtCriteria->execute();
         $resultCriteria = $stmtCriteria->get_result();
 
-        if ($resultCriteria->num_rows > 0) {
-            echo "<ul class='list-group'>";
-            while ($row = $resultCriteria->fetch_assoc()) {
-                $criteriaData = json_decode($row['criteria'], true);
-                foreach ($criteriaData as $criteriaItem) {
-                    echo "<li class='list-group-item'>";
-                    echo "<strong>" . htmlspecialchars($criteriaItem['companyCriteria']) . ":</strong> ";
-                    echo htmlspecialchars($criteriaItem['companyDescription']);
-                    echo " (" . htmlspecialchars($criteriaItem['companyPercentage']) . "%)";
-                    echo "</li>";
-                }
+        while ($row = $resultCriteria->fetch_assoc()) {
+            $criteriaData = json_decode($row['criteria'], true);
+            foreach ($criteriaData as $companyCriteriaItem) {
+                $companyCriteriaGrouped[] = [
+                    'id' => $row['id'],
+                    'criteria' => $companyCriteriaItem['companyCriteria'],
+                    'percentage' => $companyCriteriaItem['companyPercentage'],
+                    'description' => $companyCriteriaItem['companyDescription']
+                ];
             }
-            echo "</ul>";
-        } else {
-            echo "<p class='text-center text-warning'>No criteria found for this student.</p>";
         }
-    } else {
-        echo "<p class='text-center text-danger'>Invalid student selection.</p>";
     }
+
+    // Return JSON response
+    header('Content-Type: application/json');
+    echo json_encode($companyCriteriaGrouped);
     exit;
+}
+
+// Fetch students for dropdown
+$allStudents = [];
+$queryStudents = "SELECT * FROM studentinfo WHERE status = 'Deployed'";
+$resultStudents = $connect->query($queryStudents);
+while ($row = $resultStudents->fetch_assoc()) {
+    $studentName = $row['lastname'] . ", " . $row['firstname'] . " " . substr($row['middlename'], 0, 1) . ".";
+    $allStudents[$row['studentID']] = $studentName;
 }
 ?>
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <?php include("../elements/meta.php"); ?>
-        <title>INDUSTRY PARTNER PORTAL</title>
-        <?php include("embed.php"); ?>
-    </head>
-    <body id="page-top">
-        <div id="wrapper">
-            <aside>
-                <?php include('../elements/ip_sidebar.php') ?>
-            </aside>
-            <div class="main">
-                <!--  NAVIGATION BAR HERE              
-                  
-                
-                -->
-                <div id="content" class="py-4 px-4">
-                    <div class="col-lg-12 mb-4">
-                        <?php
-                        $queryIP = "SELECT companyCode FROM company_info WHERE trainerEmail = ?";
-                        $stmtIP = $connect->prepare($queryIP);
-                        $stmtIP->bind_param("s", $_SESSION['IndustryPartner']);
-                        $stmtIP->execute();
-                        $resultIP = $stmtIP->get_result();
-
-                        if (!$resultIP) {
-                            die("Query failed: " . $connect->error);
-                        }
-
-                        // Collect the company codes into an array
-                        $companyCodes = array();
-
-                        // Iterate over each companyCode
-                        while ($rowIP = $resultIP->fetch_assoc()) {
-                            $companyCodes[] = $rowIP['companyCode'];
-                        }
-
-                        if (!empty($companyCodes)) {
-                            $companyCode = $companyCodes[0];
-                        } else {
-                            die("No company codes found for the trainer's email.");
-                        }
-                        $allStudents = [];
-
-                        foreach ($companyCodes as $companyCode) {
-
-                            // Fetch students who do not have records in the student_grade table for the current companyCode
-                            $queryStudents = "SELECT * FROM studentinfo s WHERE s.companyCode = ? AND s.status = 'Deployed'
-                                AND NOT EXISTS (
-                                SELECT 1 FROM student_grade sg
-                                WHERE sg.studentID = s.studentID
-                            )";
-                            $stmtStud = $connect->prepare($queryStudents);
-                            $stmtStud->bind_param("s", $companyCode);
-                            $stmtStud->execute();
-                            $resultStud = $stmtStud->get_result();
-
-                            if (!$resultStud) {
-                                die("Query failed: " . $connect->error);
-                            }
-
-                            // Collect all students into the $allStudents array
-                            while ($rowStud = $resultStud->fetch_assoc()) {
-                                $studentName = $rowStud['lastname'] . ", " . $rowStud['firstname'] . " " . substr($rowStud['middlename'], 0, 1) . ".";
-                                $allStudents[$rowStud['studentID']] = $studentName;
-                            }
-                        }
-                        ?>
-
-                        <form id="criteriaForm" method="post">
-                            <!-- Illustrations -->
-                            <div class="card shadow mb-4">
-                                <div class="m-4">
-                                    <div class="px-3">
-                                        <label for="studentNameDropdown"><b>Select a Student:</b></label>
-                                        <select name="studentId" id="studentNameDropdown" class="form-select mb-3" required>
-                                            <option value="" selected disabled>Select a student...</option>
-                                            <?php
-                                            // Generate select options from the $allStudents array
-                                            foreach ($allStudents as $studentId => $studentName) {
-                                                echo "<option data-id='" . $studentId . "' value='" . $studentId . "'>" . $studentName . "</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div id="criteriaContainer">
-                                                <p class="text-center p-4">Criterias will be displayed here</p>
-
-                                            </div>
-                                            <div class="d-flex justify-content-end">
-                                                <input type="hidden" name="studentId" id="studentId" value="">
-                                                <input type="hidden" name="criteriaData" id="criteriaData" value="">
-
-                                                <button type="submit" class="btn btn-success">
-                                                    <span class="fas fa-save fw-fa"></span> Submit Grade
-                                                </button>
-                                                <div class="col-4">
-                                                    <label class="sr-only" for="totalGrade">Total Grade</label>
-                                                    <div class="input-group mb-2 mr-sm-2">
-                                                        <div class="input-group-prepend">
-                                                            <div class="input-group-text">Total</div>
-                                                        </div>
-                                                        <input type="number" id="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()">
+<head>
+    <?php include("../elements/meta.php"); ?>
+    <title>INDUSTRY PARTNER PORTAL</title>
+    <?php include("embed.php"); ?>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body id="page-top">
+    <div id="wrapper">
+        <aside>
+            <?php include('../elements/ip_sidebar.php'); ?>
+        </aside>
+        <div class="main">
+            <div id="content" class="py-4 px-4">
+                <div class="col-lg-12 mb-4">
+                    <form id="criteriaForm" method="post">
+                        <div class="card shadow mb-4">
+                            <div class="m-4">
+                                <div class="px-3">
+                                    <label for="studentNameDropdown"><b>Select a Student:</b></label>
+                                    <select name="studentId" id="studentNameDropdown" class="form-select mb-3" required>
+                                        <option value="" selected disabled>Select a student...</option>
+                                        <?php foreach ($allStudents as $studentId => $studentName): ?>
+                                            <option value="<?= $studentId ?>"><?= $studentName ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div id="criteriaContainer">
+                                            <p class="text-center p-4">Criteria will be displayed here</p>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-success">
+                                                <span class="fas fa-save fw-fa"></span> Submit Grade
+                                            </button>
+                                            <div class="col-4">
+                                                <label class="sr-only" for="totalGrade">Total Grade</label>
+                                                <div class="input-group mb-2 mr-sm-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total</div>
                                                     </div>
+                                                    <input type="number" id="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <!--      SCRIPT                     -->                                
-            <script>
-                $(document).ready(function() {
-    $("#studentNameDropdown").change(function() {
-        var studentId = $(this).val();
-        
-        if (studentId) {
-            $.ajax({
-                url: window.location.href,
-                type: "GET",
-                data: { studentId: studentId },
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }, // Identify as AJAX request
-                success: function(response) {
-                    $("#criteriaContainer").html(response);
-                },
-                error: function() {
-                    $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+        </div>
+
+        <!-- JavaScript to Handle Dropdown Change & Render Criteria -->
+        <script>
+        $(document).ready(function() {
+            $("#studentNameDropdown").change(function() {
+                var studentId = $(this).val();
+
+                if (studentId) {
+                    $.ajax({
+                        url: window.location.href,
+                        type: "GET",
+                        data: { studentId: studentId },
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        success: function(response) {
+                            console.log("AJAX Response:", response);
+                            try {
+                                var criteria = response;
+                                renderCriteria(criteria);
+                            } catch (e) {
+                                console.error("JSON Parsing Error:", e);
+                                $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+                            }
+                        },
+                        error: function() {
+                            $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+                        }
+                    });
                 }
             });
+        });
+
+        function renderCriteria(criteria) {
+            var criteriaContainer = document.getElementById('criteriaContainer');
+            criteriaContainer.innerHTML = '';
+
+            if (criteria.length === 0) {
+                criteriaContainer.innerHTML = "<p class='text-center p-4'>No criteria found for this student.</p>";
+                return;
+            }
+
+            criteria.forEach(function(criteriaItem) {
+                var criteriaHtml = `
+                <div class='p-3 mb-2 border rounded'>
+                    <div class='row'>
+                        <div class='col-md-8'>
+                            <h6 data-id="${criteriaItem.id}">${criteriaItem.criteria}</h6>
+                            <p class="small"><i>${criteriaItem.description}</i></p>
+                        </div>
+                        <div class='col-md-4'>
+                            <input type="hidden" id="hiddenInputForCriteria${criteriaItem.id}" name="criteria[${criteriaItem.id}]" value="">
+                            <label class="sr-only" for="displayValue${criteriaItem.id}">Grade</label>
+                            <div class="input-group input-group-sm mb-2 mr-sm-2">
+                                <input type="number" required class="form-control custom-number-input" min="0" max="${criteriaItem.percentage}" value="0" id="displayValue${criteriaItem.id}" oninput="enforceMaxLimit(this, '${criteriaItem.id}')" data-percentage="${criteriaItem.percentage}">
+                                <div class="input-group-append">
+                                    <div class="input-group-text">${criteriaItem.percentage}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                criteriaContainer.innerHTML += criteriaHtml;
+            });
         }
-    });
-});
-            </script>      
-        </div>
-    </body>
+
+        function enforceMaxLimit(input, id) {
+            var max = input.dataset.percentage;
+            if (input.value > max) {
+                input.value = max;
+            }
+        }
+
+        
+        </script>
+    </div>
+</body>
 </html>
