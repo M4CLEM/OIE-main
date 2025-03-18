@@ -113,34 +113,39 @@ while ($row = $resultStudents->fetch_assoc()) {
 
         <!-- JavaScript to Handle Dropdown Change & Render Criteria -->
         <script>
-        $(document).ready(function() {
-            $("#studentNameDropdown").change(function() {
-                var studentId = $(this).val();
+    $(document).ready(function() {
+        let criteriaInputs = null;
+        let totalGradeInput = document.getElementById('totalGrade');
 
-                if (studentId) {
-                    $.ajax({
-                        url: window.location.href,
-                        type: "GET",
-                        data: { studentId: studentId },
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        success: function(response) {
-                            console.log("AJAX Response:", response);
-                            try {
-                                var criteria = response;
-                                renderCriteria(criteria);
-                            } catch (e) {
-                                console.error("JSON Parsing Error:", e);
-                                $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
-                            }
-                        },
-                        error: function() {
+        // Fetch criteria when a student is selected
+        $("#studentNameDropdown").change(function() {
+            var studentId = $(this).val();
+
+            if (studentId) {
+                $.ajax({
+                    url: window.location.href,
+                    type: "GET",
+                    data: { studentId: studentId },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(response) {
+                        console.log("AJAX Response:", response);
+                        try {
+                            var criteria = response;
+                            renderCriteria(criteria);
+                            initializeInputs();
+                        } catch (e) {
+                            console.error("JSON Parsing Error:", e);
                             $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
                         }
-                    });
-                }
-            });
+                    },
+                    error: function() {
+                        $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+                    }
+                });
+            }
         });
 
+        // Function to render criteria dynamically
         function renderCriteria(criteria) {
             var criteriaContainer = document.getElementById('criteriaContainer');
             criteriaContainer.innerHTML = '';
@@ -159,7 +164,7 @@ while ($row = $resultStudents->fetch_assoc()) {
                             <p class="small"><i>${criteriaItem.description}</i></p>
                         </div>
                         <div class='col-md-4'>
-                            <input type="hidden" id="hiddenInputForCriteria${criteriaItem.id}" name="criteria[${criteriaItem.id}]" value="">
+                            <input type="hidden" id="hiddenInputForCriteria${criteriaItem.id}" name="criteria[${criteriaItem.id}]" value="0">
                             <label class="sr-only" for="displayValue${criteriaItem.id}">Grade</label>
                             <div class="input-group input-group-sm mb-2 mr-sm-2">
                                 <input type="number" required class="form-control custom-number-input" min="0" max="${criteriaItem.percentage}" value="0" id="displayValue${criteriaItem.id}" oninput="enforceMaxLimit(this, '${criteriaItem.id}')" data-percentage="${criteriaItem.percentage}">
@@ -174,15 +179,123 @@ while ($row = $resultStudents->fetch_assoc()) {
             });
         }
 
-        function enforceMaxLimit(input, id) {
-            var max = input.dataset.percentage;
-            if (input.value > max) {
-                input.value = max;
+        // Initialize event listeners for input elements
+        function initializeInputs() {
+            criteriaInputs = document.querySelectorAll('.custom-number-input');
+            criteriaInputs.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    enforceMaxLimit(input, input.id.replace('displayValue', ''));
+                    updateTotal();
+                });
+            });
+        }
+
+        // Update total grade dynamically
+        function updateTotal() {
+            if (!criteriaInputs) return;
+
+            var total = 0;
+            criteriaInputs.forEach(function(input) {
+                var value = parseInt(input.value);
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+
+            totalGradeInput.value = total;
+        }
+
+        // Update hidden input values when criteria changes
+        function updateValue(value, criteriaId) {
+            var hiddenInput = document.getElementById('hiddenInputForCriteria' + criteriaId);
+            if (hiddenInput) {
+                hiddenInput.value = value;
             }
         }
 
-        
-        </script>
+        // Ensure input values stay within allowed range
+        function enforceMaxLimit(input, criteriaId) {
+            var maxValue = parseInt(input.max);
+            var value = parseInt(input.value);
+            if (value < 0) {
+                input.value = 0;
+                updateValue(0, criteriaId);
+            } else if (value > maxValue) {
+                input.value = maxValue;
+                updateValue(maxValue, criteriaId);
+            } else {
+                updateValue(value, criteriaId);
+            }
+        }
+
+        // Distribute total grade across criteria inputs
+        function distributeTotalGrade() {
+            var totalGradeValue = totalGradeInput.value.trim();
+
+            if (totalGradeValue === "") {
+                totalGradeInput.value = "0";
+                criteriaInputs.forEach(input => input.value = "0");
+                return;
+            }
+
+            var totalGrade = parseInt(totalGradeValue);
+            if (isNaN(totalGrade)) totalGrade = 0;
+            totalGrade = Math.max(0, Math.min(100, totalGrade));
+
+            // Initialize variables for integer distribution
+            var remainingPoints = totalGrade;
+            var criteriaPoints = [];
+
+            // First pass: Assign points as evenly as possible
+            var criteriaCount = criteriaInputs.length;
+            var basePoints = Math.floor(totalGrade / criteriaCount);
+            var leftoverPoints = totalGrade % criteriaCount;
+
+            criteriaInputs.forEach(function(input) {
+                input.value = basePoints;
+                criteriaPoints.push(basePoints);
+            });
+
+            // Second pass: Distribute leftover points (1 point each) to any criteria that hasn't hit its max
+            if (leftoverPoints > 0) {
+                for (var i = 0; i < criteriaInputs.length && leftoverPoints > 0; i++) {
+                    var input = criteriaInputs[i];
+                    var maxValue = parseInt(input.max);
+                    var currentValue = parseInt(input.value);
+
+                    if (currentValue < maxValue) {
+                        input.value = Math.min(currentValue + 1, maxValue); // Add 1 point without exceeding the max
+                        criteriaPoints[i] = input.value;
+                        leftoverPoints--;
+                    }
+                }
+            }
+
+            // Update the total and hidden input fields
+            updateTotal();
+            criteriaInputs.forEach(function(input, index) {
+                var criteriaId = input.id.replace('displayValue', '');
+                updateValue(criteriaPoints[index], criteriaId);
+            });
+        }
+
+        // Add event listener to trigger distributeTotalGrade when typing in totalGrade field
+        totalGradeInput.addEventListener('input', function() {
+            distributeTotalGrade();
+        });
+
+        // Add event listener to distribute total grade after finishing input (blur event)
+        totalGradeInput.addEventListener('blur', function() {
+            distributeTotalGrade();
+        });
+    });
+</script>
+
+
+
+
+
+
     </div>
 </body>
 </html>
