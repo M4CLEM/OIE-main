@@ -128,7 +128,7 @@ if (isset($_POST['login'])) {
 
 				if ($companyNameResult->num_rows > 0) {
 					$rowsCompanyName = $companyNameResult->fetch_assoc();
-					$companyName = $rowsCompanyName['department'];
+					$companyName = $rowsCompanyName['companyName'];
 					$_SESSION['companyName'] = $companyName;
 				}
 
