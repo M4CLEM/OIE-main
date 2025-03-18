@@ -151,6 +151,34 @@ include_once("../includes/connection.php");
 		</div>
 	</div>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 200px;">
+                <h5 class="text-primary">Please Wait...</h5>
+                <div class="spinner-border text-primary my-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                <p>Uploading Personal Information...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content text-center p-4">
+            <h5 class="text-success">Success!</h5>
+            <i class="fa fa-check-circle text-success fa-3x my-3"></i>
+            <p>Personal Information uploaded successfully.</p>
+            <button class="btn btn-success" type="button" data-dismiss="modal" id="closeSuccessModal">OK</button>
+        </div>
+    </div>
+</div>
+
+
 	<script>
 		function capitalize(id) {
 			var input = document.getElementById(id);
@@ -191,41 +219,59 @@ include_once("../includes/connection.php");
 		}
 
 		function validateForm() {
-			var requiredFields = document.querySelectorAll('[required]');
-			for (var i = 0; i < requiredFields.length; i++) {
-				if (!requiredFields[i].value) {
-					return false;
-				}
-			}
-			return true;
-		}
+        var requiredFields = document.querySelectorAll('[required]');
+        for (var i = 0; i < requiredFields.length; i++) {
+            if (!requiredFields[i].value) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-		// Intercept form submission
-		document.getElementById("submitButton").addEventListener("click", function() {
-			if (!validateForm()) {
-				Swal.fire({
-					title: 'Oops!',
-					text: 'Please fill in all required fields.',
-					icon: 'error'
-				});
-				return;
-			}
+    document.getElementById("submitButton").addEventListener("click", function () {
+        if (!validateForm()) {
+            Swal.fire({
+                title: 'Oops!',
+                text: 'Please fill in all required fields.',
+                icon: 'error'
+            });
+            return;
+        }
 
-			Swal.fire({
-				title: 'Are you sure?',
-				html: '<div style="font-size: 18px;">Please review your information before submitting.<br><br><b>Data Privacy Warning:</b> By submitting this form, you acknowledge that your personal information will be processed in accordance with our privacy policy.</div>',
-				icon: 'info',
-				showCancelButton: true,
-				confirmButtonColor: '#3085d6',
-				cancelButtonColor: '#d33',
-				confirmButtonText: 'Yes, submit!'
-			}).then((result) => {
-				if (result.isConfirmed) {
-					// If user confirms, submit the form
-					document.getElementById("studentForm").submit();
-				}
-			});
-		});
+        Swal.fire({
+            title: 'Are you sure?',
+            html: '<div style="font-size: 18px;">Please review your information before submitting.<br><br><b>Data Privacy Warning:</b> By submitting this form, you acknowledge that your personal information will be processed in accordance with our privacy policy.</div>',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, submit!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $("#loadingModal").modal("show"); // Show loading modal
+                document.getElementById("studentForm").submit();
+            }
+        });
+    });
+
+// Show success modal if the URL contains "success=1"
+window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success')) {
+        $("#loadingModal").modal("hide"); // Hide loading modal
+        $("#successModal").modal("show"); // Show success modal
+
+        // Remove "success=1" from the URL without reloading
+        const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
+        window.history.replaceState(null, '', newUrl);
+
+        // Redirect to index.php when the user clicks "OK"
+        document.getElementById("closeSuccessModal").addEventListener("click", function () {
+            $("#successModal").modal("hide"); // Hide the success modal
+            window.location.href = "../index.php"; // Redirect to index.php
+        });
+    }
+};
 
 		//For User Photo Edit
 		$(document).ready(function() {

@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $connect->close();
-    header("Location: ../index.php");
+    header("Location: fill-out-form.php?success=1");
 }
 
 function createFolder($driveService, $folderName, $parentFolderId) {
