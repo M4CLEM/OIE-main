@@ -19,7 +19,7 @@ if (isset($_POST['studentID'])) {
 
         while ($row = mysqli_fetch_assoc($result)) {
             $file = $row['file_name'];
-            $filename = basename($file);
+            $fileLink = $row['file_link'];
             $status = strtolower($row['status']);
             $statusClass = '';
             $statusText = '';
@@ -45,7 +45,7 @@ if (isset($_POST['studentID'])) {
             $htmlContent .= '<tr>';
             $htmlContent .= "<td class='text-center'><div class='form-check'><input name='documentIDs[]' class='form-check-input p-0 checkbox-highlight' type='checkbox' style='transform: scale(1.5);' value='{$row['id']}' id='flexCheck{$row['id']}' " . ($statusText === 'Approved' ? 'disabled' : '') . "></div></td>";
             $htmlContent .= '<td class="small">' . str_replace('_', '/', $row['document']) . '</td>';
-            $htmlContent .= '<td class="small"><a href="#" onclick="viewPDF(\'' . $file . '\')">' . $filename . '</a></td>';
+            $htmlContent .= '<td class="small"><a href="#" onclick="viewPDF(\'' . $fileLink . '\')">' . $file . '</a></td>';
             $htmlContent .= '<td class="small">' . $row['date'] . '</td>';
             $htmlContent .= '<td class="small">';
             // Add conditional class to select element

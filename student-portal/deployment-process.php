@@ -45,8 +45,8 @@ if (isset($_POST['submit'])) {
 
     if (count($error) < 1) {
 
-        $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, status, studentID, student_email, section) 
-                VALUES ('$companyName', '$companyAddress', '$trainerContact', '$trainerEmail', '$workType', 'Pending', $studentID, '{$_SESSION['student']}', '$section')";
+        $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, jobrole, status, studentID, student_email, section) 
+                VALUES ('$companyName', '$companyAddress', '$trainerContact', '$trainerEmail', '$workType', '$jobrole', 'Pending', $studentID, '{$_SESSION['student']}', '$section')";
 
         $res = mysqli_query($connect, $query);
 

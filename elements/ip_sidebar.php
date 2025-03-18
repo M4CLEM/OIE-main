@@ -20,7 +20,7 @@
         </a>
     </li>
     <li class="sidebar-item">
-        <a href="grading.php" class="sidebar-link">
+        <a href="stud-grading.php" class="sidebar-link">
             <i class="fa fa-list-alt fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Grading</span></a>
         </a>
