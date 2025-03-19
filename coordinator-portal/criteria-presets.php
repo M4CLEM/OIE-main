@@ -26,7 +26,9 @@ if (!$result) {
             justify-content: flex-end;
             margin-left: 53rem;
         }
-        .table td, .table th {
+
+        .table td,
+        .table th {
             font-size: 12px;
         }
     </style>
@@ -46,7 +48,7 @@ if (!$result) {
                     <div class="topbar-divider d-none d-sm-block"></div>
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                 <?php echo $coordinatorRole; ?></span>
                             <img class="img-profile rounded-circle" src="../img/undraw_profile.svg">
@@ -69,8 +71,8 @@ if (!$result) {
                             <div class="col">
                                 <label for="criteria-presets" style="font-size: 26px;">Criteria Presets</label>
                                 <a href="modal.php" class="btn btn-primary btn-sm addBtn" data-toggle="modal"
-                                data-target="#addModal">+Add Criteria</a>
-                            </div>                            
+                                    data-target="#addModal">+Add Criteria</a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -85,33 +87,31 @@ if (!$result) {
 
                                     <tbody>
                                         <?php
-                                            while ($rows=mysqli_fetch_assoc($result))
-                                            {
+                                        while ($rows = mysqli_fetch_assoc($result)) {
                                         ?>
-                                        <tr>
-                                            <td><?php echo $rows['criteria'];?></td>
-                                            <td><?php echo $rows['description'];?></td>
-                                            <td>
-                                                <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
-                                                data-target="#editModal" data-id="<?php echo $rows['id'];?>"
-                                                data-title="<?php echo $rows['criteria'];?>"
-                                                data-description="<?php echo $rows['description'];?>"
-                                                ><i class="fa fa-edit fw-fa"></i>Edit</a>
+                                            <tr>
+                                                <td><?php echo $rows['criteria']; ?></td>
+                                                <td><?php echo $rows['description']; ?></td>
+                                                <td>
+                                                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
+                                                        data-target="#editModal" data-id="<?php echo $rows['id']; ?>"
+                                                        data-title="<?php echo $rows['criteria']; ?>"
+                                                        data-description="<?php echo $rows['description']; ?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
 
-                                                <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
-                                                data-target="#deleteModal" data-id="<?php echo $rows['id'];?>">
-                                                    <i class="fa fa-trash fw-fa"></i> Delete
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                    <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
+                                                        data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>">
+                                                        <i class="fa fa-trash fw-fa"></i> Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
                                         <?php
-                                            }
+                                        }
                                         ?>
                                     </tbody>
                                 </table>
                             </div>
 
-                            <!-- Delete Confirmation modal-->
+                            <!-- DELETE CONFIRMATION MODAL -->
                             <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
@@ -122,7 +122,7 @@ if (!$result) {
                                             </button>
                                         </div>
                                         <div class="modal-body">
-                                            Are you sure you want to delete this row?
+                                            Are you sure you want to delete this criteria?
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -131,6 +131,30 @@ if (!$result) {
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- DELETE LOADING MODAL -->
+                            <div class="modal fade" id="deleteLoadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content d-flex flex-column align-items-center justify-content-center p-4">
+                                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                            <span class="sr-only">Deleting...</span>
+                                        </div>
+                                        <p class="mt-3">Deleting criteria, please wait...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUCCESS LOADING MODAL -->
+                            <div class="modal fade" id="successLoadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content text-center p-4">
+                                        <h5 class="text-success">Success!</h5>
+                                        <p>The criteria has been deleted successfully.</p>
+                                        <button type="button" class="btn btn-success" data-dismiss="modal">OK</button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Edit Modal -->
                             <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
                                 <div class="modal-dialog" role="document">
@@ -197,13 +221,13 @@ if (!$result) {
     </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-            crossorigin="anonymous"></script>
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+    crossorigin="anonymous"></script>
 <script src="../assets/js/sidebarscript.js"></script>
 
 <script>
     $(document).ready(function() {
-        $('.editBtn').click(function () {
+        $('.editBtn').click(function() {
             var id = $(this).data('id');
             var title = $(this).data('title');
             var description = $(this).data('description');
@@ -220,18 +244,32 @@ if (!$result) {
 
         $('#confirmDelete').click(function() {
             var id = $(this).data('id');
+
+            // Hide delete modal, show delete loading modal
+            $('#deleteModal').modal('hide');
+            $('#deleteLoadingModal').modal('show');
+
             $.ajax({
                 url: 'functions/criteria-delete.php',
                 type: 'POST',
-                data: {id: id},
+                data: {
+                    id: id
+                },
                 success: function(response) {
-                    alert(response);
-                    location.reload();
+                    // Hide delete loading modal, show success loading modal
+                    $('#deleteLoadingModal').modal('hide');
+                    $('#successLoadingModal').modal('show');
+
+                    // Reload the page after a short delay (optional)
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
                 },
                 error: function(xhr, status, error) {
-                    alert('An error occured:' + error);
+                    $('#deleteLoadingModal').modal('hide'); // Hide loading modal
+                    alert('An error occurred: ' + error);
                 }
-            })
+            });
         });
     });
 </script>

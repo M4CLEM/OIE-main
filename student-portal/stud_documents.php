@@ -17,7 +17,7 @@ if (!$departmentResult) {
 if (mysqli_num_rows($departmentResult) > 0) {
     $row = mysqli_fetch_assoc($departmentResult);
     $department = $row['department'];
-    
+
     // Trim any extra spaces from the department value
     $department = trim($department);
 
@@ -39,7 +39,6 @@ if (mysqli_num_rows($departmentResult) > 0) {
     if (!$documentResult) {
         die("" . mysqli_error($connect));
     }
-
 } else {
     echo "No department found for this student.<br>";  // Debugging if no department is found for the student
 }
@@ -49,62 +48,65 @@ if (mysqli_num_rows($departmentResult) > 0) {
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <?php include("../elements/meta.php"); ?>
-        <title>Intern Portal</title>
-        <?php include("embed.php"); ?>
-    </head>
-    <body id="page-top">
-        <div id="wrapper">
-            <!-- Sidebar Wrapper -->
-            <aside id="sidebar" class="expand">
-                <?php include('../elements/stud_sidebar.php')?>
-            </aside>
 
-            <div class="main">
-                <?php
-                $email = $_SESSION['student'];
-                $query = "SELECT * FROM studentinfo WHERE email ='$email'";
-                $result = mysqli_query($connect, $query);
-                while ($rows = mysqli_fetch_array($result)) {
-                    $image = $rows['image'];
-                }
-                ?>
-                
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
-                    <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Documents</h4>
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-                        <div class="topbar-divider d-none d-sm-block"></div>
+<head>
+    <?php include("../elements/meta.php"); ?>
+    <title>Intern Portal</title>
+    <?php include("embed.php"); ?>
+</head>
 
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                    <?php echo $_SESSION['student']; ?>
-                                </span>
-                                <?php
-                                function get_drive_image_url($image) {
-                                    // Check if the image is a Google Drive URL
-                                    if (strpos($image, 'drive.google.com') !== false) {
-                                        // Extract the File ID from different Drive URL formats
-                                        preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $image, $matches);
-                                        $image = $matches[1] ?? null; // Get the File ID if found
-                                    }
+<body id="page-top">
+    <div id="wrapper">
+        <!-- Sidebar Wrapper -->
+        <aside id="sidebar" class="expand">
+            <?php include('../elements/stud_sidebar.php') ?>
+        </aside>
 
-                                    // If a valid Google Drive File ID is found, return the direct image link
-                                    if ($image && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $image)) {
-                                        return "https://lh3.googleusercontent.com/d/{$image}=w1000";
-                                    }
-                                    // If it's not a Google Drive image, return it as is
-                                        return $image;
+        <div class="main">
+            <?php
+            $email = $_SESSION['student'];
+            $query = "SELECT * FROM studentinfo WHERE email ='$email'";
+            $result = mysqli_query($connect, $query);
+            while ($rows = mysqli_fetch_array($result)) {
+                $image = $rows['image'];
+            }
+            ?>
+
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
+                <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Documents</h4>
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+                    <div class="topbar-divider d-none d-sm-block"></div>
+
+                    <!-- Nav Item - User Information -->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                <?php echo $_SESSION['student']; ?>
+                            </span>
+                            <?php
+                            function get_drive_image_url($image)
+                            {
+                                // Check if the image is a Google Drive URL
+                                if (strpos($image, 'drive.google.com') !== false) {
+                                    // Extract the File ID from different Drive URL formats
+                                    preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $image, $matches);
+                                    $image = $matches[1] ?? null; // Get the File ID if found
                                 }
+
+                                // If a valid Google Drive File ID is found, return the direct image link
+                                if ($image && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $image)) {
+                                    return "https://lh3.googleusercontent.com/d/{$image}=w1000";
+                                }
+                                // If it's not a Google Drive image, return it as is
+                                return $image;
+                            }
                             ?>
                             <img class="img-profile rounded-circle" src="<?php echo $image ? get_drive_image_url($image) : '../img/undraw_profile.svg'; ?>">
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        </a>
+                        <!-- Dropdown - User Information -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                             aria-labelledby="userDropdown">
                             <a class="dropdown-item" href="#">
                                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -124,28 +126,28 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                 Logout
                             </a>
                         </div>
-                        </li>
-                    </ul>
-                </nav>
+                    </li>
+                </ul>
+            </nav>
 
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h3 class="m-0 font-weight-bold text-dark">OJT Documents</h3>
-                    </div>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h3 class="m-0 font-weight-bold text-dark">OJT Documents</h3>
+                </div>
 
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" width="100%" cellspacing="0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Document</th>
-                                        <th width="25%" scope="col">File Name</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Date</th>
-                                        <th width="36%" align="center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Document</th>
+                                    <th width="25%" scope="col">File Name</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Date</th>
+                                    <th width="36%" align="center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 <?php
                                 // Store student-uploaded documents in an associative array
                                 $studentDocuments = [];
@@ -184,7 +186,7 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                         <td>
                                             <?php if (!empty($status)): ?>
                                                 <div class="text-center p-1 status-<?php echo strtolower($status); ?> bg-<?php echo strtolower($status) === 'pending' ? 'warning text-white' : (strtolower($status) === 'approved' ? 'success text-white' : 'danger text-white'); ?> rounded">
-                                                <?php echo htmlspecialchars($status); ?>
+                                                    <?php echo htmlspecialchars($status); ?>
                                                 </div>
                                             <?php endif; ?>
                                         </td>
@@ -200,7 +202,7 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                                 <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
                                                     <i class="far fa-eye"></i> View
                                                 </button>
-                                                <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $id;?>">
+                                                <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $id; ?>">
                                                     <i class="fa fa-trash"></i> Delete
                                                 </button>
                                             <?php } ?>
@@ -209,184 +211,223 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                 <?php
                                 }
                                 ?>
-                                </tbody>
-                            </table>
-                        </div>
-                                <!-- DELETE MODAL -->
-                                <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body">
-                                                Are you sure to delete this row?
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- DELETE CONFIRMATION MODAL -->
+                    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
                                 </div>
-
-                    </div>
-                </div>
-            </div>
-            
-                                    <!-- LOG OUT MODAL-->
-            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">×</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                            <a class="btn btn-primary" href="../logout.php">Logout</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-                        <!-- Upload File Modal -->
-                        <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModal" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Upload File</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="uploadForm" action="functions/upload_docs.php" method="POST" enctype="multipart/form-data">
-                                            <div class="form-group">
-                                                <label>Document Type:</label>
-                                                <input type="text" class="form-control input-sm" id="documentType" name="documentType" readonly>
-                                                
-                                                <label>Upload File:</label>
-                                                <input type="file" class="form-control-file" id="uploadFile" name="uploadFile" accept=".docx,.pdf">
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="btn btn-primary">Upload</button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete this document?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-        </div>
+                    <!-- DELETE LOADING MODAL -->
+                    <div class="modal fade" id="deleteLoadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content d-flex flex-column align-items-center justify-content-center p-4">
+                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                    <span class="sr-only">Deleting...</span>
+                                </div>
+                                <p class="mt-3">Deleting document, please wait...</p>
+                            </div>
+                        </div>
+                    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-        crossorigin="anonymous"></script>
-        <script src="../assets/js/sidebarscript.js"></script>
+                    <!-- SUCCESS LOADING MODAL -->
+                    <div class="modal fade" id="successLoadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content text-center p-4">
+                                <h5 class="text-success">Success!</h5>
+                                <p>The document has been deleted successfully.</p>
+                                <button type="button" class="btn btn-success" data-dismiss="modal">OK</button>
+                            </div>
+                        </div>
+                    </div>
 
-<!-- Loading Modal -->
-<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 200px;">
-                <h5 class="text-primary">Please Wait...</h5>
-                <div class="spinner-border text-primary my-3" role="status" style="width: 3rem; height: 3rem;"></div>
-                <p>Uploading document...</p>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!--Upload Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content text-center p-4">
-            <h5 class="text-success">Success!</h5>
-            <i class="fa fa-check-circle text-success fa-3x my-3"></i>
-            <p>Document uploaded successfully.</p>
-            <button class="btn btn-success" type="button" data-dismiss="modal" id="closeSuccessModal">OK</button>
+        <!-- LOG OUT MODAL-->
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <a class="btn btn-primary" href="../logout.php">Logout</a>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Upload File Modal -->
+        <div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Upload File</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="uploadForm" action="functions/upload_docs.php" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label>Document Type:</label>
+                                <input type="text" class="form-control input-sm" id="documentType" name="documentType" readonly>
+
+                                <label>Upload File:</label>
+                                <input type="file" class="form-control-file" id="uploadFile" name="uploadFile" accept=".docx,.pdf">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Modal -->
+        <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-body d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 200px;">
+                        <h5 class="text-primary">Please Wait...</h5>
+                        <div class="spinner-border text-primary my-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                        <p>Uploading document...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Upload Success Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content text-center p-4">
+                    <h5 class="text-success">Success!</h5>
+                    <i class="fa fa-check-circle text-success fa-3x my-3"></i>
+                    <p>Document uploaded successfully.</p>
+                    <button class="btn btn-success" type="button" data-dismiss="modal" id="closeSuccessModal">OK</button>
+                </div>
+            </div>
+        </div>
+
     </div>
-</div>
 
-<!--Upload JavaScript -->
-<script>
-    document.getElementById("uploadForm").addEventListener("submit", function() {
-        $("#uploadFileModal").modal("hide"); // Hide upload modal
-        $("#loadingModal").modal("show"); // Show loading modal
-    });
-
-    // Show success modal if the URL contains "success=1"
-    window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('success')) {
-            $("#loadingModal").modal("hide"); // Ensure loading modal is closed
-            $("#successModal").modal("show"); // Show success modal
-
-            // Remove "success=1" from the URL without reloading
-            const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
-            window.history.replaceState(null, '', newUrl);
-        }
-    };
-
-    // Close success modal on button click
-    document.getElementById("closeSuccessModal").addEventListener("click", function() {
-        $("#successModal").modal("hide");
-    });
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+    <script src="../assets/js/sidebarscript.js"></script>
 
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                // Select all upload buttons
-                let uploadButtons = document.querySelectorAll(".uploadButton");
+    <!--Upload JavaScript -->
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function() {
+            $("#uploadFileModal").modal("hide"); // Hide upload modal
+            $("#loadingModal").modal("show"); // Show loading modal
+        });
 
-                uploadButtons.forEach(button => {
-                    button.addEventListener("click", function() {
-                        // Get document name from data attribute
-                        let documentName = this.getAttribute("data-document");
-            
-                        // Set it in the modal's input field
-                        document.getElementById("documentType").value = documentName;
-                    });
+        // Show success modal if the URL contains "success=1"
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('success')) {
+                $("#loadingModal").modal("hide"); // Ensure loading modal is closed
+                $("#successModal").modal("show"); // Show success modal
+
+                // Remove "success=1" from the URL without reloading
+                const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)success=1/, '');
+                window.history.replaceState(null, '', newUrl);
+            }
+        };
+
+        // Close success modal on button click
+        document.getElementById("closeSuccessModal").addEventListener("click", function() {
+            $("#successModal").modal("hide");
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Select all upload buttons
+            let uploadButtons = document.querySelectorAll(".uploadButton");
+
+            uploadButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    // Get document name from data attribute
+                    let documentName = this.getAttribute("data-document");
+
+                    // Set it in the modal's input field
+                    document.getElementById("documentType").value = documentName;
                 });
             });
+        });
 
-            function viewPDF(pdfPath) {
-                // Open the PDF in a new tab/window
-                window.open(pdfPath, '_blank');
-            }
+        function viewPDF(pdfPath) {
+            // Open the PDF in a new tab/window
+            window.open(pdfPath, '_blank');
+        }
 
-            $(document).ready(function() {
-                $('.deleteBtn').click(function() {
+        $(document).ready(function() {
+            $('.deleteBtn').click(function() {
                 var id = $(this).data('id');
                 $('#confirmDelete').data('id', id);
-                });
+            });
 
-                $('#confirmDelete').click(function() {
-                    var id = $(this).data('id');
-                    $.ajax({
-                        url: 'functions/delete_docs.php',
-                        type: 'POST',
-                        data: {id: id},
-                        success: function(response) {
-                            alert(response);
+            $('#confirmDelete').click(function() {
+                var id = $(this).data('id');
+
+                // Hide delete modal, show delete loading modal
+                $('#deleteModal').modal('hide');
+                $('#deleteLoadingModal').modal('show');
+
+                $.ajax({
+                    url: 'functions/delete_docs.php',
+                    type: 'POST',
+                    data: {
+                        id: id
+                    },
+                    success: function(response) {
+                        // Hide delete loading modal, show success loading modal
+                        $('#deleteLoadingModal').modal('hide');
+                        $('#successLoadingModal').modal('show');
+
+                        // Reload the page after a short delay (optional)
+                        setTimeout(function() {
                             location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            alert('An error occured:' + error);
-                        }
-                    })
+                        }, 1500);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#deleteLoadingModal').modal('hide'); // Hide loading modal
+                        alert('An error occurred: ' + error);
+                    }
                 });
-            })
+            });
+        });
+    </script>
+</body>
 
-        </script>
-    </body>
 </html>
