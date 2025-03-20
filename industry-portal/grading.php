@@ -310,42 +310,43 @@ $(document).ready(function() {
 
         totalGradeInput.value = totalGrade;
 
-        // Initialize variables for integer distribution
+        // Initialize variables for distributing points across criteria
         var remainingPoints = totalGrade;
         var criteriaPoints = [];
 
-        // First pass: Assign points as evenly as possible
-        var criteriaCount = criteriaInputs.length;
-        var basePoints = Math.floor(totalGrade / criteriaCount);
-        var leftoverPoints = totalGrade % criteriaCount;
-
+        // First, calculate the points for each criterion based on its percentage
         criteriaInputs.forEach(function(input) {
-            input.value = basePoints;
-            criteriaPoints.push(basePoints);
+            var maxValue = parseInt(input.dataset.percentage); // Get the percentage max from data-percentage
+            var pointsForThisCriterion = Math.floor((maxValue / 100) * totalGrade); // Calculate based on percentage
+            pointsForThisCriterion = Math.min(pointsForThisCriterion, maxValue); // Ensure it doesn't exceed maxValue
+            criteriaPoints.push(pointsForThisCriterion);
+            remainingPoints -= pointsForThisCriterion;
         });
 
-        // Second pass: Distribute leftover points (1 point each) to any criteria that hasn't hit its max
-        if (leftoverPoints > 0) {
-            for (var i = 0; i < criteriaInputs.length && leftoverPoints > 0; i++) {
-                var input = criteriaInputs[i];
-                var maxValue = parseInt(input.max);
-                var currentValue = parseInt(input.value);
-
-                if (currentValue < maxValue) {
-                    input.value = Math.min(currentValue + 1, maxValue); // Add 1 point without exceeding the max
-                    criteriaPoints[i] = input.value;
-                    leftoverPoints--;
-                }
+        // Second pass: Distribute any remaining points (if any)
+        for (var i = 0; i < criteriaInputs.length && remainingPoints > 0; i++) {
+            var input = criteriaInputs[i];
+            var maxValue = parseInt(input.dataset.percentage); // Max percentage value for this criterion
+            var currentPoints = criteriaPoints[i];
+        
+            // If there are leftover points, add them without exceeding the max limit
+            if (currentPoints < maxValue) {
+                var additionalPoints = Math.min(remainingPoints, maxValue - currentPoints);
+                criteriaPoints[i] += additionalPoints;
+                remainingPoints -= additionalPoints;
             }
         }
 
-        // Update the total and hidden input fields
-        updateTotal();
+        // Update the input fields and hidden values
         criteriaInputs.forEach(function(input, index) {
+            input.value = criteriaPoints[index];
             var criteriaId = input.id.replace('displayValue', '');
-            updateValue(criteriaPoints[index], criteriaId);
+            updateValue(criteriaPoints[index], criteriaId); // Update hidden value
         });
+
+        updateTotal(); // Make sure to update the total grade or any other summary field
     }
+
 
     // Add event listener to trigger distributeTotalGrade when typing in totalGrade field
     totalGradeInput.addEventListener('input', function() {
