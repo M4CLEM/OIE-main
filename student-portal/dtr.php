@@ -1,8 +1,9 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
-
 include("includes/logs.php");
+date_default_timezone_set('Asia/Manila'); // Set correct timezone
+
 $post = new updatelogs();
 
 $uname = $_SESSION['student'];
@@ -24,6 +25,8 @@ if (mysqli_num_rows($result) == 1) {
     $_SESSION['stud_SY'] = $row['school_year'];
     $_SESSION['stud_image'] = $row['image'];
 }
+
+$timeNow = date('Y-m-d H:i:s'); // This will now match Asia/Manila timezone
 
 $studentNumber = $_SESSION['stud_code'];
 $firstName = $_SESSION['stud_first'];
@@ -155,13 +158,23 @@ if ($row !== null) {
                             </div>
 
                             <div class="col-md-3 border mt-2 p-5 text-center rounded">
+    <br>
+    <button id="toggleButton" class="btn btn-lg btn-block 
+        <?php echo $logState === 'In' ? 'btn-success' : 'btn-danger'; ?>" 
+        onclick="executePHPFunction()">
+        <br><?php echo $logState ?><br><br>
+    </button>
 
-                                <br><button id="toggleButton" class="btn btn-lg btn-block 
-                                <?php echo $logState === 'In' ? 'btn-success' : 'btn-danger'; ?>" 
-                                onclick="executePHPFunction()"><br><?php echo $logState ?><br><br></button>
+    <p id="timeLabel" class="mt-3"></p> 
 
-                                <p id="timeLabel" class="mt-3"> </p> 
-                            </div>
+    <!-- Adjusted Total Rendered Hours section with spacing -->
+    <div class="total-hours mt-4 p-2">
+        <strong>Total Rendered Hours:</strong>  
+        <br> <!-- Adds line break for better spacing -->
+        <span id="renderedHours" class="fw-bold fs-5 d-block mt-2">Loading...</span>
+    </div>
+</div>
+
                         </div>
 
                         <div class="row">
@@ -261,6 +274,22 @@ if ($row !== null) {
             location.reload();
         }, 1000);
     }
+
+    function fetchStudentHours() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "redered_hours.php", true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            document.getElementById("renderedHours").innerHTML = xhr.responseText;
+        }
+    };
+    xhr.send();
+}
+
+// Fetch total hours for the logged-in student every 10 seconds and on page load
+setInterval(fetchStudentHours, 10000);
+fetchStudentHours();
+
 </script>
 </body>
 </html>
