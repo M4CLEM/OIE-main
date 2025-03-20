@@ -22,6 +22,13 @@
     </li>
 
     <li class="sidebar-item">
+        <a href="grading.php" class="sidebar-link">
+            <i class="fa fa-list-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Grading</span>
+        </a>
+    </li>
+
+    <li class="sidebar-item">
         <a href="approval.php" class="sidebar-link">
             <i class="fa fa-check-square fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Intern Approval</span></a>

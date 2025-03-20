@@ -3,14 +3,16 @@ session_start();
 include_once("../../includes/connection.php");
 
 // Check if section is provided
-if(isset($_POST['section'])) {
+if(isset($_POST['section'], $_POST['course'])) {
     // Get the section value
     $section = $_POST['section'];
+    $course = $_POST['course'];
+
     
     // Prepare the SQL statement with a parameterized query to prevent SQL injection
-    $query = "SELECT * FROM student_masterlist WHERE section = ? ORDER BY lastName ASC";
+    $query = "SELECT * FROM student_masterlist WHERE section = ? AND course = ? ORDER BY lastName ASC";
     $stmt = mysqli_prepare($connect, $query);
-    mysqli_stmt_bind_param($stmt, "s", $section);
+    mysqli_stmt_bind_param($stmt, "ss", $section, $course);
     
     // Execute the prepared statement
     mysqli_stmt_execute($stmt);

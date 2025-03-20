@@ -2,7 +2,7 @@
 session_start();
 include_once("../includes/connection.php");
 $email = $_SESSION['adviser'];
-$query = "SELECT section FROM listadviser WHERE email ='$email'";
+$query = "SELECT * FROM listadviser WHERE email ='$email'";
 $result = mysqli_query($connect, $query);
 ?>
 <!DOCTYPE html>
@@ -102,7 +102,7 @@ $result = mysqli_query($connect, $query);
                                                 while ($rows = mysqli_fetch_assoc($result)) {
                                                 ?>
                                                     <tr>
-                                                        <td><a href="#" class="section-link" data-section="<?php echo $rows['section']; ?>"><?php echo $rows['section']; ?></a></td>
+                                                        <td><a href="#" class="section-link" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course'];?>"><?php echo $rows['course'];?> <?php echo $rows['section']; ?></a></td>
                                                         <td>
                                                             <a title="Edit" href="" class="btn btn-xs"><span class="fa fa-edit fw-fa"></span></a>
                                                             <a title="Delete" href="" class="btn btn-xs"><span class="fa fa-trash"></span></a>
@@ -153,7 +153,7 @@ $result = mysqli_query($connect, $query);
                             <div class="row">
                                 <div class="col">
                                     <div>
-                                        <label for="stud_id" class="small">Student No.:</label>
+                                        <label for="stud_id" class="small">Student No:</label>
                                         <p class="small font-weight-bold" id="stud_id"></p>
                                     </div>
                                     <div>
@@ -271,12 +271,16 @@ $result = mysqli_query($connect, $query);
         $('.section-link').click(function(e) {
             e.preventDefault();
             var section = $(this).data('section');
+            var course = $(this).data('course');
+
+            console.log("Section:", section, "Course:", course);
 
             $.ajax({
                 url: 'functions/fetch_masterlist.php', // Provide the path to your PHP script that fetches student data
                 method: 'POST',
                 data: {
-                    section: section
+                    section: section,
+                    course: course
                 },
                 success: function(response) {
                     // Destroy existing DataTable
@@ -288,12 +292,12 @@ $result = mysqli_query($connect, $query);
                     $('#dataTable2 tbody').empty();
 
                     // After successfully loading data, call the loadMasterList function
-                    loadMasterList(section, response);
+                    loadMasterList(section, course, response);
                 }
             });
         });
 
-        function loadMasterList(section, response) {
+        function loadMasterList(section, course, response) {
     // Show SweetAlert2 alert with loading animation
     Swal.fire({
         title: 'Please Wait...',
@@ -307,7 +311,7 @@ $result = mysqli_query($connect, $query);
             setTimeout(() => {
                 Swal.fire({
                     icon: 'success',
-                    title: section + ' Masterlist Loaded',
+                    title: course + ' ' + section + ' Masterlist Loaded',
                     position: 'top',
                     toast: true,
                     showConfirmButton: false,
