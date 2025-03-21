@@ -12,12 +12,13 @@ if (isset($_POST['studentID']) && isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
     $stmtStud->execute();
     $studResult = $stmtStud->get_result();
 
+    $adviserCriteriaGrouped = [];
+    $gradeData = null; // Default value
+
     if ($studResult->num_rows > 0) {
         $row = $studResult->fetch_assoc();
         $jobrole = $row['jobrole'];
         $companyName = $row['companyName'];
-
-        $adviserCriteriaGrouped = [];
 
         // Fetch criteria for company and job role
         $criteriaQuery = "SELECT * FROM adviser_criteria WHERE company = ? AND jobrole = ?";
@@ -27,32 +28,58 @@ if (isset($_POST['studentID']) && isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
         $resultCriteria = $stmtCriteria->get_result();
 
         while ($row = $resultCriteria->fetch_assoc()) {
-            // Log the raw criteria data for debugging
             $rawCriteria = $row['criteria'];
-            error_log("Raw criteria: " . $rawCriteria); // Logs raw JSON data for debugging
+            error_log("Raw criteria: " . $rawCriteria);
 
             $criteriaData = json_decode($rawCriteria, true);
 
-            // Check if criteriaData is an array and contains expected fields
             if (is_array($criteriaData)) {
                 foreach ($criteriaData as $adviserCriteriaItem) {
-                    // Ensure keys exist before accessing them, with default values
                     $adviserCriteriaGrouped[] = [
                         'id' => $row['id'],
-                        'criteria' => isset($adviserCriteriaItem['adviserCriteria']) ? $adviserCriteriaItem['adviserCriteria'] : 'N/A',
-                        'percentage' => isset($adviserCriteriaItem['adviserPercentage']) ? $adviserCriteriaItem['adviserPercentage'] : 0,
-                        'description' => isset($adviserCriteriaItem['adviserDescription']) ? $adviserCriteriaItem['adviserDescription'] : 'N/A'
+                        'criteria' => $adviserCriteriaItem['adviserCriteria'] ?? 'N/A',
+                        'percentage' => $adviserCriteriaItem['adviserPercentage'] ?? 0,
+                        'description' => $adviserCriteriaItem['adviserDescription'] ?? 'N/A'
                     ];
                 }
             } else {
-                error_log("Invalid criteria JSON format for ID " . $row['id']); // Log an error if JSON is invalid
+                error_log("Invalid criteria JSON format for ID " . $row['id']);
+            }
+        }
+
+        // Check if the student's grade exists in adviser_student_grade
+        $gradeQuery = "SELECT grade, finalGrade FROM adviser_student_grade WHERE studentID = ?";
+        $stmtGrade = $connect->prepare($gradeQuery);
+        $stmtGrade->bind_param("s", $studentId);
+        $stmtGrade->execute();
+        $gradeResult = $stmtGrade->get_result();
+
+        if ($gradeResult->num_rows > 0) {
+            $gradeRow = $gradeResult->fetch_assoc();
+            $gradeJson = json_decode($gradeRow['grade'], true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($gradeJson)) {
+                // Ensure the JSON structure is preserved
+                $gradeData = [
+                    'grades' => $gradeJson, // Example: { "Work Ethics": 30 }
+                    'finalGrade' => $gradeRow['finalGrade']
+                ];
+            } else {
+                error_log("Invalid grade JSON format for student ID " . $studentId);
+                $gradeData = [
+                    'grades' => [],
+                    'finalGrade' => $gradeRow['finalGrade']
+                ];
             }
         }
     }
 
     // Return JSON response
     header('Content-Type: application/json');
-    echo json_encode($adviserCriteriaGrouped);
+    echo json_encode([
+        'criteria' => $adviserCriteriaGrouped,
+        'gradeData' => $gradeData
+    ]);
     exit;
 }
 ?>

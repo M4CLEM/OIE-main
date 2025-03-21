@@ -324,75 +324,96 @@
                 }
 
                 function fetchAdviserStudentCriteria(studentID) {
-                    $.ajax({
-                        url: 'functions/fetch_criteria.php',
-                        method: 'POST',
-                        data: {
-                            studentID: studentID
-                        },
-                        headers: {
-                            'X-Requested-With' : 'XMLHttpRequest'
-                        },
-                        success: function(response) {
-                            try {
-                                var criteria = response;
+    $.ajax({
+        url: 'functions/fetch_criteria.php',
+        method: 'POST',
+        data: {
+            studentID: studentID
+        },
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            try {
+                var criteria = response.criteria;
+                var gradeData = response.gradeData;
 
-                                console.log("Parsed Criteria:", criteria);  // Debugging: check parsed criteria
+                console.log("Parsed Criteria:", criteria);  // Debugging: check parsed criteria
+                console.log("Parsed Grade Data:", gradeData);  // Debugging: check parsed grade data
 
-                                if (!Array.isArray(criteria)) {  
-                                    throw new Error("Response is not an array");
-                                }
-
-                                renderCriteria(criteria);
-                                initializeInputs(); // Initialize inputs after criteria are rendered
-                            } catch (e) {
-                                console.error("JSON Parsing Error:", e);
-                                $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("AJAX Error:", status, error);  // Debugging: log AJAX error
-                            console.error("Response Text:", xhr.responseText);
-                            $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
-                        }
-                    })
+                if (!Array.isArray(criteria)) {
+                    throw new Error("Response is not an array");
                 }
 
-                // Function to render criteria dynamically
-                function renderCriteria(criteria) {
-                    var criteriaContainer = document.getElementById('criteriaContainer');
-                    criteriaContainer.innerHTML = '';
+                renderCriteria(criteria, gradeData);
+                initializeInputs(); // Initialize inputs after criteria are rendered
+                if (gradeData && gradeData.finalGrade !== null) {
+                    // Set the total grade from the backend if available
+                    document.getElementById("totalGrade").value = gradeData.finalGrade;
+                }
 
-                    if (criteria.length === 0) {
-                        criteriaContainer.innerHTML = "<p class='text-center p-4'>No criteria found for this student.</p>";
-                        return;
-                    }
+            } catch (e) {
+                console.error("JSON Parsing Error:", e);
+                $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", status, error);  // Debugging: log AJAX error
+            console.error("Response Text:", xhr.responseText);
+            $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+        }
+    });
+}
 
-                    criteria.forEach(function(criteriaItem) {
-                        var criteriaHtml = `
-                        <div class='p-3 mb-2 border rounded'>
-                            <div class='row'>
-                                <div class='col-md-8'>
-                                    <h6 data-id="${criteriaItem.id}">${criteriaItem.criteria}</h6>
-                                    <p class="small"><i>${criteriaItem.description}</i></p>
-                                </div>
-                                <div class='col-md-4'>
-                                    <input type="hidden" name="criteria[${criteriaItem.criteria}][criteria]" value="${criteriaItem.criteria}">
-                                    <input type="hidden" name="criteria[${criteriaItem.criteria}][description]" value="${criteriaItem.description}">
-                                    <input type="hidden" name="criteria[${criteriaItem.criteria}][percentage]" value="${criteriaItem.percentage}">
-                                    <label class="sr-only" for="displayValue${criteriaItem.id}">Grade</label>
-                                    <div class="input-group input-group-sm mb-2 mr-sm-2">
-                                        <input type="number" required class="form-control custom-number-input" min="0" max="${criteriaItem.percentage}" value="0" name="grade[${criteriaItem.criteria}]" id="displayValue${criteriaItem.id}" oninput="enforceMaxLimit(this, '${criteriaItem.id}')" data-percentage="${criteriaItem.percentage}">
-                                        <div class="input-group-append">
-                                            <div class="input-group-text">${criteriaItem.percentage}%</div>
-                                        </div>
-                                    </div>
-                                </div>
+// Function to render criteria dynamically
+function renderCriteria(criteria, gradeData) {
+    var criteriaContainer = document.getElementById('criteriaContainer');
+    criteriaContainer.innerHTML = '';
+
+    if (criteria.length === 0) {
+        criteriaContainer.innerHTML = "<p class='text-center p-4'>No criteria found for this student.</p>";
+        return;
+    }
+
+    criteria.forEach(function(criteriaItem) {
+        // Check if grade data exists for this criteria
+        var grade = gradeData && gradeData.grades && gradeData.grades[criteriaItem.criteria] ? gradeData.grades[criteriaItem.criteria] : 0;
+        
+        var criteriaHtml = `
+            <div class='p-3 mb-2 border rounded'>
+                <div class='row'>
+                    <div class='col-md-8'>
+                        <h6 data-id="${criteriaItem.id}">${criteriaItem.criteria}</h6>
+                        <p class="small"><i>${criteriaItem.description}</i></p>
+                    </div>
+                    <div class='col-md-4'>
+                        <input type="hidden" name="criteria[${criteriaItem.criteria}][criteria]" value="${criteriaItem.criteria}">
+                        <input type="hidden" name="criteria[${criteriaItem.criteria}][description]" value="${criteriaItem.description}">
+                        <input type="hidden" name="criteria[${criteriaItem.criteria}][percentage]" value="${criteriaItem.percentage}">
+                        <label class="sr-only" for="displayValue${criteriaItem.id}">Grade</label>
+                        <div class="input-group input-group-sm mb-2 mr-sm-2">
+                            <input type="number" required class="form-control custom-number-input" min="0" max="${criteriaItem.percentage}" value="${grade}" name="grade[${criteriaItem.criteria}]" id="displayValue${criteriaItem.id}" oninput="enforceMaxLimit(this, '${criteriaItem.id}')" data-percentage="${criteriaItem.percentage}">
+                            <div class="input-group-append">
+                                <div class="input-group-text">${criteriaItem.percentage}%</div>
                             </div>
-                        </div>`;
-                        criteriaContainer.innerHTML += criteriaHtml;
-                    });
-                }
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        criteriaContainer.innerHTML += criteriaHtml;
+    });
+
+    // If final grade exists, display it
+    if (gradeData && gradeData.finalGrade !== null) {
+        var finalGradeHtml = `
+            <div class="p-3 mb-2 border rounded">
+                <h6>Final Grade: ${gradeData.finalGrade}</h6>
+            </div>`;
+        criteriaContainer.innerHTML += finalGradeHtml;
+    }
+}
+
 
                 // Event listener for student links
                 $(document).on('click', '.info-link', function(e) {
@@ -588,7 +609,7 @@
                                                 text: response.message, // Display the 'message' field from the response
                                                 icon: 'success'
                                             }).then(() => {
-                                                location.reload(); // Reload page after success
+                                                $('#successMessage').text(response.message).show();
                                             });
                                         } else {
                                             console.log('Error block triggered');
