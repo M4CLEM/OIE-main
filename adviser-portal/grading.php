@@ -169,28 +169,36 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <form action="functions/submit_grade.php" id="criteriaForm" method="POST">
-                                        <div class="row">
-                                            <label for="criteriaContainer" class="text-center small font-weight-bold border-0">Grading</label>
-                                        </div>
-                                        <div id="criteriaContainer">
-                                            <p class="text-center p-4">Criteria will be displayed here</p>
-                                        </div>
-                                        <div class="d-flex justify-content-end">
-                                            <button type="submit" class="btn btn-success">
-                                                <span class="fas fa-save fw-fa"></span> Submit Grade
-                                            </button>
-                                            <div class="col-4">
-                                                <label class="sr-only" for="totalGrade">Total Grade</label>
-                                                <div class="input-group mb-2 mr-sm-2">
-                                                    <div class="input-group-prepend">
-                                                        <div class="input-group-text">Total</div>
-                                                    </div>
-                                                    <input type="number" id="totalGrade" name="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
+                                <form action="functions/submit_grade.php" id="criteriaForm" method="POST">
+    <div class="row">
+        <label for="criteriaContainer" class="text-center small font-weight-bold border-0">Grading</label>
+    </div>
+    <div id="criteriaContainer">
+        <p class="text-center p-4">Criteria will be displayed here</p>
+    </div>
+    <div class="d-flex justify-content-end">
+        <!-- Submit button will be shown if no grades are in the database -->
+        <button type="submit" class="btn btn-success" id="submitButton">
+            <span class="fas fa-save fw-fa"></span> Submit Grade
+        </button>
+
+        <!-- Save button will be shown if grades are already in the database -->
+        <button type="submit" class="btn btn-primary" id="saveButton" style="display: none;">
+            <span class="fas fa-save fw-fa"></span> Save Grade
+        </button>
+
+        <div class="col-4">
+            <label class="sr-only" for="totalGrade">Total Grade</label>
+            <div class="input-group mb-2 mr-sm-2">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">Total</div>
+                </div>
+                <input type="number" id="totalGrade" name="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()" required>
+            </div>
+        </div>
+    </div>
+</form>
+
                                 </div>
                             </div>
                         </div>
@@ -324,96 +332,104 @@
                 }
 
                 function fetchAdviserStudentCriteria(studentID) {
-    $.ajax({
-        url: 'functions/fetch_criteria.php',
-        method: 'POST',
-        data: {
-            studentID: studentID
-        },
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        success: function(response) {
-            try {
-                var criteria = response.criteria;
-                var gradeData = response.gradeData;
+                    $.ajax({
+                        url: 'functions/fetch_criteria.php',
+                        method: 'POST',
+                        data: {
+                            studentID: studentID
+                        },
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        success: function(response) {
+                            try {
+                                var criteria = response.criteria;
+                                var gradeData = response.gradeData;
 
-                console.log("Parsed Criteria:", criteria);  // Debugging: check parsed criteria
-                console.log("Parsed Grade Data:", gradeData);  // Debugging: check parsed grade data
+                                console.log("Parsed Criteria:", criteria);  // Debugging: check parsed criteria
+                                console.log("Parsed Grade Data:", gradeData);  // Debugging: check parsed grade data
 
-                if (!Array.isArray(criteria)) {
-                    throw new Error("Response is not an array");
+                                if (!Array.isArray(criteria)) {
+                                    throw new Error("Response is not an array");
+                                }
+
+                                renderCriteria(criteria, gradeData);
+                                initializeInputs(); // Initialize inputs after criteria are rendered
+                
+                                if (gradeData && gradeData.finalGrade !== null) {
+                                    // Set the total grade from the backend if available
+                                    document.getElementById("totalGrade").value = gradeData.finalGrade;
+
+                                    // Change the submit button to save button if grades are available
+                                    document.getElementById("submitButton").style.display = 'none';
+                                    document.getElementById("saveButton").style.display = 'inline-block';
+                                } else {
+                                    // Show submit button if no grades are available
+                                    document.getElementById("submitButton").style.display = 'inline-block';
+                                    document.getElementById("saveButton").style.display = 'none';
+                                }
+
+                            } catch (e) {
+                                console.error("JSON Parsing Error:", e);
+                                $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("AJAX Error:", status, error);  // Debugging: log AJAX error
+                            console.error("Response Text:", xhr.responseText);
+                            $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
+                        }
+                    });
                 }
 
-                renderCriteria(criteria, gradeData);
-                initializeInputs(); // Initialize inputs after criteria are rendered
-                if (gradeData && gradeData.finalGrade !== null) {
-                    // Set the total grade from the backend if available
-                    document.getElementById("totalGrade").value = gradeData.finalGrade;
-                }
+                // Function to render criteria dynamically
+                function renderCriteria(criteria, gradeData) {
+                    var criteriaContainer = document.getElementById('criteriaContainer');
+                    criteriaContainer.innerHTML = '';
 
-            } catch (e) {
-                console.error("JSON Parsing Error:", e);
-                $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error:", status, error);  // Debugging: log AJAX error
-            console.error("Response Text:", xhr.responseText);
-            $("#criteriaContainer").html("<p class='text-center text-danger'>Error fetching criteria.</p>");
-        }
-    });
-}
+                    if (criteria.length === 0) {
+                        criteriaContainer.innerHTML = "<p class='text-center p-4'>No criteria found for this student.</p>";
+                        return;
+                    }
 
-// Function to render criteria dynamically
-function renderCriteria(criteria, gradeData) {
-    var criteriaContainer = document.getElementById('criteriaContainer');
-    criteriaContainer.innerHTML = '';
-
-    if (criteria.length === 0) {
-        criteriaContainer.innerHTML = "<p class='text-center p-4'>No criteria found for this student.</p>";
-        return;
-    }
-
-    criteria.forEach(function(criteriaItem) {
-        // Check if grade data exists for this criteria
-        var grade = gradeData && gradeData.grades && gradeData.grades[criteriaItem.criteria] ? gradeData.grades[criteriaItem.criteria] : 0;
+                    criteria.forEach(function(criteriaItem) {
+                        // Check if grade data exists for this criteria
+                        var grade = gradeData && gradeData.grades && gradeData.grades[criteriaItem.criteria] ? gradeData.grades[criteriaItem.criteria] : 0;
         
-        var criteriaHtml = `
-            <div class='p-3 mb-2 border rounded'>
-                <div class='row'>
-                    <div class='col-md-8'>
-                        <h6 data-id="${criteriaItem.id}">${criteriaItem.criteria}</h6>
-                        <p class="small"><i>${criteriaItem.description}</i></p>
-                    </div>
-                    <div class='col-md-4'>
-                        <input type="hidden" name="criteria[${criteriaItem.criteria}][criteria]" value="${criteriaItem.criteria}">
-                        <input type="hidden" name="criteria[${criteriaItem.criteria}][description]" value="${criteriaItem.description}">
-                        <input type="hidden" name="criteria[${criteriaItem.criteria}][percentage]" value="${criteriaItem.percentage}">
-                        <label class="sr-only" for="displayValue${criteriaItem.id}">Grade</label>
-                        <div class="input-group input-group-sm mb-2 mr-sm-2">
-                            <input type="number" required class="form-control custom-number-input" min="0" max="${criteriaItem.percentage}" value="${grade}" name="grade[${criteriaItem.criteria}]" id="displayValue${criteriaItem.id}" oninput="enforceMaxLimit(this, '${criteriaItem.id}')" data-percentage="${criteriaItem.percentage}">
-                            <div class="input-group-append">
-                                <div class="input-group-text">${criteriaItem.percentage}%</div>
+                        var criteriaHtml = `
+                        <div class='p-3 mb-2 border rounded'>
+                            <div class='row'>
+                                <div class='col-md-8'>
+                                    <h6 data-id="${criteriaItem.id}">${criteriaItem.criteria}</h6>
+                                    <p class="small"><i>${criteriaItem.description}</i></p>
+                                </div>
+                                <div class='col-md-4'>
+                                    <input type="hidden" name="criteria[${criteriaItem.criteria}][criteria]" value="${criteriaItem.criteria}">
+                                    <input type="hidden" name="criteria[${criteriaItem.criteria}][description]" value="${criteriaItem.description}">
+                                    <input type="hidden" name="criteria[${criteriaItem.criteria}][percentage]" value="${criteriaItem.percentage}">
+                                    <label class="sr-only" for="displayValue${criteriaItem.id}">Grade</label>
+                                    <div class="input-group input-group-sm mb-2 mr-sm-2">
+                                        <input type="number" required class="form-control custom-number-input" min="0" max="${criteriaItem.percentage}" value="${grade}" name="grade[${criteriaItem.criteria}]" id="displayValue${criteriaItem.id}" oninput="enforceMaxLimit(this, '${criteriaItem.id}')" data-percentage="${criteriaItem.percentage}">
+                                        <div class="input-group-append">
+                                            <div class="input-group-text">${criteriaItem.percentage}%</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
+                        </div>`;
 
-        criteriaContainer.innerHTML += criteriaHtml;
-    });
+                        criteriaContainer.innerHTML += criteriaHtml;
+                    });
 
-    // If final grade exists, display it
-    if (gradeData && gradeData.finalGrade !== null) {
-        var finalGradeHtml = `
-            <div class="p-3 mb-2 border rounded">
-                <h6>Final Grade: ${gradeData.finalGrade}</h6>
-            </div>`;
-        criteriaContainer.innerHTML += finalGradeHtml;
-    }
-}
-
+                    // If final grade exists, display it
+                    if (gradeData && gradeData.finalGrade !== null) {
+                        var finalGradeHtml = `
+                            <div class="p-3 mb-2 border rounded">
+                                <h6>Final Grade: ${gradeData.finalGrade}</h6>
+                            </div>`;
+                        criteriaContainer.innerHTML += finalGradeHtml;
+                    }
+                }
 
                 // Event listener for student links
                 $(document).on('click', '.info-link', function(e) {
@@ -632,7 +648,76 @@ function renderCriteria(criteria, gradeData) {
                             }
                         });
                     });
-            })
+
+                    $("#criteriaForm").submit(function(event) {
+                        event.preventDefault(); // Prevent default form submission
+
+                        var studentID = $('#stud_id').text(); // Assuming the studentID is displayed in this field
+
+                        if (!studentID) {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Student ID not found. Please ensure the student is selected.',
+                                icon: 'error'
+                            });
+                            return;
+                        }
+
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: "You won't be able to revert this!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, save it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Proceed with form submission via AJAX
+                                let formData = $(this).serialize(); // Serialize form data
+
+                                formData += '&studentID=' + studentID; // Append studentID to form data
+
+                                $.ajax({
+                                    url: 'functions/update_grade.php', // The update grade script URL
+                                    type: "POST",
+                                    data: formData,
+                                    dataType: "json",
+                                    success: function(response) {
+                                        console.log('Response from server:', response); // Log the full response object
+
+                                        // Check if status is success
+                                        if (response.status === 'success') {
+                                            console.log('Success block triggered');
+                                            Swal.fire({
+                                                title: 'Success!',
+                                                text: response.message, // Display the 'message' field from the response
+                                                icon: 'success'
+                                            }).then(() => {
+                                                $('#successMessage').text(response.message).show();
+                                            });
+                                        } else {
+                                            console.log('Error block triggered');
+                                            Swal.fire({
+                                                title: 'Error!',
+                                                text: response.message || 'Something went wrong.', // Use 'message' instead of 'error'
+                                                icon: 'error'
+                                            });
+                                        }
+                                    },
+                                    error: function(jqXHR, textStatus, errorThrown) {
+                                        console.log('AJAX error:', textStatus, errorThrown); // Log any AJAX errors
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: 'Failed to save the grade. Please try again.',
+                                            icon: 'error'
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    });
+                })
         </script>
     </body>
 </html>
