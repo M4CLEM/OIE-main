@@ -169,39 +169,56 @@
                                     </div>
                                 </div>
                                 <div>
-                                <form action="functions/submit_grade.php" id="criteriaForm" method="POST">
-    <div class="row">
-        <label for="criteriaContainer" class="text-center small font-weight-bold border-0">Grading</label>
-    </div>
-    <div id="criteriaContainer">
-        <p class="text-center p-4">Criteria will be displayed here</p>
-    </div>
-    <div class="d-flex justify-content-end">
-        <!-- Submit button will be shown if no grades are in the database -->
-        <button type="submit" class="btn btn-success" id="submitButton">
-            <span class="fas fa-save fw-fa"></span> Submit Grade
-        </button>
+                                    <form action="functions/submit_grade.php" id="criteriaForm" method="POST">
+                                        <div class="row">
+                                            <label for="criteriaContainer" class="text-center small font-weight-bold border-0">Grading</label>
+                                        </div>
+                                        <div id="criteriaContainer">
+                                            <p class="text-center p-4">Criteria will be displayed here</p>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <!-- Submit button will be shown if no grades are in the database -->
+                                            <button type="submit" class="btn btn-success" id="submitButton">
+                                                <span class="fas fa-save fw-fa"></span> Submit Grade
+                                            </button>
 
-        <!-- Save button will be shown if grades are already in the database -->
-        <button type="submit" class="btn btn-primary" id="saveButton" style="display: none;">
-            <span class="fas fa-save fw-fa"></span> Save Grade
-        </button>
-
-        <div class="col-4">
-            <label class="sr-only" for="totalGrade">Total Grade</label>
-            <div class="input-group mb-2 mr-sm-2">
-                <div class="input-group-prepend">
-                    <div class="input-group-text">Total</div>
-                </div>
-                <input type="number" id="totalGrade" name="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()" required>
-            </div>
-        </div>
-    </div>
-</form>
-
+                                            <!-- Save button will be shown if grades are already in the database -->
+                                            <button type="submit" class="btn btn-primary" id="saveButton" style="display: none;">
+                                                <span class="fas fa-save fw-fa"></span> Save Grade
+                                            </button>
+                                            <div class="col-4">
+                                                <label class="sr-only" for="totalGrade">Total Grade</label>
+                                                <div class="input-group mb-2 mr-sm-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total</div>
+                                                    </div>
+                                                    <input type="number" id="totalGrade" name="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Modal-->
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <a class="btn btn-primary" href="../logout.php">Logout</a>
                     </div>
                 </div>
             </div>
