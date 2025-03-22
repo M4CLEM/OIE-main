@@ -54,7 +54,7 @@
     </li>
 
     <li class="sidebar-item">
-        <a href="view-pstatus.php" class="sidebar-link">
+        <a href="view-grades.php" class="sidebar-link">
         <i class="fas fa-star fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>View Grade</span></a>
         </a>
