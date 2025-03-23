@@ -73,10 +73,12 @@ if (isset($_POST['studentID']) && isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
             }
         }
     }
-
+    
     // Return JSON response
     header('Content-Type: application/json');
     echo json_encode([
+        'companyName' => $companyName,
+        'jobrole' => $jobrole,
         'criteria' => $adviserCriteriaGrouped,
         'gradeData' => $gradeData
     ]);

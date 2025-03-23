@@ -146,6 +146,10 @@
                                             <label for="surname" class="small">Surname:</label>
                                             <p class="small font-weight-bold" id="surname"></p>
                                         </div>
+                                        <div>
+                                            <label for="companyName" class="small">Company:</label>
+                                            <p class="small font-weight-bold" id="companyName"></p>
+                                        </div>
                                     </div>
                                     <div class="col">
                                         <div>
@@ -155,6 +159,10 @@
                                         <div>
                                             <label for="firstName" class="small">First Name:</label>
                                             <p class="small font-weight-bold" id="firstName"></p>
+                                        </div>
+                                        <div>
+                                            <label for="jobrole" class="small">Jobrole:</label>
+                                            <p class="small font-weight-bold" id="jobrole"></p>
                                         </div>
                                     </div>
                                     <div class="col">
@@ -193,6 +201,7 @@
                                                         <div class="input-group-text">Total</div>
                                                     </div>
                                                     <input type="number" id="totalGrade" name="totalGrade" class="form-control" min="0" max="100" oninput="distributeTotalGrade()" required>
+                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -362,9 +371,16 @@
                             try {
                                 var criteria = response.criteria;
                                 var gradeData = response.gradeData;
+                                var companyName = response.companyName;
+                                var jobrole = response.jobrole;
 
+                                console.log("Company Name:", companyName);
+                                console.log("Jobrole:", jobrole);
                                 console.log("Parsed Criteria:", criteria);  // Debugging: check parsed criteria
                                 console.log("Parsed Grade Data:", gradeData);  // Debugging: check parsed grade data
+
+                                $('#companyName').text(companyName);
+                                $('#jobrole').text(jobrole);
 
                                 if (!Array.isArray(criteria)) {
                                     throw new Error("Response is not an array");
@@ -597,143 +613,160 @@
                         });
                     }
 
-                    $("#criteriaForm").submit(function(event) {
+                    // Submit Grade (for the submit button)
+                    $("#submitButton").click(function(event) {
                         event.preventDefault(); // Prevent default form submission
 
-                        var studentID = $('#stud_id').text(); // Assuming the studentID is displayed in this field
+                        var studentID = $("#stud_id").text().trim();
+                        var companyName = $("#companyName").text().trim();
+                        var jobrole = $("#jobrole").text().trim();
+
+                        console.log("Student ID:", studentID);
+                        console.log("Company Name:", companyName);
+                        console.log("Job Role:", jobrole);
 
                         if (!studentID) {
                             Swal.fire({
-                                title: 'Error',
-                                text: 'Student ID not found. Please ensure the student is selected.',
-                                icon: 'error'
+                                title: "Error",
+                                text: "Student ID not found. Please ensure the student is selected.",
+                                icon: "error",
                             });
                             return;
                         }
 
                         Swal.fire({
-                            title: 'Are you sure?',
+                            title: "Are you sure?",
                             text: "You won't be able to revert this!",
-                            icon: 'warning',
+                            icon: "warning",
                             showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Yes, submit it!'
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, submit it!",
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // Proceed with form submission via AJAX
-                                let formData = $(this).serialize(); // Serialize form data
+                                let formData = $("#criteriaForm").serialize(); // Serialize form data
+                                formData += "&studentID=" + encodeURIComponent(studentID) +
+                                "&companyName=" + encodeURIComponent(companyName) +
+                                "&jobrole=" + encodeURIComponent(jobrole);
 
-                                formData += '&studentID=' + studentID;
+                                console.log("Final Form Data (Before Sending):", formData); // Log final data before sending
 
                                 $.ajax({
-                                    url: $(this).attr('action'), // Get the form action URL
+                                    url: $("#criteriaForm").attr("action"),
                                     type: "POST",
                                     data: formData,
                                     dataType: "json",
                                     success: function(response) {
-                                        console.log('Response from server:', response); // Log the full response object
+                                        console.log("Response from server:", response);
 
-                                        // Check if status is success
-                                        if (response.status === 'success') {
-                                            console.log('Success block triggered');
+                                        if (response.status === "success") {
+                                            // Success case
                                             Swal.fire({
-                                                title: 'Success!',
-                                                text: response.message, // Display the 'message' field from the response
-                                                icon: 'success'
+                                                title: "Success!",
+                                                text: response.message,  // Using the 'message' from backend response
+                                                icon: "success",
                                             }).then(() => {
-                                                $('#successMessage').text(response.message).show();
+                                                $("#successMessage").text(response.message).show(); // Optionally, show success message on page
+                                            });
+                                        } else if (response.error) {
+                                            // Error case
+                                            Swal.fire({
+                                                title: "Error!",
+                                                text: response.error,  // Using the 'error' from backend response
+                                                icon: "error",
                                             });
                                         } else {
-                                            console.log('Error block triggered');
+                                            // If the response structure is not as expected
                                             Swal.fire({
-                                                title: 'Error!',
-                                                text: response.message || 'Something went wrong.', // Use 'message' instead of 'error'
-                                                icon: 'error'
+                                                title: "Error!",
+                                                text: "Unexpected response from server.",
+                                                icon: "error",
                                             });
                                         }
                                     },
                                     error: function(jqXHR, textStatus, errorThrown) {
-                                        console.log('AJAX error:', textStatus, errorThrown); // Log any AJAX errors
+                                        console.log("AJAX error:", textStatus, errorThrown);
                                         Swal.fire({
-                                            title: 'Error!',
-                                            text: 'Failed to submit the grade. Please try again.',
-                                            icon: 'error'
+                                            title: "Error!",
+                                            text: "Failed to submit the grade. Please try again.",
+                                            icon: "error",
                                         });
-                                    }
+                                    },
                                 });
+
                             }
                         });
                     });
 
-                    $("#criteriaForm").submit(function(event) {
+                    // Update Grade (for the save button)
+                    $("#saveButton").click(function(event) {
                         event.preventDefault(); // Prevent default form submission
 
-                        var studentID = $('#stud_id').text(); // Assuming the studentID is displayed in this field
+    var studentID = $('#stud_id').text(); // Assuming the studentID is displayed in this field
 
-                        if (!studentID) {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Student ID not found. Please ensure the student is selected.',
-                                icon: 'error'
-                            });
-                            return;
-                        }
+    if (!studentID) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Student ID not found. Please ensure the student is selected.',
+            icon: 'error'
+        });
+        return;
+    }
 
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, save it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with form submission via AJAX
+            let formData = $("#criteriaForm").serialize(); // Serialize form data
+            formData += '&studentID=' + studentID; // Append studentID to form data
+
+            $.ajax({
+                url: 'functions/update_grade.php', // The update grade script URL
+                type: "POST",
+                data: formData,
+                dataType: "json",
+                success: function(response) {
+                    console.log('Response from server:', response); // Log the full response object
+
+                    // Check if status is success
+                    if (response.status === 'success') {
+                        console.log('Success block triggered');
                         Swal.fire({
-                            title: 'Are you sure?',
-                            text: "You won't be able to revert this!",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Yes, save it!'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Proceed with form submission via AJAX
-                                let formData = $(this).serialize(); // Serialize form data
-
-                                formData += '&studentID=' + studentID; // Append studentID to form data
-
-                                $.ajax({
-                                    url: 'functions/update_grade.php', // The update grade script URL
-                                    type: "POST",
-                                    data: formData,
-                                    dataType: "json",
-                                    success: function(response) {
-                                        console.log('Response from server:', response); // Log the full response object
-
-                                        // Check if status is success
-                                        if (response.status === 'success') {
-                                            console.log('Success block triggered');
-                                            Swal.fire({
-                                                title: 'Success!',
-                                                text: response.message, // Display the 'message' field from the response
-                                                icon: 'success'
-                                            }).then(() => {
-                                                $('#successMessage').text(response.message).show();
-                                            });
-                                        } else {
-                                            console.log('Error block triggered');
-                                            Swal.fire({
-                                                title: 'Error!',
-                                                text: response.message || 'Something went wrong.', // Use 'message' instead of 'error'
-                                                icon: 'error'
-                                            });
-                                        }
-                                    },
-                                    error: function(jqXHR, textStatus, errorThrown) {
-                                        console.log('AJAX error:', textStatus, errorThrown); // Log any AJAX errors
-                                        Swal.fire({
-                                            title: 'Error!',
-                                            text: 'Failed to save the grade. Please try again.',
-                                            icon: 'error'
-                                        });
-                                    }
-                                });
-                            }
+                            title: 'Success!',
+                            text: response.message, // Display the 'message' field from the response
+                            icon: 'success'
+                        }).then(() => {
+                            $('#successMessage').text(response.message).show();
                         });
+                    } else {
+                        console.log('Error block triggered');
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Something went wrong.', // Use 'message' instead of 'error'
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('AJAX error:', textStatus, errorThrown); // Log any AJAX errors
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Failed to save the grade. Please try again.',
+                        icon: 'error'
                     });
+                }
+            });
+        }
+    });
+});
+
                 })
         </script>
     </body>
