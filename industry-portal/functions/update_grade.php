@@ -2,13 +2,16 @@
 session_start();
 include_once("../../includes/connection.php");
 
+// Enable error reporting for debugging
 header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $response = [];
 
+// Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Validate and sanitize studentId
     $studentId = isset($_POST['studentID']) ? trim($_POST['studentID']) : '';
     if (empty($studentId)) {
         echo json_encode(['error' => 'Student ID is required.']);
@@ -21,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->bind_param("i", $studentId);
     $stmt->execute();
     $result = $stmt->get_result();
-
+    
     if ($result->num_rows === 0) {
         echo json_encode(['error' => 'Student not found.']);
         exit;
@@ -32,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->close();
 
     // Validate criteria and grades data
-    $criteriaData = isset($_POST['criteria']) ? $_POST['criteria'] : [];
-    $gradesData = isset($_POST['grade']) ? $_POST['grade'] : [];
+    $criteriaData = $_POST['criteria'] ?? [];
+    $gradesData = $_POST['grade'] ?? [];
     if (empty($criteriaData) || empty($gradesData)) {
         echo json_encode(['error' => 'Invalid criteria or grades data.']);
         exit;
@@ -43,8 +46,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $criteriaArray = [];
     $finalGrades = [];
     foreach ($criteriaData as $index => $value) {
-        $criteriaTitle = isset($value['criteria']) ? $value['criteria'] : '';
-        $criteriaDescription = isset($value['description']) ? $value['description'] : '';
+        $criteriaTitle = $value['criteria'] ?? '';
+        $criteriaDescription = $value['description'] ?? '';
         $criteriaPercentage = isset($value['percentage']) ? (int)$value['percentage'] : 0;
 
         if (empty($criteriaTitle) || $criteriaPercentage < 0) {
@@ -57,14 +60,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             'description' => $criteriaDescription,
             'percentage' => $criteriaPercentage
         ];
-
+        
         $grade = isset($gradesData[$index]) ? (int)$gradesData[$index] : 0;
         $finalGrades[$criteriaTitle] = $grade;
     }
 
     // Encode data to JSON
-    $criteriaJson = !empty($criteriaArray) ? json_encode($criteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : json_encode([], JSON_FORCE_OBJECT);
-    $gradesJson = !empty($finalGrades) ? json_encode($finalGrades, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : json_encode([], JSON_FORCE_OBJECT);
+    $criteriaJson = json_encode($criteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $gradesJson = json_encode($finalGrades, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
     // Validate total grade
     $totalGrade = isset($_POST['totalGrade']) ? (int)$_POST['totalGrade'] : 0;
@@ -73,22 +76,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
-    // Get companyName and jobrole from the form
-    $companyName = isset($_POST['companyName']) ? trim($_POST['companyName']) : null;
-    $jobrole = isset($_POST['jobrole']) ? trim($_POST['jobrole']) : null;
+    // Check if the grade record exists for the student
+    $stmt = $connect->prepare("SELECT id FROM student_grade WHERE studentID = ?");
+    $stmt->bind_param("s", $studentId);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    // Insert into database
-    $stmt = $connect->prepare("INSERT INTO student_grade (studentID, email, criteria, grade, finalGrade, companyName, jobrole) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade, $companyName, $jobrole);
-    
-    if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted!']);
+    // If record exists, update it; otherwise, insert a new record
+    if ($result->num_rows > 0) {
+        // Record exists, update it
+        $updateStmt = $connect->prepare("UPDATE student_grade SET criteria = ?, grade = ?, finalGrade = ? WHERE studentID = ?");
+        $updateStmt->bind_param("ssss", $criteriaJson, $gradesJson, $totalGrade, $studentId);
+        
+        if ($updateStmt->execute()) {
+            echo json_encode(['status' => 'success', 'message' => 'Grade successfully updated!']);
+        } else {
+            echo json_encode(['error' => 'Error updating grade: ' . $updateStmt->error]);
+        }
+        $updateStmt->close();
     } else {
-        // Log error for debugging
-        error_log("Database Insert Error: " . $stmt->error);
-        echo json_encode(['error' => 'Error submitting grade: ' . $stmt->error]);
+        // Record does not exist, insert a new one
+        $insertStmt = $connect->prepare("INSERT INTO student_grade (studentID, email, criteria, grade, finalGrade) VALUES (?, ?, ?, ?, ?)");
+        $insertStmt->bind_param("sssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade);
+        
+        if ($insertStmt->execute()) {
+            echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted!']);
+        } else {
+            echo json_encode(['error' => 'Error submitting grade: ' . $insertStmt->error]);
+        }
+        $insertStmt->close();
     }
-    
+
     $stmt->close();
 } else {
     echo json_encode(['error' => 'Invalid request method.']);
