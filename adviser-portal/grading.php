@@ -702,71 +702,70 @@
                     $("#saveButton").click(function(event) {
                         event.preventDefault(); // Prevent default form submission
 
-    var studentID = $('#stud_id').text(); // Assuming the studentID is displayed in this field
+                        var studentID = $('#stud_id').text(); // Assuming the studentID is displayed in this field
 
-    if (!studentID) {
-        Swal.fire({
-            title: 'Error',
-            text: 'Student ID not found. Please ensure the student is selected.',
-            icon: 'error'
-        });
-        return;
-    }
+                        if (!studentID) {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Student ID not found. Please ensure the student is selected.',
+                                icon: 'error'
+                            });
+                            return;
+                        }
 
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, save it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Proceed with form submission via AJAX
-            let formData = $("#criteriaForm").serialize(); // Serialize form data
-            formData += '&studentID=' + studentID; // Append studentID to form data
-
-            $.ajax({
-                url: 'functions/update_grade.php', // The update grade script URL
-                type: "POST",
-                data: formData,
-                dataType: "json",
-                success: function(response) {
-                    console.log('Response from server:', response); // Log the full response object
-
-                    // Check if status is success
-                    if (response.status === 'success') {
-                        console.log('Success block triggered');
                         Swal.fire({
-                            title: 'Success!',
-                            text: response.message, // Display the 'message' field from the response
-                            icon: 'success'
-                        }).then(() => {
-                            $('#successMessage').text(response.message).show();
+                            title: 'Are you sure?',
+                            text: "You won't be able to revert this!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, save it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Proceed with form submission via AJAX
+                                let formData = $("#criteriaForm").serialize(); // Serialize form data
+                                formData += '&studentID=' + studentID; // Append studentID to form data
+
+                                $.ajax({
+                                    url: 'functions/update_grade.php', // The update grade script URL
+                                    type: "POST",
+                                    data: formData,
+                                    dataType: "json",
+                                    success: function(response) {
+                                        console.log('Response from server:', response); // Log the full response object
+
+                                        // Check if status is success
+                                        if (response.status === 'success') {
+                                            console.log('Success block triggered');
+                                            Swal.fire({
+                                                title: 'Success!',
+                                                text: response.message, // Display the 'message' field from the response
+                                                icon: 'success'
+                                            }).then(() => {
+                                                $('#successMessage').text(response.message).show();
+                                            });
+                                        } else {
+                                            console.log('Error block triggered');
+                                            Swal.fire({
+                                                title: 'Error!',
+                                                text: response.message || 'Something went wrong.', // Use 'message' instead of 'error'
+                                                icon: 'error'
+                                            });
+                                        }
+                                    },
+                                    error: function(jqXHR, textStatus, errorThrown) {
+                                        console.log('AJAX error:', textStatus, errorThrown); // Log any AJAX errors
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: 'Failed to save the grade. Please try again.',
+                                            icon: 'error'
+                                        });
+                                    }
+                                });
+                            }
                         });
-                    } else {
-                        console.log('Error block triggered');
-                        Swal.fire({
-                            title: 'Error!',
-                            text: response.message || 'Something went wrong.', // Use 'message' instead of 'error'
-                            icon: 'error'
-                        });
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log('AJAX error:', textStatus, errorThrown); // Log any AJAX errors
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Failed to save the grade. Please try again.',
-                        icon: 'error'
                     });
-                }
-            });
-        }
-    });
-});
-
                 })
         </script>
     </body>
