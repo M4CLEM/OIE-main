@@ -18,9 +18,9 @@ try {
         $students = $_POST['students'];
 
         // Create the Transport
-        $transport = (new Swift_SmtpTransport('smtp.gmail.com', 587, 'tls'))
-            ->setUsername('citcs_ojt@plmun.edu.ph')
-            ->setPassword('euvobesjlupefvsq')
+        $transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
+            ->setUsername('johncantos01@gmail.com')
+            ->setPassword('oneusycqneynrgvt')
             ->setStreamOptions([
                 'ssl' => [
                     'verify_peer' => false,
