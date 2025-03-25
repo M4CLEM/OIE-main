@@ -342,95 +342,104 @@
 
 
             document.getElementById('criteriaForm').addEventListener('submit', function(event) {
-                event.preventDefault(); // Prevent form from submitting the traditional way
-    
-                // Gather form data
-                let formData = new FormData(this);
-    
-                // Prepare criteria and grades
-                let criteriaData = [];
-                let gradesData = {};
-                let totalGrade = document.getElementById('totalGrade').value;
-                let studentId = document.getElementById('studentId').value;
-                let companyName = document.querySelector('h5').textContent.replace('Company: ', '').trim();
-                let jobrole = document.querySelector('h6').textContent.replace('Job Role: ', '').trim();
+    event.preventDefault(); // Prevent default form submission
 
-                // Collect criteria and grades into arrays
-                document.querySelectorAll('.custom-number-input').forEach((input, index) => {
-                    const criteriaKey = input.dataset.criteria; // Extract criteria name directly
-                    const description = input.dataset.description;
-                    const percentage = input.dataset.percentage;
+    // Gather form data
+    let formData = new FormData(this);
 
-                    // Check if data-attributes are present
-                    if (!criteriaKey || !description || !percentage) {
-                        console.error('Missing required data attributes for criteria item', input);
-                    }
+    // Prepare criteria and grades
+    let criteriaData = [];
+    let gradesData = {};
+    let totalGrade = document.getElementById('totalGrade').value;
+    let studentId = document.getElementById('studentId').value;
+    let companyName = document.querySelector('h5').textContent.replace('Company: ', '').trim();
+    let jobrole = document.querySelector('h6').textContent.replace('Job Role: ', '').trim();
 
-                    // Log criteria and grade for debugging
-                    console.log("Criteria:", criteriaKey);
-                    console.log("Description:", description);
-                    console.log("Percentage:", percentage);
+    // Collect criteria and grades into arrays
+    document.querySelectorAll('.custom-number-input').forEach((input, index) => {
+        const criteriaKey = input.dataset.criteria; // Extract criteria name directly
+        const description = input.dataset.description;
+        const percentage = input.dataset.percentage;
 
-                    // Ensure the criteria data has the required fields
-                    if (criteriaKey && description && percentage) {
-                        criteriaData.push({
-                            criteria: criteriaKey,
-                            description: description,
-                            percentage: percentage
-                        });
+        if (!criteriaKey || !description || !percentage) {
+            console.error('Missing required data attributes for criteria item', input);
+        }
 
-                        // Store grades corresponding to the criteria
-                        gradesData[criteriaKey] = input.value;
-                    }
-                });
+        console.log("Criteria:", criteriaKey);
+        console.log("Description:", description);
+        console.log("Percentage:", percentage);
 
-                // Check if the criteria data and grades data are properly formatted
-                console.log("Criteria Data:", JSON.stringify(criteriaData, null, 2));
-                console.log("Grades Data:", JSON.stringify(gradesData, null, 2));
+        if (criteriaKey && description && percentage) {
+            criteriaData.push({
+                criteria: criteriaKey,
+                description: description,
+                percentage: percentage
+            });
 
-                // Add criteria and grades data to formData
-                formData.append('criteria', JSON.stringify(criteriaData));  // Array of criteria
-                formData.append('grade', JSON.stringify(gradesData));  // Object of grades
-                formData.append('totalGrade', totalGrade);
-                formData.append('studentID', studentId);
-                formData.append('companyName', companyName);
-                formData.append('jobrole', jobrole);
+            gradesData[criteriaKey] = input.value;
+        }
+    });
 
-                // Send data via AJAX
-                fetch('industry-portal/submit_grade.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        console.log("Success:", data.message); // Log success message to console
-                        Swal.fire({
-                            title: "Success!",
-                            text: data.message,  // Using the 'message' from backend response
-                            icon: "success",
-                        }).then(() => {
-                            // Optionally, show success message on page or reset form
-                            $("#successMessage").text(data.message).show(); 
-                        });
-                    } else {
-                        console.error("Error:", data.error); // Log error message to console
-                        Swal.fire({
-                            title: "Error!",
-                            text: data.error,  // Using the 'error' from backend response
-                            icon: "error",
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting grade:', error); // Log any other errors to console
+    console.log("Criteria Data:", JSON.stringify(criteriaData, null, 2));
+    console.log("Grades Data:", JSON.stringify(gradesData, null, 2));
+
+    // Add criteria and grades data to formData
+    formData.append('criteria', JSON.stringify(criteriaData));
+    formData.append('grade', JSON.stringify(gradesData));
+    formData.append('totalGrade', totalGrade);
+    formData.append('studentID', studentId);
+    formData.append('companyName', companyName);
+    formData.append('jobrole', jobrole);
+
+    // Show confirmation alert before submitting
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, submit it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with submission if confirmed
+            fetch('industry-portal/submit_grade.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log("Success:", data.message);
+                    Swal.fire({
+                        title: "Success!",
+                        text: data.message,
+                        icon: "success",
+                    }).then(() => {
+                        $("#successMessage").text(data.message).show(); 
+                        window.close();
+                    });
+                } else {
+                    console.error("Error:", data.error);
                     Swal.fire({
                         title: "Error!",
-                        text: "Failed to submit the grade. Please try again.",
+                        text: data.error,
                         icon: "error",
                     });
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting grade:', error);
+                Swal.fire({
+                    title: "Error!",
+                    text: "Failed to submit the grade. Please try again.",
+                    icon: "error",
                 });
             });
+        }
+    });
+});
+
         </script>
     </body>
 </html>

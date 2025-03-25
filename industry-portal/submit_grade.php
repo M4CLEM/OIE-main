@@ -70,8 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Encode data to JSON
-    $criteriaJson = !empty($criteriaArray) ? json_encode($criteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : json_encode([], JSON_FORCE_OBJECT);
-    $gradesJson = !empty($finalGrades) ? json_encode($finalGrades, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : json_encode([], JSON_FORCE_OBJECT);
+    $criteriaJson = json_encode($criteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $gradesJson = json_encode($finalGrades, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
     // Validate total grade
     $totalGrade = isset($_POST['totalGrade']) ? (int)$_POST['totalGrade'] : 0;
@@ -89,9 +89,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->bind_param("issssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade, $companyName, $jobrole);
     
     if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted!']);
+        // Update student's status to "Completed" after inserting the grade
+        $updateStmt = $connect->prepare("UPDATE studentinfo SET status = 'Completed' WHERE studentID = ?");
+        $updateStmt->bind_param("i", $studentId);
+        
+        if ($updateStmt->execute()) {
+            echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted and status updated to "Completed"!']);
+        } else {
+            error_log("Error updating student status: " . $updateStmt->error);
+            echo json_encode(['status' => 'success', 'message' => 'Grade submitted, but failed to update student status.']);
+        }
+        $updateStmt->close();
     } else {
-        // Log error for debugging
         error_log("Database Insert Error: " . $stmt->error);
         echo json_encode(['error' => 'Error submitting grade: ' . $stmt->error]);
     }
