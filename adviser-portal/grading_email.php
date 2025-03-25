@@ -66,11 +66,14 @@ try {
         </body>
         </html>';
 
-        // Create a message
-        $message = (new Swift_Message($subject))
-            ->setFrom(['agl.systems.info@gmail.com' => 'PLMUN CIPA'])
-            ->setTo([$recipient_email])
-            ->setBody($body, 'text/html');
+// Ensure multiple recipient emails are handled properly
+$recipientEmails = array_map('trim', explode(',', $recipient_email));
+
+$message = (new Swift_Message($subject))
+    ->setFrom(['agl.systems.info@gmail.com' => 'PLMUN CIPA'])
+    ->setTo($recipientEmails) // Pass array of emails
+    ->setBody($body, 'text/html');
+
 
         // Send the message
         $result = $mailer->send($message);

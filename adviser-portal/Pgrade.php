@@ -93,7 +93,10 @@ $result = mysqli_query($connect, $query);
                             <div class="col-md-6">
                                 <div class="row justify-content-end align-items-center">
                                     <div class="col-md-3">
-                                        <button id="composeButton" class="btn btn-primary btn-sm mr-6" data-toggle="modal" data-target="#composeEmailModal">Compose <i class="fa fa-envelope" aria-hidden="true"></i></button>
+                                    <button id="composeButton" class="btn btn-primary btn-sm mr-6" onclick="openComposeModal()">
+    Compose <i class="fa fa-envelope" aria-hidden="true"></i>
+</button>
+
                                     </div>
 
                                     <div class="col-md-9">
@@ -156,47 +159,47 @@ $result = mysqli_query($connect, $query);
                 </div>
             </div>
 
-            <!-- Email Compose Modal -->
-            <div class="modal fade" id="composeEmailModal" tabindex="-1" role="dialog" aria-labelledby="composeEmailModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="composeEmailModalLabel">Compose Email</h5>
-                            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form id="composeEmailForm" action="grading_email.php" method="post">
-                            <div class="modal-body">
-                                <div class="form-group">
-                                    <label for="recipient-email">Recipient Email:</label>
-                                    <input type="email" class="form-control" id="recipient-email" placeholder="recipient@example.com" name="recipient-email" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="sender">Sender Name:</label>
-                                    <input class="form-control" id="sender" rows="8" placeholder="eg. (Juan Dela Cruz)" name="sender" required></input>
-                                </div>
-                                <div class="form-group">
-                                    <label for="sender">Sender Email:</label>
-                                    <input class="form-control" id="sender-email" rows="8" placeholder="senderemail@email.com" name="sender-email" required></input>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email-subject">Subject:</label>
-                                    <input type="text" class="form-control" id="email-subject" placeholder="Subject" name="email-subject" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="students">Students:</label>
-                                    <textarea class="form-control" id="students" rows="8" placeholder="Students Here" name="students" readonly></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                                <button class="btn btn-primary" type="submit">Send</button>
-                            </div>
-                        </form>
-                    </div>
+    <!-- Email Compose Modal -->
+    <div class="modal fade" id="composeEmailModal" tabindex="-1" role="dialog" aria-labelledby="composeEmailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="composeEmailModalLabel">Compose Email</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
+                <form id="composeEmailForm" action="grading_email.php" method="post">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="recipient-email">Recipient Email:</label>
+                            <input type="email" class="form-control" id="recipient-email" placeholder="recipient@example.com" name="recipient-email" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="sender">Sender Name:</label>
+                            <input class="form-control" id="sender" placeholder="eg. (Juan Dela Cruz)" name="sender" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sender-email">Sender Email:</label>
+                            <input class="form-control" id="sender-email" placeholder="senderemail@email.com" name="sender-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email-subject">Subject:</label>
+                            <input type="text" class="form-control" id="email-subject" placeholder="Subject" name="email-subject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="students">Students:</label>
+                            <textarea class="form-control" id="students" rows="8" placeholder="Students Here" name="students" readonly></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" type="submit">Send</button>
+                    </div>
+                </form>
             </div>
+        </div>
+    </div>
 
             <!-- Logout Modal-->
             <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -387,7 +390,43 @@ $result = mysqli_query($connect, $query);
                     });
                 });
             </script>
+<script>
+function openComposeModal() {
+    // Get selected student IDs
+    let selectedStudents = Array.from(document.querySelectorAll("input[name='studentIDs[]']:checked"))
+        .map(checkbox => checkbox.value);
 
+    if (selectedStudents.length === 0) {
+        alert("Please select at least one student.");
+        return;
+    }
+
+    console.log("Selected Student IDs:", selectedStudents); // Debugging
+
+    // Send selected student IDs to PHP
+    fetch("fetch_trainer_email.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentIDs: selectedStudents })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Trainer Email Response:", data); // Debugging
+
+        if (data.error) {
+            alert("Error: " + data.error);
+        } else {
+            // Combine all trainer emails into one string (comma-separated)
+            document.getElementById("recipient-email").value = data.trainerEmails.join(", ");
+        }
+    })
+    .catch(error => console.error("Error fetching trainerEmail:", error));
+    
+    // Show the modal
+    $('#composeEmailModal').modal('show');
+}
+
+</script>
 
 </body>
 
