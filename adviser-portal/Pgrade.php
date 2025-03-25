@@ -165,7 +165,7 @@ $result = mysqli_query($connect, $query);
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="composeEmailModalLabel">Compose Email</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <button class="close" type="button" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -193,7 +193,7 @@ $result = mysqli_query($connect, $query);
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
                         <button class="btn btn-primary" type="submit">Send</button>
                     </div>
                 </form>
