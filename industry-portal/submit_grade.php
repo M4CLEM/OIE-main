@@ -8,9 +8,12 @@ ini_set('display_errors', 1);
 
 $response = [];
 
+// Log POST data for debugging
+error_log('POST Data: ' . print_r($_POST, true));
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Validate studentId
-    $studentId = isset($_POST['studentId']) ? trim($_POST['studentId']) : '';
+    // Get the student ID from POST data
+    $studentId = isset($_POST['studentID']) ? trim($_POST['studentID']) : '';
     if (empty($studentId)) {
         echo json_encode(['error' => 'Student ID is required.']);
         exit;
@@ -32,9 +35,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = $row['email'];
     $stmt->close();
 
-    // Validate criteria and grades data
-    $criteriaData = isset($_POST['criteriaData']) ? $_POST['criteriaData'] : [];
-    $gradesData = isset($_POST['gradesData']) ? $_POST['gradesData'] : [];
+    // Validate and decode criteria and grades data
+    $criteriaData = isset($_POST['criteria']) ? json_decode($_POST['criteria'], true) : [];
+    $gradesData = isset($_POST['grade']) ? json_decode($_POST['grade'], true) : [];
+
+    // Check if data is empty or invalid
     if (empty($criteriaData) || empty($gradesData)) {
         echo json_encode(['error' => 'Invalid criteria or grades data.']);
         exit;
@@ -59,7 +64,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             'percentage' => $criteriaPercentage
         ];
 
-        $grade = isset($gradesData[$index]) ? (int)$gradesData[$index] : 0;
+        // Check if the grade for this criteria exists in gradesData
+        $grade = isset($gradesData[$criteriaTitle]) ? (int)$gradesData[$criteriaTitle] : 0;
         $finalGrades[$criteriaTitle] = $grade;
     }
 
@@ -83,17 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->bind_param("issssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade, $companyName, $jobrole);
     
     if ($stmt->execute()) {
-        // Update student's status to "Completed"
-        $updateStmt = $connect->prepare("UPDATE studentinfo SET status = 'Completed' WHERE studentID = ?");
-        $updateStmt->bind_param("i", $studentId);
-        
-        if ($updateStmt->execute()) {
-            echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted and status updated to "Completed"!']);
-        } else {
-            echo json_encode(['error' => 'Error updating student status.']);
-        }
-
-        $updateStmt->close();
+        echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted!']);
     } else {
         // Log error for debugging
         error_log("Database Insert Error: " . $stmt->error);

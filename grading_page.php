@@ -150,41 +150,45 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-12">
-                                            <?php foreach ($companyCriteriaGrouped as $groupId => $groupData) { ?>
-                                                <div class='p-3 mb-2 border rounded'>
-                                                    <h5>Company: <?php echo htmlspecialchars($groupData['company']); ?></h5>
-                                                    <h6>Job Role: <?php echo htmlspecialchars($groupData['jobrole']); ?></h6>
+                                        <?php foreach ($companyCriteriaGrouped as $groupId => $groupData) { ?>
+                                            <div class='p-3 mb-2 border rounded'>
+                                                <div class='row'>
+                                                    <div class='col-md-8'>
+                                                        <h5>Company: <?php echo htmlspecialchars($groupData['company']); ?></h5>
+                                                        <h6>Job Role: <?php echo htmlspecialchars($groupData['jobrole']); ?></h6>
+                                                    </div>
+                                                </div>
 
-                                                    <?php foreach ($groupData['companyCriteria'] as $index => $criteria) { ?>
-                                                        <div class='row'>
-                                                            <div class='col-md-8'>
-                                                                <h6 data-id="<?php echo $groupId . '-' . $index; ?>">
-                                                                    <?php echo htmlspecialchars($criteria['companyCriteria']); ?>
-                                                                </h6>
-                                                                <p class="small"><i><?php echo htmlspecialchars($criteria['companyDescription']); ?></i></p>
-                                                            </div>
-                                                            <div class='col-md-4'>
-                                                                <style>
-                                                                    .custom-number-input { width: 100%; }
-                                                                </style>
-                                                                <input type="hidden" id="hiddenInputForCriteria<?php echo $groupId . '-' . $index; ?>" name="criteria[<?php echo $groupId . '-' . $index; ?>]" value="">
-                                                                <label class="sr-only" for="displayValue<?php echo $groupId . '-' . $index; ?>">Score</label>
-                                                                    <div class="input-group input-group-sm mb-2 mr-sm-2">
-                                                                        <input type="number" required class="form-control custom-number-input"
-                                                                            min="0" max="<?php echo $criteria['companyPercentage']; ?>" value="0"
-                                                                            id="displayValue<?php echo $groupId . '-' . $index; ?>"
-                                                                            data-initial-value="0"
-                                                                            oninput="enforceMaxLimit(this, '<?php echo $groupId . '-' . $index; ?>')"
-                                                                            data-percentage="<?php echo $criteria['companyPercentage']; ?>">
-                                                                        <div class="input-group-append">
-                                                                            <div class="input-group-text"><?php echo $criteria['companyPercentage'] . '%'; ?></div>
-                                                                        </div>
-                                                                    </div>
+                                                <?php foreach ($groupData['companyCriteria'] as $index => $criteria) { ?>
+                                                    <div class='row'>
+                                                        <div class='col-md-8'>
+                                                            <h6 data-id="<?php echo $groupId . '-' . $index; ?>">
+                                                                <?php echo htmlspecialchars($criteria['companyCriteria']); ?>
+                                                            </h6>
+                                                            <p class="small"><i><?php echo htmlspecialchars($criteria['companyDescription']); ?></i></p>
+                                                        </div>
+                                                        <div class='col-md-4'>
+                                                            <input type="hidden" name="criteria[<?php echo $groupId . '-' . $index; ?>][criteria]" value="<?php echo htmlspecialchars($criteria['companyCriteria']); ?>">
+                                                            <input type="hidden" name="criteria[<?php echo $groupId . '-' . $index; ?>][description]" value="<?php echo htmlspecialchars($criteria['companyDescription']); ?>">
+                                                            <input type="hidden" name="criteria[<?php echo $groupId . '-' . $index; ?>][percentage]" value="<?php echo $criteria['companyPercentage']; ?>">
+                                                            <label class="sr-only" for="displayValue<?php echo $groupId . '-' . $index; ?>">Grade</label>
+                                                            <div class="input-group input-group-sm mb-2 mr-sm-2">
+                                                                <input type="number" required class="form-control custom-number-input" min="0" max="<?php echo $criteria['companyPercentage']; ?>" value="0"
+                                                                name="grade[<?php echo $groupId . '-' . $index; ?>]" id="displayValue<?php echo $groupId . '-' . $index; ?>"
+                                                                oninput="enforceMaxLimit(this, '<?php echo $groupId . '-' . $index; ?>')" 
+                                                                data-criteria="<?php echo htmlspecialchars($criteria['companyCriteria']); ?>"
+                                                                data-description="<?php echo htmlspecialchars($criteria['companyDescription']); ?>"
+                                                                data-percentage="<?php echo $criteria['companyPercentage']; ?>">
+
+                                                                <div class="input-group-append">
+                                                                    <div class="input-group-text"><?php echo $criteria['companyPercentage'] . '%'; ?></div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    <?php } ?>
-                                                </div>
-                                            <?php } ?>
+                                                    </div>
+                                                <?php } ?>
+                                            </div>
+                                        <?php } ?>
                                             <div class="d-flex justify-content-end">
                                                 <input type="hidden" name="studentId" id="studentId" value="<?php echo $_SESSION['studentID']; ?>">
                                                 <input type="hidden" name="criteriaData" id="criteriaData" value="">
@@ -216,8 +220,20 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Initialize variables
                 var criteriaInputs = document.querySelectorAll('.custom-number-input');
+                var totalGradeInput = document.getElementById('totalGrade');
+                var totalGradeHiddenInput = document.getElementById('hiddenTotalGrade');
 
+                // Initialize event listeners for input elements
+                criteriaInputs.forEach(function(input) {
+                    input.addEventListener('input', function() {
+                        enforceMaxLimit(input, input.id.replace('displayValue', ''));
+                        updateTotal();
+                    });
+                });
+
+                // Update total grade dynamically
                 function updateTotal() {
                     var total = 0;
                     criteriaInputs.forEach(function(input) {
@@ -227,87 +243,194 @@
                         }
                     });
 
-                    // Update the total input field
-                    document.getElementById('totalGrade').value = total;
+                    totalGradeInput.value = total;
+
+                    if (totalGradeHiddenInput) {
+                        totalGradeHiddenInput.value = total; // Update hidden total grade input
+                    }
                 }
-                criteriaInputs.forEach(function(input) {
-                    input.addEventListener('input', updateTotal);
+
+                // Update hidden input values when criteria changes
+                function updateValue(value, criteriaId) {
+                    var hiddenInput = document.getElementById('hiddenInputForCriteria' + criteriaId);
+                    if (hiddenInput) {
+                        hiddenInput.value = value;
+                    }
+                }
+
+                // Ensure input values stay within allowed range
+                function enforceMaxLimit(input, criteriaId) {
+                    var maxValue = parseInt(input.max);
+                    var value = parseInt(input.value);
+                    if (value < 0) {
+                        input.value = 0;
+                        updateValue(0, criteriaId);
+                    } else if (value > maxValue) {
+                        input.value = maxValue;
+                        updateValue(maxValue, criteriaId);
+                    } else {
+                        updateValue(value, criteriaId);
+                    }
+                }
+
+                // Distribute total grade across criteria inputs
+                function distributeTotalGrade() {
+                    var totalGradeValue = totalGradeInput.value.trim();
+
+                    if (totalGradeValue === "") {
+                        totalGradeInput.value = "0";
+                        criteriaInputs.forEach(input => input.value = "0");
+                        return;
+                    }
+
+                    var totalGrade = parseInt(totalGradeValue);
+                    if (isNaN(totalGrade)) totalGrade = 0;
+                    totalGrade = Math.max(0, Math.min(100, totalGrade));
+
+                    totalGradeInput.value = totalGrade;
+
+                    // Initialize variables for distributing points across criteria
+                    var remainingPoints = totalGrade;
+                    var criteriaPoints = [];
+
+                    // First, calculate the points for each criterion based on its percentage
+                    criteriaInputs.forEach(function(input) {
+                        var maxValue = parseInt(input.dataset.percentage); // Get the percentage max from data-percentage
+                        var pointsForThisCriterion = Math.floor((maxValue / 100) * totalGrade); // Calculate based on percentage
+                        pointsForThisCriterion = Math.min(pointsForThisCriterion, maxValue); // Ensure it doesn't exceed maxValue
+                        criteriaPoints.push(pointsForThisCriterion);
+                        remainingPoints -= pointsForThisCriterion;
+                    });
+
+                    // Second pass: Distribute any remaining points (if any)
+                    for (var i = 0; i < criteriaInputs.length && remainingPoints > 0; i++) {
+                        var input = criteriaInputs[i];
+                        var maxValue = parseInt(input.dataset.percentage); // Max percentage value for this criterion
+                        var currentPoints = criteriaPoints[i];
+
+                        // If there are leftover points, add them without exceeding the max limit
+                        if (currentPoints < maxValue) {
+                            var additionalPoints = Math.min(remainingPoints, maxValue - currentPoints);
+                            criteriaPoints[i] += additionalPoints;
+                            remainingPoints -= additionalPoints;
+                        }
+                    }
+
+                    // Update the input fields and hidden values
+                    criteriaInputs.forEach(function(input, index) {
+                        input.value = criteriaPoints[index];
+                        var criteriaId = input.id.replace('displayValue', '');
+                        updateValue(criteriaPoints[index], criteriaId); // Update hidden value
+                    });
+
+                    updateTotal(); // Make sure to update the total grade or any other summary field
+                }
+
+                // Add event listener to trigger distributeTotalGrade when typing in totalGrade field
+                totalGradeInput.addEventListener('input', function() {
+                    distributeTotalGrade();
                 });
-                updateTotal();
+
+                // Add event listener to distribute total grade after finishing input (blur event)
+                totalGradeInput.addEventListener('blur', function() {
+                    distributeTotalGrade();
+                });
+
+                // Initial call to distribute total grade in case of prefilled total grade value
+                distributeTotalGrade();
             });
 
-            function updateValue(value, criteriaId) {
-                var hiddenInput = document.getElementById('hiddenInputForCriteria' + criteriaId);
-                if (hiddenInput) {
-                    hiddenInput.value = value;
-                }
-            }
 
-            function enforceMaxLimit(input, criteriaId) {
-                var maxValue = parseInt(input.max);
-                var value = parseInt(input.value);
-                if (value < 0) {
-                    input.value = 0;
-                    updateValue(0, criteriaId);
-                } else if (value > maxValue) {
-                    input.value = maxValue;
-                    updateValue(maxValue, criteriaId);
-                } else {
-                    updateValue(input.value, criteriaId);
-                }
-            }
+            document.getElementById('criteriaForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent form from submitting the traditional way
+    
+                // Gather form data
+                let formData = new FormData(this);
+    
+                // Prepare criteria and grades
+                let criteriaData = [];
+                let gradesData = {};
+                let totalGrade = document.getElementById('totalGrade').value;
+                let studentId = document.getElementById('studentId').value;
+                let companyName = document.querySelector('h5').textContent.replace('Company: ', '').trim();
+                let jobrole = document.querySelector('h6').textContent.replace('Job Role: ', '').trim();
 
-            function distributeTotalGrade() {
-                // Step 1: Collect the total grade value
-                var totalGradeInput = document.getElementById('totalGrade');
-                var totalGradeValue = totalGradeInput.value.trim();
+                // Collect criteria and grades into arrays
+                document.querySelectorAll('.custom-number-input').forEach((input, index) => {
+                    const criteriaKey = input.dataset.criteria; // Extract criteria name directly
+                    const description = input.dataset.description;
+                    const percentage = input.dataset.percentage;
 
-                if (totalGradeValue === "") {
-                    totalGradeInput.value = "0";
-                    var criteriaInputs = document.querySelectorAll('.custom-number-input');
-                    criteriaInputs.forEach(function(input) {
-                        input.value = "0";
-                    });
-                    return;
-                }
-
-                var totalGrade = parseFloat(totalGradeValue);
-                if (isNaN(totalGrade)) {
-                    totalGrade = 0;
-                }
-                if (totalGrade < 0) {
-                    totalGrade = 0;
-                } else if (totalGrade > 100) {
-                    totalGrade = 100;
-                }
-                if (Number.isInteger(totalGrade)) {
-                    totalGradeInput.value = totalGrade;
-                } else {
-                    var formattedValue = totalGrade.toFixed(2);
-                    if (formattedValue.endsWith('.00')) {
-                        totalGradeInput.value = parseInt(totalGrade);
-                    } else {
-                        totalGradeInput.value = formattedValue;
+                    // Check if data-attributes are present
+                    if (!criteriaKey || !description || !percentage) {
+                        console.error('Missing required data attributes for criteria item', input);
                     }
-                }
-                var criteriaInputs = document.querySelectorAll('.custom-number-input');
 
-                criteriaInputs.forEach(function(input) {
-                    var percentage = parseFloat(input.getAttribute('data-percentage')) / 100;
+                    // Log criteria and grade for debugging
+                    console.log("Criteria:", criteriaKey);
+                    console.log("Description:", description);
+                    console.log("Percentage:", percentage);
 
-                    // Calculate the portion of the total grade for the current criteria
-                    var criteriaValue = totalGrade * percentage;
+                    // Ensure the criteria data has the required fields
+                    if (criteriaKey && description && percentage) {
+                        criteriaData.push({
+                            criteria: criteriaKey,
+                            description: description,
+                            percentage: percentage
+                        });
 
-                    // Update the value for the current criteria
-                    var formattedCriteriaValue = criteriaValue.toFixed(2);
-                    if (formattedCriteriaValue.endsWith('.00')) {
-                        input.value = parseInt(criteriaValue);
-                    } else {
-                        input.value = formattedCriteriaValue;
+                        // Store grades corresponding to the criteria
+                        gradesData[criteriaKey] = input.value;
                     }
                 });
-            }
 
+                // Check if the criteria data and grades data are properly formatted
+                console.log("Criteria Data:", JSON.stringify(criteriaData, null, 2));
+                console.log("Grades Data:", JSON.stringify(gradesData, null, 2));
+
+                // Add criteria and grades data to formData
+                formData.append('criteria', JSON.stringify(criteriaData));  // Array of criteria
+                formData.append('grade', JSON.stringify(gradesData));  // Object of grades
+                formData.append('totalGrade', totalGrade);
+                formData.append('studentID', studentId);
+                formData.append('companyName', companyName);
+                formData.append('jobrole', jobrole);
+
+                // Send data via AJAX
+                fetch('industry-portal/submit_grade.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Success:", data.message); // Log success message to console
+                        Swal.fire({
+                            title: "Success!",
+                            text: data.message,  // Using the 'message' from backend response
+                            icon: "success",
+                        }).then(() => {
+                            // Optionally, show success message on page or reset form
+                            $("#successMessage").text(data.message).show(); 
+                        });
+                    } else {
+                        console.error("Error:", data.error); // Log error message to console
+                        Swal.fire({
+                            title: "Error!",
+                            text: data.error,  // Using the 'error' from backend response
+                            icon: "error",
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting grade:', error); // Log any other errors to console
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Failed to submit the grade. Please try again.",
+                        icon: "error",
+                    });
+                });
+            });
         </script>
     </body>
 </html>
