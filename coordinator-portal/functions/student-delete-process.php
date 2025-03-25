@@ -1,5 +1,5 @@
 <?php
-$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+include_once("../../includes/connection.php");
 $query = "DELETE FROM studentinfo WHERE studentID='" . $_GET["id"] . "'";
 if (mysqli_query($connect, $query)) {
    header("Location:../masterlist.php");

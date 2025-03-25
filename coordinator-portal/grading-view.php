@@ -168,6 +168,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
                             <a class="btn btn-primary btn-sm" href="grading.php" style="font-size: 13px;">+ Add Criteria</a> 
+                            <a class="btn btn-primary btn-sm" href="grading-rubics.php" style="font-size: 13px;">Grading Rubics</a>
                         </div>
                         <div class="card-body mb-1">
                             <?php foreach ($companyCriteriaGrouped as $id => $companyData) { ?>
@@ -712,12 +713,6 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
 
 
 </script>
-
-
-<style>
-    /* Optional additional styling for modal body */
-    
-</style>
         </div>
     </div>
 </body>

@@ -1,5 +1,5 @@
 <?php
-$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+include_once("../../includes/connection.php");
 
 if(isset($_POST['update']))
    
