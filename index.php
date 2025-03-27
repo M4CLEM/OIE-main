@@ -175,6 +175,24 @@ if (isset($_POST['login'])) {
         </div>
     </div>
 
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 200px;">
+                    <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem;"></div>
+                    <h5 class="text-success mt-3">Please Wait...</h5>
+                    <p>Logging in...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector("form").addEventListener("submit", function() {
+            document.getElementById("loadingModal").style.display = "block";
+        });
+    </script>
+
 </body>
 
 </html>
