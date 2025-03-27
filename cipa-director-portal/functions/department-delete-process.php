@@ -1,5 +1,5 @@
 <?php
-    $connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+    include_once("../../includes/connection.php");
     
     $query = "DELETE FROM department_list WHERE department='" . $_GET["dept"] . "'";
     if (mysqli_query($connect, $query)) {

@@ -1,6 +1,5 @@
 <?php  
 include_once("../../includes/connection.php");
-$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
 
 
 if (isset($_GET['department'], $_GET['course'], $_GET['section'])) {

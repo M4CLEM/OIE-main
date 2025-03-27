@@ -4,7 +4,7 @@
     $role = $_POST['role'];
     $password = $_POST['password'];
 
-    $connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+    include_once("../../includes/connection.php");
     if($connect->connect_error){
         die('connection failed : '.$connect->connect_error);
     }else{

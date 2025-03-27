@@ -2,7 +2,7 @@
 
 if(isset($_POST['edit']))
 {
-    $connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+    include_once("../../includes/connection.php");
 
 	$courseTitle = $_POST['editCourseTitle'];
 	$courseAcronym = $_POST['editCourseAcr'];

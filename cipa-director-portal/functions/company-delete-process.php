@@ -1,5 +1,5 @@
 <?php
-    $connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+    include_once("../../includes/connection.php");
 
     $department = isset($_GET['dept']) ? $_GET['dept'] : '';
     $targetPage = $department !== '' ? 'company-filter.php?dept=' . $department : 'company.php';

@@ -1,6 +1,5 @@
 <?php 
 include_once("../../includes/connection.php");
-$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
 
 $department = $_GET['department'];
 

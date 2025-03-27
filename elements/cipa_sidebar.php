@@ -52,6 +52,12 @@
             <span>Add Company</span></a>
         </a>
     </li>
+    <li class="sidebar-item">
+        <a href="management-acc.php" class="sidebar-link">
+            <i class="fa fa-file" aria-hidden="true"></i>
+            <span>Acc Management</span>
+        </a>
+    </li>
 
     <li class="sidebar-item">
         

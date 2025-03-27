@@ -3,7 +3,7 @@
 	$departmentTitle = $_POST['deptTitle'];
 	$departmentAcronym = $_POST['deptAcr'];
 
-	$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+	include_once("../../includes/connection.php");
 
     $stmt = $connect->prepare("UPDATE department_list SET department = ?, department_title = ? WHERE id = ?");
     $stmt->bind_param("ssi", $departmentAcronym, $departmentTitle, $_GET['id']);

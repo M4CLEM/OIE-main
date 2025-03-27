@@ -1,7 +1,6 @@
 <?php 
 
-include_once("../includes/connection.php");
-$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+include_once("../../includes/connection.php");
 session_start();
 
 class viewStudentLogs{

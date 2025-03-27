@@ -10,7 +10,7 @@
 	$link = $_POST['link'];
 
 
-	$connect = new mysqli('localhost', 'root', '', 'plmunoiedb');
+	include_once("../../includes/connection.php");
 
     $stmt = $connect->prepare("UPDATE companylist SET companyName = ?, companyaddress = ?, contactPerson = ?, jobrole = ?, jobdescription = ?, jobreq = ?, link = ? WHERE No = ?");
     $stmt->bind_param("sssssssi", $companyName, $companyaddress, $contactPerson, $jobrole, $jobdescription, $jobreq, $link, $No);
