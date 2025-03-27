@@ -201,6 +201,19 @@ $result = mysqli_query($connect, $query);
         </div>
     </div>
 
+    <!-- Compose Email Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content text-center p-4">
+                <div class="modal-body d-flex flex-column align-items-center justify-content-center" style="min-height: 200px;">
+                    <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem;"></div>
+                    <h5 class="text-success mt-3">Please Wait...</h5>
+                    <p>Sending email...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
             <!-- Logout Modal-->
             <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
@@ -227,6 +240,32 @@ $result = mysqli_query($connect, $query);
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script>
                 $(document).ready(function() {
+
+
+                    $('#composeEmailForm').on('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+                
+                // Show loading modal
+                var loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+                loadingModal.show();
+                
+                $.ajax({
+                    url: 'grading_email.php',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        loadingModal.hide(); // Hide loading modal
+                        var composeModal = bootstrap.Modal.getInstance(document.getElementById('composeEmailModal'));
+                        composeModal.hide(); // Hide compose email modal
+                    },
+                    error: function() {
+                        loadingModal.hide(); // Hide loading modal
+                        alert('Failed to send email. Please try again.');
+                    }
+                });
+            });
+
+
                     // Function to handle clicking on the "Compose Email" button
                     $('#composeButton').click(function() {
                         var checkedCheckboxes = $('.checkbox-highlight:checked');
