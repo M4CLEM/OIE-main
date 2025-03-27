@@ -36,22 +36,23 @@ if (file_exists(__DIR__ . '/../credentials/token.json')) {
 $driveService = new Google_Service_Drive($client);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $studentID = $_POST['studentID'];
-    $firstname = $_POST['firstname'];
-    $middlename = $_POST['middlename'];
-    $lastname = $_POST['lastname'];
-    $address = $_POST['address'];
-    $age = $_POST['age'];
-    $gender = $_POST['gender'];
-    $contactNo = $_POST['contactNo'];
-    $course = $_POST['course'];
-    $department = $_POST['department'];
-    $email = $_POST['email'];
-    $SY = $_POST['SY'];
-    $section = $_POST['section'];
-    $semester = $_POST['semester'];
+    $studentID = trim($_POST['studentID']);
+    $firstname = trim($_POST['firstname']);
+    $middlename = trim($_POST['middlename']);
+    $lastname = trim($_POST['lastname']);
+    $address = trim($_POST['address']);
+    $age = trim($_POST['age']);
+    $gender = trim($_POST['gender']);
+    $contactNo = trim($_POST['contactNo']);
+    $course = trim($_POST['course']);
+    $department = trim($_POST['department']);
+    $email = trim($_POST['email']);
+    $SY = trim($_POST['SY']);
+    $section = trim($_POST['section']);
+    $semester = trim($_POST['semester']);
     $status = "Undeployed";
-    $objective = $_POST['objective'];
+    $objective = trim($_POST['objective']);
+
     $skills = isset($_POST['skills']) ? implode(',', $_POST['skills']) : '';
     $seminars = isset($_POST['seminars']) ? implode(',', $_POST['seminars']) : '';
 

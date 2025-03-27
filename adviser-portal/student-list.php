@@ -2,36 +2,40 @@
 session_start();
 include_once("../includes/connection.php");
 
-
 // Check if dept_sec is set and is an array
-if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec'])) {
-    // Prepare the SQL query with placeholders for each section
+if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
+    // Create placeholders dynamically for the number of sections
     $placeholders = implode(',', array_fill(0, count($_SESSION['dept_sec']), '?'));
     $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND section IN ($placeholders) ORDER BY section ASC, lastName ASC";
 
     // Prepare the statement
     $stmt = $connect->prepare($query);
 
-    // Bind the parameters
-    $params = array_merge(array($_SESSION['dept_adv'], $_SESSION['dept_crs']), $_SESSION['dept_sec']);
+    // Merge department, course, and section values
+    $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs']], $_SESSION['dept_sec']);
+
+    // Define parameter types
     $types = str_repeat('s', count($params));
+
+    // Bind the parameters dynamically
     $stmt->bind_param($types, ...$params);
 
     // Execute the statement
     if ($stmt->execute()) {
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
-            // Process the results
+            // Fetch all rows
         } else {
             echo "No results found for the given criteria.";
         }
     } else {
-        echo "Error: " . $stmt->error;
+        echo "SQL Error: " . $stmt->error;
     }
 } else {
     echo "No sections found for the adviser.";
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

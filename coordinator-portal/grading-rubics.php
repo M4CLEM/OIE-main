@@ -1,6 +1,14 @@
 <?php
     session_start();
     include_once("../includes/connection.php");
+
+    $department = $_SESSION['department'];
+    $coordinatorRole = $_SESSION['coordinator'];
+
+    $result = mysqli_query($connect, "SELECT * FROM grading_rubics WHERE department = '$department'");
+    if (!$result) {
+        die("Query Failed: " . mysqli_error($connect));
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,7 +66,32 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <?php
+                                                if (mysqli_num_rows($result) > 0){
+                                                    $counter = 1;
 
+                                                    while ($row = mysqli_fetch_assoc($result)) {
+                                                        echo "<tr>";
+                                                        echo    "<td>$counter</td>";
+                                                        echo    "<td>{$row['adviserWeight']}%</td>";
+                                                        echo    "<td>{$row['companyWeight']}%</td>";
+                                                        echo    "<td>{$row['schoolYear']}</td>";
+                                                        echo    "<td>
+                                                                    <a href=\"modal.php\" class=\"btn btn-primary btn-sm editBtn\" data-toggle=\"modal\"
+                                                                        data-target=\"#editModal\" data-id=\"{$row['id']}\"
+                                                                        data-title=\"{$row['adviserWeight']}\"
+                                                                        data-description=\"{$row['companyWeight']}\">
+                                                                        <i class=\"fa fa-edit fw-fa\"></i> Edit
+                                                                    </a>
+                                                                    <button type=\"button\" class=\"btn btn-danger btn-sm deleteBtn\" data-toggle=\"modal\"
+                                                                        data-target=\"#deleteModal\" data-id=\"{$row['id']}\">
+                                                                        <i class=\"fa fa-trash fw-fa\"></i> Delete
+                                                                    </button>
+                                                                </td>";
+                                                        echo "</tr>";
+                                                    }
+                                                }
+                                            ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -70,7 +103,7 @@
                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
-                            <form action="" method="POST">
+                            <form action="functions/add_grading_rubic.php" method="POST">
                                 <div class="modal-header">
                                     <h5>Add Grading Rubic</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -93,7 +126,7 @@
                                         <div class="row align-items-center mt-2">
                                             <div class="col-md-4 text-right d-flex align-items-center">
                                                 <div class="input-group">
-                                                    <input type="number" id="adviserWeight" class="form-control text-center" min="0" max="100">
+                                                    <input type="number" name="adviserWeight" id="adviserWeight" class="form-control text-center" min="0" max="100">
                                                     <div class="input-group-append">
                                                         <span class="input-group-text bg-dark text-white">%</span>
                                                     </div>
@@ -102,7 +135,7 @@
                                             <div class="col-md-4 text-center"> <!-- Slider placeholder --> </div>
                                             <div class="col-md-4 text-left d-flex align-items-center">
                                                 <div class="input-group">
-                                                    <input type="number" id="companyWeight" class="form-control text-center" min="0" max="100">
+                                                    <input type="number" name="companyWeight" id="companyWeight" class="form-control text-center" min="0" max="100">
                                                     <div class="input-group-append">
                                                         <span class="input-group-text bg-dark text-white">%</span>
                                                     </div>
@@ -129,6 +162,92 @@
                                     <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                                            <!-- EDIT MODAL -->
+                <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModal" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <form action="" method="POST">
+                                <div class="modal-header">
+                                    <h5>Edit Grading Rubic</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4 text-right">
+                                                <label for="adviserWeight">Adviser Weight</label>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <input type="range" id="weightSlider" min="0" max="100" value="50" class="form-control-range">
+                                            </div>
+                                            <div class="col-md-4 text-left">
+                                                <label for="companyWeight">Company Weight</label>
+                                            </div>
+                                        </div>
+                                        <div class="row align-items-center mt-2">
+                                            <div class="col-md-4 text-right d-flex align-items-center">
+                                                <div class="input-group">
+                                                    <input type="number" name="adviserWeight" id="adviserWeight" class="form-control text-center" min="0" max="100">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text bg-dark text-white">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 text-center"> <!-- Slider placeholder --> </div>
+                                            <div class="col-md-4 text-left d-flex align-items-center">
+                                                <div class="input-group">
+                                                    <input type="number" name="companyWeight" id="companyWeight" class="form-control text-center" min="0" max="100">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text bg-dark text-white">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <label for="semester">Semester</label>
+                                                <input type="text" id="semester" name="semester" class="form-control">
+                                            </div>
+                                            <div class="row">
+                                                <label for="schoolYear">School Year</label>
+                                                <input type="text" name="schoolYear" id="schoolYear" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-primary btn-sm" type="submit" id="submitBtn">
+                                        <span class="fa fa-save fw-fa"></span> Submit
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this criteria?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                            </div>
                         </div>
                     </div>
                 </div>
