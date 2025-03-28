@@ -2,6 +2,9 @@
 session_start();
 include_once("../../includes/connection.php");
 
+// Ensure JSON response
+header("Content-Type: application/json");
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = trim($_POST['id']); // Staff ID
     $name = trim($_POST['editStaffName']);
@@ -9,10 +12,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['editPassword']);
     $confirmPassword = trim($_POST['editConfirmPassword']);
     $role = trim($_POST['editRole']);
-    
+
     // Validate passwords if changed
     if (!empty($password) && $password !== $confirmPassword) {
-        echo "<script>alert('Error: Passwords do not match.'); window.history.back();</script>";
+        echo json_encode(["status" => "error", "message" => "Passwords do not match."]);
         exit();
     }
 
@@ -33,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $emailCheckStmt->store_result();
 
     if ($emailCheckStmt->num_rows > 0) {
-        echo "<script>alert('Error: Email is already in use.'); window.history.back();</script>";
+        echo json_encode(["status" => "error", "message" => "Email is already in use."]);
         exit();
     }
     $emailCheckStmt->close();
@@ -81,11 +84,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $passUserStmt->close();
         }
 
-        echo "<script>alert('Update successful!'); window.location.href = '../management-acc.php';</script>";
+        echo json_encode(["status" => "success", "message" => "Update successful!"]);
         exit();
     }
 
-    $stmt->close();
-    $connect->close();
+    echo json_encode(["status" => "error", "message" => "Update failed. Please try again."]);
+    exit();
 }
+
+$connect->close();
 ?>

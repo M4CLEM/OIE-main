@@ -2,16 +2,18 @@
 session_start();
 include_once("../../includes/connection.php");
 
+header("Content-Type: application/json"); // Ensure JSON response
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['staffname']);
     $email = trim($_POST['email']);
-    $password = trim($_POST['password']); // No hashing
+    $password = trim($_POST['password']);
     $confirmPassword = trim($_POST['confirmPassword']);
     $role = trim($_POST['role']);
 
     // Check if passwords match
     if ($password !== $confirmPassword) {
-        echo "<script>alert('Error: Passwords do not match.'); window.history.back();</script>";
+        echo json_encode(["status" => "error", "message" => "Passwords do not match."]);
         exit();
     }
 
@@ -23,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $emailCheckStmt->store_result();
 
     if ($emailCheckStmt->num_rows > 0) {
-        echo "<script>alert('Error: Email is already in use.'); window.history.back();</script>";
+        echo json_encode(["status" => "error", "message" => "Email is already in use."]);
         exit();
     }
     $emailCheckStmt->close();
@@ -53,8 +55,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $accStmt->execute();
         $accStmt->close();
 
-        // Redirect after successful insertion
-        echo "<script>alert('Registration successful!'); window.location.href = '../management-acc.php';</script>";
+        echo json_encode(["status" => "success", "message" => "Registration successful!"]);
+        exit();
+    } else {
+        echo json_encode(["status" => "error", "message" => "Database error: " . $connect->error]);
         exit();
     }
 
