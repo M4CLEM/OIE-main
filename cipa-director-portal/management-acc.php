@@ -1,6 +1,12 @@
 <?php
     session_start();
     include_once("../includes/connection.php");
+
+    $result = mysqli_query($connect, "SELECT * FROM staff_list");
+    if (!$result) {
+        die("Query Failed: " . mysqli_error($connect));
+    }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,27 +74,51 @@
                                         <thead>
                                             <tr>
                                                 <th scope="col">Name</th>
-                                                <th scope="col">Department</th>
+                                                <th scope="col" width="11%">Department</th>
                                                 <th scope="col">Email</th>
                                                 <th scope="col">Password</th>
-                                                <th scope="col">Role</th>
-                                                <th scope="col">Actions</th>
+                                                <th scope="col" width="10%">Role</th>
+                                                <th scope="col" width="14%">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody></tbody>
+                                        <tbody>
+                                            <?php
+                                                while ($rows = mysqli_fetch_assoc($result)) {
+                                            ?>
+                                                <tr>
+                                                    <td><?php echo $rows['name']?></td>
+                                                    <td><?php echo $rows['department']?></td>
+                                                    <td><?php echo $rows['email']?></td>
+                                                    <td><?php echo $rows['password']?></td>
+                                                    <td><?php echo $rows['role']?></td>
+                                                    <td>
+                                                        <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
+                                                            data-target="#editModal" data-id="<?php echo $rows['id']; ?>"
+                                                            data-name="<?php echo $rows['name']; ?>"
+                                                            data-department="<?php echo $rows['department']; ?>" data-email="<?php echo $rows['email']; ?>" data-role="<?php echo $rows['role']?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
+                                                        <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
+                                                        data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>">
+                                                            <i class="fa fa-trash fw-fa"></i> Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            <?php        
+                                                }
+                                            ?>
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addAdvisers" aria-hidden="true">
+                <!-- ADD MODAL -->
+                <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addManagementAcc" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <form action="functions/add_management_acc.php" method="POST">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="addAdvisers">Add Management Account</h5>
+                                    <h5 class="modal-title" id="addManagement">Add Management Account</h5>
                                     <button class="close" type="button" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span>
                                     </button>
                                 </div>
@@ -133,6 +163,100 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- DELETE CONFIRMATION MODAL -->
+                <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete this criteria?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EDIT MODAL -->
+                <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <form action="functions/edit_management_acc.php" id="editForm" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editModalLabel">Edit Information</h5>
+                                    <input type="hidden" id="editID" name="id">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="editStaffName" name="editStaffName">
+                                    </div>
+                                    <div class="form-group">
+                                        <select name="editRole" id="editRole" class="form-control">
+                                            <option value="">Select Role</option>
+                                            <option value="CIPA">CIPA</option>
+                                            <option value="Coordinator">Coordinator</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <select name="editDepartment" id="editDepartment" class="form-control">
+                                            <option value="">Select Department</option>
+                                            <?php
+                                                $query = "SELECT * FROM department_list";
+                                                $departments = mysqli_query($connect, $query);
+                                                while ($department = mysqli_fetch_assoc($departments)) {
+                                                    echo "<option value='" . $department['department'] . "'>" . $department['department'] . "</option>";
+                                                }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="editEmail" name="editEmail">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="editPassword" name="editPassword">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="editConfirmPassword" name="editConfirmPassword">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-primary btn-sm" name="save" type="submit"><span class="fa fa-save fw-fa"></span> Save</button>
+                                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOG OUT MODAL-->
+                <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                <a class="btn btn-primary" href="../logout.php">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -172,6 +296,71 @@
                     }
                 });
             });
+
+            document.addEventListener("DOMContentLoaded", function () {
+                const form = document.querySelector("editForm");
+                const password = document.getElementById("editPassword");
+                const confirmPassword = document.getElementById("editConfirmPassword");
+
+                form.addEventListener("submit", function (event) {
+                    if (password.value != confirmPassword.value) {
+                        event.preventDefault();
+                        alert("Passwords do not match! Please re-enter.");
+                        confirmPassword.focus();
+                    }
+                })
+            })
+
+            $(document).ready(function() {
+                $('.editBtn').click(function() {
+                    var id = $(this).data('id');
+                    var name = $(this).data('name');
+                    var role = $(this).data('role');
+                    var department = $(this).data('department');
+                    var email = $(this).data('email');
+
+                    $('#editID').val(id);
+                    $('#editStaffName').val(name);
+                    $('#editRole').val(role);
+                    $('#editDepartment').val(department)
+                    $('#editEmail').val(email);
+                })
+
+                $('.deleteBtn').click(function() {
+                    var id = $(this).data('id');
+                    $('#confirmDelete').data('id', id);
+                });
+
+                $('#confirmDelete').click(function() {
+                    var id = $(this).data('id');
+
+                    // Hide delete modal, show delete loading modal
+                    $('#deleteModal').modal('hide');
+                    $('#deleteLoadingModal').modal('show');
+
+                    $.ajax({
+                        url: 'functions/delete_management_acc.php',
+                        type: 'POST',
+                        data: {
+                            id: id
+                        },
+                        success: function(response) {
+                            // Hide delete loading modal, show success loading modal
+                            $('#deleteLoadingModal').modal('hide');
+                            $('#successLoadingModal').modal('show');
+
+                            // Reload the page after a short delay (optional)
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        },
+                        error: function(xhr, status, error) {
+                            $('#deleteLoadingModal').modal('hide'); // Hide loading modal
+                            alert('An error occurred: ' + error);
+                        }
+                    });
+                });
+            })
         </script>
     </body>
 </html>

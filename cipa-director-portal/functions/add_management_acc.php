@@ -5,7 +5,7 @@ include_once("../../includes/connection.php");
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['staffname']);
     $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
+    $password = trim($_POST['password']); // No hashing
     $confirmPassword = trim($_POST['confirmPassword']);
     $role = trim($_POST['role']);
 
@@ -14,9 +14,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<script>alert('Error: Passwords do not match.'); window.history.back();</script>";
         exit();
     }
-
-    // Hash the password before storing (Security best practice)
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
     // Check if email already exists in staff_list or users table
     $emailCheckQuery = "SELECT email FROM staff_list WHERE email = ? UNION SELECT username FROM users WHERE username = ?";
@@ -35,12 +32,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($role === "CIPA") {
         $sql = "INSERT INTO staff_list (name, email, password, role) VALUES (?, ?, ?, ?)";
         $stmt = $connect->prepare($sql);
-        $stmt->bind_param("ssss", $name, $email, $hashedPassword, $role);
+        $stmt->bind_param("ssss", $name, $email, $password, $role);
     } else {
         $department = trim($_POST['department']);
         $sql = "INSERT INTO staff_list (name, email, password, role, department) VALUES (?, ?, ?, ?, ?)";
         $stmt = $connect->prepare($sql);
-        $stmt->bind_param("sssss", $name, $email, $hashedPassword, $role, $department);
+        $stmt->bind_param("sssss", $name, $email, $password, $role, $department);
     }
 
     // Execute insertion
@@ -48,10 +45,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Insert into users table
         if ($role === "CIPA") {
             $accStmt = $connect->prepare("INSERT INTO users (username, role, password) VALUES (?, ?, ?)");
-            $accStmt->bind_param("sss", $email, $role, $hashedPassword);
+            $accStmt->bind_param("sss", $email, $role, $password);
         } else {
             $accStmt = $connect->prepare("INSERT INTO users (username, role, password, department) VALUES (?, ?, ?, ?)");
-            $accStmt->bind_param("ssss", $email, $role, $hashedPassword, $department);
+            $accStmt->bind_param("ssss", $email, $role, $password, $department);
         }
         $accStmt->execute();
         $accStmt->close();
