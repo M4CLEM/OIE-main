@@ -71,6 +71,7 @@ if (!$result) {
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
                             <a class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addModal"> <i class="fa fa-plus-circle fw-fa"></i> Add </a>
+                            <a href="academic-calendar.php" class="btn btn-primary btn-sm"><i class="fa fa-calendar-week"></i> Academic Calendar </a>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
