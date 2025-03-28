@@ -79,13 +79,13 @@ if (!$result) {
                                                 echo    "<td>{$row['companyWeight']}%</td>";
                                                 echo    "<td>{$row['schoolYear']}</td>";
                                                 echo    "<td>
-                    <a href=\"#\" class=\"btn btn-primary btn-sm editBtn\" 
-                        data-toggle=\"modal\" data-target=\"#editModal\" 
-                        data-id=\"{$row['id']}\"
-                        data-adviser=\"{$row['adviserWeight']}\"
-                        data-company=\"{$row['companyWeight']}\">
-                        <i class=\"fa fa-edit fw-fa\"></i> Edit
-                    </a>
+                                                            <a href=\"#\" class=\"btn btn-primary btn-sm editBtn\" 
+                                                                data-toggle=\"modal\" data-target=\"#editModal\" 
+                                                                data-id=\"{$row['id']}\"
+                                                                data-adviser=\"{$row['adviserWeight']}\"
+                                                                data-company=\"{$row['companyWeight']}\">
+                                                                <i class=\"fa fa-edit fw-fa\"></i> Edit
+                                                            </a>
                                                                     <button type=\"button\" class=\"btn btn-danger btn-sm deleteBtn\" data-toggle=\"modal\"
                                                                         data-target=\"#deleteModal\" data-id=\"{$row['id']}\">
                                                                         <i class=\"fa fa-trash fw-fa\"></i> Delete
@@ -239,26 +239,26 @@ if (!$result) {
             </div>
 
 
-<!-- DELETE MODAL -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <!-- DELETE MODAL -->
+            <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete this grading rubic?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                Are you sure you want to delete this grading rubic?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -371,47 +371,45 @@ if (!$result) {
         });
     </script>
 
-<script>
-$(document).ready(function () {
-    var deleteId = null; // Store the ID of the rubric to delete
+    <script>
+        $(document).ready(function () {
+            var deleteId = null; // Store the ID of the rubric to delete
 
-    // Function to open delete modal with ID
-    function openDeleteModal(id) {
-        deleteId = id; // Store the ID
-        $("#deleteModal").modal("show"); // Show modal
-    }
+            // Function to open delete modal with ID
+            function openDeleteModal(id) {
+                deleteId = id; // Store the ID
+                $("#deleteModal").modal("show"); // Show modal
+            }
 
-    // Event listener for delete button
-    $(".deleteBtn").click(function () {
-        var rubricId = $(this).data("id"); // Get rubric ID from button
-        openDeleteModal(rubricId); // Open modal with the ID
-    });
+            // Event listener for delete button
+            $(".deleteBtn").click(function () {
+                var rubricId = $(this).data("id"); // Get rubric ID from button
+                openDeleteModal(rubricId); // Open modal with the ID
+            });
 
-    // Confirm delete action
-    $("#confirmDelete").click(function () {
-        if (deleteId) {
-            $.ajax({
-                url: "delete_grading_rubic.php",
-                type: "POST",
-                data: { id: deleteId },
-                success: function (response) {
-                    if (response.includes("Success")) {
-                        $("#deleteModal").modal("hide"); // Close modal
-                        alert("Grading rubric deleted successfully!");
-                        location.reload(); // Reload page to update table
-                    } else {
-                        alert("Error: " + response);
-                    }
-                },
-                error: function () {
-                    alert("Something went wrong! Please try again.");
+            // Confirm delete action
+            $("#confirmDelete").click(function () {
+                if (deleteId) {
+                    $.ajax({
+                        url: "delete_grading_rubic.php",
+                        type: "POST",
+                        data: { id: deleteId },
+                        success: function (response) {
+                            if (response.includes("Success")) {
+                                $("#deleteModal").modal("hide"); // Close modal
+                                alert("Grading rubric deleted successfully!");
+                                location.reload(); // Reload page to update table
+                            } else {
+                                alert("Error: " + response);
+                            }
+                        },
+                        error: function () {
+                            alert("Something went wrong! Please try again.");
+                        }
+                    });
                 }
             });
-        }
-    });
-});
-</script>
-
+        });
+    </script>
 </body>
-
 </html>
