@@ -181,7 +181,7 @@ if (!$result) {
                             </button>
                         </div>
                         <div class="modal-body">
-                            Are you sure you want to delete this criteria?
+                            Are you sure you want to delete this account?
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -190,6 +190,24 @@ if (!$result) {
                     </div>
                 </div>
             </div>
+
+            <!-- SUCCESS DELETE MODAL -->
+<div class="modal fade" id="successDeleteModal" tabindex="-1" role="dialog" aria-labelledby="successDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successDeleteModalLabel">Success</h5>
+            </div>
+            <div class="modal-body">
+                <p>The account has been successfully deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
             <!-- EDIT MODAL -->
             <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -343,42 +361,36 @@ if (!$result) {
                 $('#editEmail').val(email);
             });
 
-            // ======== DELETE SCRIPT (Open Delete Modal) ========
-            $('.deleteBtn').click(function() {
-                var id = $(this).data('id');
-                $('#confirmDelete').data('id', id);
-            });
+            $(".deleteBtn").click(function () {
+        var id = $(this).data("id");
+        $("#confirmDelete").data("id", id);
+    });
 
-            // ======== DELETE SCRIPT (Confirm and Process Deletion) ===========
-            $('#confirmDelete').click(function() {
-                var id = $(this).data('id');
+    // Confirm and Process Deletion
+    $("#confirmDelete").click(function () {
+        var id = $(this).data("id");
 
-                // Hide delete modal, show delete loading modal
-                $('#deleteModal').modal('hide');
-                $('#deleteLoadingModal').modal('show');
+        // Hide delete modal
+        $("#deleteModal").modal("hide");
 
-                $.ajax({
-                    url: 'functions/delete_management_acc.php', // Delete function script
-                    type: 'POST',
-                    data: {
-                        id: id
-                    },
-                    success: function(response) {
-                        // Hide delete loading modal, show success loading modal
-                        $('#deleteLoadingModal').modal('hide');
-                        $('#successLoadingModal').modal('show');
+        $.ajax({
+            url: "functions/delete_management_acc.php", // Delete function script
+            type: "POST",
+            data: { id: id },
+            success: function (response) {
+                // Show success modal
+                $("#successDeleteModal").modal("show");
 
-                        // Reload the page after a short delay (optional)
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                    },
-                    error: function(xhr, status, error) {
-                        $('#deleteLoadingModal').modal('hide'); // Hide loading modal
-                        alert('An error occurred: ' + error);
-                    }
+                // Reload page after success modal is closed
+                $("#successDeleteModal").on("hidden.bs.modal", function () {
+                    location.reload();
                 });
-            });
+            },
+            error: function (xhr, status, error) {
+                alert("An error occurred: " + error);
+            },
+        });
+    });
         });
     </script>
 
