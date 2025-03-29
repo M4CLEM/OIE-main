@@ -6,6 +6,14 @@
     if (!$result) {
         die("Query Failed: " . mysqli_error($connect));
     }
+
+    while ($rows = mysqli_fetch_assoc($result)) {
+        $id = $rows['id'];
+        $startDate = $rows['start_date'];
+        $endDate = $rows['end_date'];
+        $semester = $rows['semester'];
+        $schoolYear = $rows['schoolYear'];
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,28 +86,22 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                                while ($rows = mysqli_fetch_assoc($result)) {
-                                            ?>
-                                                <tr>
-                                                    <td><?php echo $rows['start_date']; ?></td>
-                                                    <td><?php echo $rows['end_date']; ?></td>
-                                                    <td><?php echo $rows['semester']; ?></td>
-                                                    <td><?php echo $rows['schoolYear']; ?></td>
-                                                    <td>
-                                                        <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
-                                                            data-target="#editModal" data-id="<?php echo $rows['id']; ?>"
-                                                            data-start-date="<?php echo $rows['start_date']; ?>"
-                                                            data-end-date="<?php echo $rows['end_date']; ?>" data-semester="<?php echo $rows['semester']; ?>" data-schoolYear="<?php echo $rows['schoolYear'] ?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
-                                                        <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
-                                                            data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>">
-                                                            <i class="fa fa-trash fw-fa"></i> Delete
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            <?php        
-                                                }
-                                            ?>
+                                            <tr>
+                                                <td><?php echo $startDate ?></td>
+                                                <td><?php echo $endDate ?></td>
+                                                <td><?php echo $semester ?></td>
+                                                <td><?php echo $schoolYear ?></td>
+                                                <td>
+                                                    <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
+                                                        data-target="#editModal" data-id="<?php echo $id ?>"
+                                                        data-start-date="<?php echo  $startDate ?>"
+                                                        data-end-date="<?php echo $endDate ?>" data-semester="<?php echo $semester ?>" data-schoolYear="<?php echo $schoolYear ?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
+                                                    <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
+                                                        data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>">
+                                                        <i class="fa fa-trash fw-fa"></i> Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -109,7 +111,7 @@
                 </div>
 
                 <!-- ADD MODAL -->
-                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+                <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <form action="functions/add_academic_year.php" method="POST">
@@ -165,11 +167,66 @@
                             </form>
                         </div>
                     </div>
-                 </div>
+                </div>
 
                 <!-- EDIT MODAL -->
+                <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <form action="" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Academic Year</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4 text-right">
+                                                <label for="startingDate">Starting Date</label>
+                                            </div>
+                                            <div class="col-md-4 text-center"></div>
+                                            <div class="col-md-4 text-left">
+                                                <label for="endingDate">Ending Date</label>
+                                            </div>
+                                        </div>
+                                        <div class="row align-items-center mt-2">
+                                            <div class="col-md-5">
+                                                <input type="date" id="editStartingDate" name="editStartingDate" class="form-control">
+                                            </div>
+                                            <div class="col-md-2 text-center">To</div>
+                                            <div class="col-md-5">
+                                                <input type="date" id="editEndingDate" name="editEndingDate" class="form-control">
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <label for="semester">Semester</label>
+                                                <select class="form-control" name="editSemester" id="editSemester" required>
+                                                    <option value="">Select Semester</option>
+                                                    <option value="1st Semester">1st Semester</option>
+                                                    <option value="2nd Semester">2nd Semester</option>
+                                                </select>
+                                            </div>
+                                            <div class="row">
+                                                <label for="schoolYear">School Year</label>
+                                                <input type="text" name="editSchoolYear" id="editSchoolYear" class="form-control" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-primary btn-sm" name="save" type="submit"><span class="fa fa-save fw-fa"></span> Save</button>
+                                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
 
-                 <!-- LOG OUT MODAL-->
+                <!-- LOG OUT MODAL-->
                 <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -195,5 +252,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="../assets/js/sidebarscript.js"></script>
 
-    <script></script>
+    <script>
+        
+    </script>
 </html>
