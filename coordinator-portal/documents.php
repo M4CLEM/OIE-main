@@ -153,7 +153,7 @@ $documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM docume
                             <div class="modal fade" id="deleteLoadingModal" tabindex="-1" role="dialog" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered" role="document">
                                     <div class="modal-content d-flex flex-column align-items-center justify-content-center p-4">
-                                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                        <div class="spinner-border text-success my-3" role="status" style="width: 3rem; height: 3rem;">
                                             <span class="sr-only">Deleting...</span>
                                         </div>
                                         <p class="mt-3">Deleting document, please wait...</p>
@@ -253,8 +253,8 @@ $documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM docume
                                 <div class="modal-dialog modal-dialog-centered" role="document">
                                     <div class="modal-content">
                                         <div class="modal-body d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 200px;">
-                                            <h5 class="text-primary">Please Wait...</h5>
-                                            <div class="spinner-border text-primary my-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                            <h5 class="text-success">Please Wait...</h5> <!-- Green Text -->
+                                            <div class="spinner-border text-success my-3" role="status" style="width: 3rem; height: 3rem;"></div> <!-- Green Spinner -->
                                             <p>Uploading document...</p>
                                         </div>
                                     </div>

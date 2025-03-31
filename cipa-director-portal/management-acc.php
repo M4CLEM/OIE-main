@@ -362,6 +362,7 @@ if (!$result) {
                 $('#editEmail').val(email);
             });
 
+        // ============ DELETE SCRIPT =============
             // Open Delete Modal
             $(".deleteBtn").click(function() {
                 var id = $(this).data("id");
