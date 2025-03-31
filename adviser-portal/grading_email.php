@@ -62,7 +62,7 @@ try {
                     $first_name = $row['firstname'];
 
                     // Construct the link with student ID as a query parameter
-                    $link = 'http://localhost/oie-portal/grading_page.php?student_id=' . urlencode($student_id);
+                    $link = 'http://localhost/OIE-main/grading_page.php?student_id=' . urlencode($student_id);
 
                     // Create the link in the body
                     $body .= '<p><a href="' . $link . '">' . $last_name . ' ' . $first_name . '</a></p><br>';
