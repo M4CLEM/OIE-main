@@ -2,6 +2,9 @@
 session_start();
 include_once("../includes/connection.php");
 
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 if(isset($_SESSION['dept_sec']) && !empty($_SESSION['dept_sec'])) {
     // If sections are available, filter the query based on them
     $sections = implode("','", $_SESSION['dept_sec']);
@@ -26,8 +29,8 @@ if (isset($_POST['Approve'])) {
     $updateCompanyInfo->bind_param("s", $companyCode);
     $updateCompanyInfo->execute();
 
-    $updateStudentInfo = $connect->prepare("UPDATE studentinfo SET status = 'Deployed', companyCode = ?, trainerEmail = ? WHERE email = ?");
-    $updateStudentInfo->bind_param("sss", $companyCode, $trainerEmail, $studentEmail);
+    $updateStudentInfo = $connect->prepare("UPDATE studentinfo SET status = 'Deployed', companyCode = ?, trainerEmail = ?, semester = ?, school_year = ? WHERE email = ?");
+    $updateStudentInfo->bind_param("sssss", $companyCode, $trainerEmail, $studentEmail, $activeSemester, $activeSchoolYear);
     $updateStudentInfo->execute();
 
     header("Location: approval.php");

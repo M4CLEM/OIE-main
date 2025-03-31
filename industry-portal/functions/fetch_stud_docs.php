@@ -2,13 +2,16 @@
 session_start();
 include_once("../../includes/connection.php");
 
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 if (isset($_POST['studentID'])) {
     $studentID = $_POST['studentID'];
 
     // Query to select only the document-related fields for the given studentID
-    $query = "SELECT * FROM documents WHERE student_ID = ?";
+    $query = "SELECT * FROM documents WHERE student_ID = ? AND semester = ? AND schoolYear = ?";
     $stmt = mysqli_prepare($connect, $query);
-    mysqli_stmt_bind_param($stmt, "s", $studentID);
+    mysqli_stmt_bind_param($stmt, "sss", $studentID, $activeSemester, $activeSchoolYear);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 

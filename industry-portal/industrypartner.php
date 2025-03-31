@@ -1,6 +1,10 @@
 <?php
 include_once("../includes/connection.php");
 session_start();
+
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 $queryDept = "SELECT * FROM studentinfo WHERE trainerEmail = ?";
 $stmtDept = $connect->prepare($queryDept);
 $stmtDept->bind_param("s", $_SESSION['IndustryPartner']);
@@ -104,7 +108,7 @@ $result = mysqli_stmt_get_result($stmtDept);
                                     while ($rows = mysqli_fetch_assoc($result)) {
                                         // Fetch the grades for the current student
                                         $studentID = $rows['studentID'];
-                                        $gradeQuery = "SELECT SUM(grade) AS totalGrade FROM student_grade WHERE studentID = $studentID";
+                                        $gradeQuery = "SELECT finalGrade AS totalGrade FROM student_grade WHERE studentID = $studentID AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                         $gradeResult = mysqli_query($connect, $gradeQuery);
                                         $totalGrade = mysqli_fetch_assoc($gradeResult)['totalGrade'];
 
@@ -122,11 +126,8 @@ $result = mysqli_stmt_get_result($stmtDept);
                                     ?>
                                 </tbody>
                             </table>
-
-
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

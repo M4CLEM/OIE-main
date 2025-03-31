@@ -3,8 +3,10 @@ session_start();
 include_once("../includes/connection.php");
 
 $IP = $_SESSION['IndustryPartner'];
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
 
-$query = "SELECT * FROM studentinfo WHERE trainerEmail = '$IP'";
+$query = "SELECT * FROM studentinfo WHERE trainerEmail = '$IP' AND semester = '$activeSemester' AND school_year = '$activeSchoolYear'";
 $result = mysqli_query($connect, $query);
 
 $studentIDs = array();
@@ -101,7 +103,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                                         if (!empty($studentIDs)) {
                                             $studentIDsString = implode(',', $studentIDs);
 
-                                            $studentQuery = "SELECT * FROM student_masterlist WHERE studentID IN ($studentIDsString) ORDER BY lastName ASC";
+                                            $studentQuery = "SELECT * FROM student_masterlist WHERE studentID IN ($studentIDsString) AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear' ORDER BY lastName ASC";
                                             $studentResult = mysqli_query($connect, $studentQuery);
                                             
                                             while ($studentRow = mysqli_fetch_assoc($studentResult)) {

@@ -7,11 +7,13 @@ include_once("../includes/connection.php");
 
 // Get the department value stored in the session
 $department = $_SESSION['department'];
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
 
 // Query the database to get criteria lists for the current department
 // Includes company and job role information from the view
-$companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE department = '$department'");
-$adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE department = '$department'");
+$companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE department = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'");
+$adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE department = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'");
 
 
 // Query preset criteria templates from the database

@@ -5,6 +5,9 @@ session_start();
 // Include the database connection
 include_once("../includes/connection.php");
 
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 // Retrieve the program from the session
 $department = $_SESSION['department'];
 $coordinatorRole = $_SESSION['coordinator']; // Get coordinator role

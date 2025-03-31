@@ -4,6 +4,8 @@
     
     $trainerEmail = $_SESSION['trainerEmail'];
     $companyName = $_SESSION['companyName'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
 
     // Query to fetch data from both tables based on studentID
     $studentQuery = "
@@ -12,7 +14,7 @@
                CONCAT(si.firstname, ' ', si.lastname) AS fullStudentName
         FROM company_info ci
         LEFT JOIN studentinfo si ON ci.studentID = si.studentID
-        WHERE ci.trainerEmail = '$trainerEmail'
+        WHERE ci.trainerEmail = '$trainerEmail' AND ci.semester = '$activeSemester' AND ci.schoolYear = '$activeSchoolYear'
     ";
     $studentResult = mysqli_query($connect, $studentQuery);
 ?>

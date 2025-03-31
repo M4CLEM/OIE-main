@@ -2,6 +2,9 @@
 include("../includes/connection.php");
 session_start();
 
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 $output = "";
 
 if (isset($_POST['submit'])) {
@@ -45,12 +48,12 @@ if (isset($_POST['submit'])) {
 
     if (count($error) < 1) {
 
-        $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, jobrole, status, studentID, student_email, section) 
-                VALUES ('$companyName', '$companyAddress', '$trainerContact', '$trainerEmail', '$workType', '$jobrole', 'Pending', $studentID, '{$_SESSION['student']}', '$section')";
+        $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, jobrole, status, studentID, student_email, section, semester, schoolYear) 
+                VALUES ('$companyName', '$companyAddress', '$trainerContact', '$trainerEmail', '$workType', '$jobrole', 'Pending', $studentID, '{$_SESSION['student']}', '$section', '$activeSemester', '$activeSchoolYear')";
 
         $res = mysqli_query($connect, $query);
 
-        $companyQuery = "INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, jobdescription, jobreq, link, dept) VALUES ('$companyName', '$companyAddress', '$contactPerson', '$jobrole', '$jobdescription', '$jobRequirement', '$companyLink', '$department')";
+        $companyQuery = "INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, jobdescription, jobreq, link, dept, semester, schoolYear) VALUES ('$companyName', '$companyAddress', '$contactPerson', '$jobrole', '$jobdescription', '$jobRequirement', '$companyLink', '$department', '$activeSemester', '$activeSchoolYear')";
 
         $companyResult = mysqli_query($connect, $companyQuery);
 
