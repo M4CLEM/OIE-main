@@ -10,6 +10,21 @@ if (isset($_SESSION['registration_success'])) {
     unset($_SESSION['registration_success']);
 }
 
+date_default_timezone_set('Asia/Manila');
+$current_date = date('Y-m-d');
+
+$query = "SELECT semester, schoolYear FROM academic_year WHERE start_date <= ? AND end_date >= ? LIMIT 1";
+$stmt = $connect->prepare($query);
+$stmt->bind_param("ss", $current_date, $current_date);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $_SESSION['active_semester'] = $row['semester'];
+    $_SESSION['active_schoolYear'] = $row['schoolYear'];
+}
+
 $output = "";
 
 if (isset($_POST['login'])) {
@@ -27,6 +42,11 @@ if (isset($_POST['login'])) {
         if (mysqli_num_rows($res) == 1) {
             $row = mysqli_fetch_assoc($res);
             $role = $row['role']; // Fetch role from the database result
+
+            if (isset($_SESSION['active_semester']) && isset($_SESSION['active_schoolYear'])) {
+                $_SESSION['semester'] = $_SESSION['active_semester'];
+                $_SESSION['schoolYear'] = $_SESSION['active_schoolYear'];
+            }
 
             if ($role == "CIPA") {
                 $_SESSION['CIPA'] = $uname;
