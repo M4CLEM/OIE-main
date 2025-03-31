@@ -121,21 +121,22 @@ if (isset($_POST['submit'])) {
             $excelCourse = $sheetData[$i][4];
             $year = $sheetData[$i][5];
 
-            $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = '$studentid' AND semester = '$semester'";
+            $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = '$studentid' AND semester = '$semester' AND schoolYear = '$SY'";
             $checkResult = mysqli_query($connect, $checkQuery);
-
+            
             if (mysqli_num_rows($checkResult) == 0) {
                 $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, year, section, semester, schoolYear) 
                         VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section', '$semester' , '$SY')";
-
+            
                 if (mysqli_query($connect, $sql)) {
-                    $messages[] = "$lastName $firstName added to database with semester $semester and folder created.";
+                    $messages[] = "$lastName $firstName added to database with semester $semester and school year $SY, folder created.";
                 } else {
                     $messages[] = "Error inserting $lastName $firstName: " . mysqli_error($connect);
                 }
             } else {
-                $messages[] = "$lastName $firstName already exists in database for semester $semester, only creating folder.";
+                $messages[] = "$lastName $firstName already exists in database for semester $semester and school year $SY, only creating folder.";
             }
+            
             createFolder($driveService, "{$course}_{$studentid}", $sectionFolderId);
         }
     }

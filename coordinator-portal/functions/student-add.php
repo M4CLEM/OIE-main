@@ -59,10 +59,10 @@ if(isset($_POST['save'])) {
     $semesterFolderId = createFolder($driveService, $semester, $SYFolderId);
     $sectionFolderId = createFolder($driveService, $section, $semesterFolderId);
 
-    // Check if student already exists for the same semester
-    $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = ? AND semester = ?";
+    // **Fixed Duplicate Check: Now Includes schoolYear**
+    $checkQuery = "SELECT * FROM student_masterlist WHERE studentID = ? AND semester = ? AND schoolYear = ?";
     $stmt = $connect->prepare($checkQuery);
-    $stmt->bind_param("ss", $studentID, $semester);
+    $stmt->bind_param("sss", $studentID, $semester, $SY);
     $stmt->execute();
     $checkResult = $stmt->get_result();
     $stmt->close();
@@ -78,7 +78,7 @@ if(isset($_POST['save'])) {
         if ($stmt->execute()) {
             echo "<div style='padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; 
                         border-radius: 5px; text-align: center; width: 50%; margin: 20px auto;'>
-                    <strong>Success!</strong> " . htmlspecialchars($lastName) . " " . htmlspecialchars($firstName) . " added for " . htmlspecialchars($semester) . ".
+                    <strong>Success!</strong> " . htmlspecialchars($lastName) . " " . htmlspecialchars($firstName) . " added for " . htmlspecialchars($semester) . " ($SY).
                     <br><br>
                     <a href='../masterlist.php' 
                         style='display: inline-block; padding: 5px 10px; background-color: #155724; color: #fff; text-decoration: none; border-radius: 5px;'>
@@ -92,7 +92,7 @@ if(isset($_POST['save'])) {
     } else {
         echo "<div style='padding: 10px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; 
                     border-radius: 5px; text-align: center; width: 50%; margin: 20px auto; position: relative;'>
-                <strong>Error!</strong> " . htmlspecialchars($lastName) . " " . htmlspecialchars($firstName) . " already exists for " . htmlspecialchars($semester) . ".
+                <strong>Error!</strong> " . htmlspecialchars($lastName) . " " . htmlspecialchars($firstName) . " already exists for " . htmlspecialchars($semester) . " ($SY).
                 <br><br>
                 <a href='../masterlist.php' 
                    style='display: inline-block; padding: 5px 10px; background-color: #721c24; color: #fff; text-decoration: none; border-radius: 5px;'>
@@ -109,6 +109,14 @@ if(isset($_POST['save'])) {
     $connect->close();
 }
 
+/**
+ * Function to create a folder in Google Drive
+ *
+ * @param Google_Service_Drive $driveService Google Drive API service instance
+ * @param string $folderName Name of the folder to be created
+ * @param string|null $parentFolderId ID of the parent folder (if any)
+ * @return string ID of the created or existing folder
+ */
 function createFolder($driveService, $folderName, $parentFolderId) {
     $query = "name='$folderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
     if ($parentFolderId) $query .= " and '$parentFolderId' in parents";
