@@ -3,6 +3,9 @@ session_start();
 require_once __DIR__ . '/../../vendor/autoload.php';
 include_once("../../includes/connection.php");
 
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 use Google\Client as Google_Client;
 use Google\Service\Drive as Google_Service_Drive;
 use Google\Service\Drive\DriveFile as Google_Service_Drive_DriveFile;
@@ -79,9 +82,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $fileLink = "https://drive.google.com/file/d/" . $fileId;
             
             // Insert document information into the database
-            $stmt = $connect->prepare("INSERT INTO documents (student_ID, email, document, file_name, file_link, status) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $connect->prepare("INSERT INTO documents (student_ID, email, document, file_name, file_link, status, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $status = 'Pending';
-            $stmt->bind_param('isssss', $studentID, $email, $documentType, $fileName, $fileLink, $status);
+            $stmt->bind_param('isssssss', $studentID, $email, $documentType, $fileName, $fileLink, $status, $activeSemester, $activeSchoolYear);
             $stmt->execute();
             $stmt->close();
         } else {
