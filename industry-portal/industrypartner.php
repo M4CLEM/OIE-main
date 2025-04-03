@@ -110,7 +110,8 @@ $result = mysqli_stmt_get_result($stmtDept);
                                         $studentID = $rows['studentID'];
                                         $gradeQuery = "SELECT finalGrade AS totalGrade FROM student_grade WHERE studentID = $studentID AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                         $gradeResult = mysqli_query($connect, $gradeQuery);
-                                        $totalGrade = mysqli_fetch_assoc($gradeResult)['totalGrade'];
+                                        $gradeRow = mysqli_fetch_assoc($gradeResult);
+                                        $totalGrade = ($gradeRow && $gradeRow['totalGrade'] !== null) ? $gradeRow['totalGrade'] : 0;
 
                                         // Display student information and total grade
                                     ?>
