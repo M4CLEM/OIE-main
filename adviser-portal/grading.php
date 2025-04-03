@@ -3,6 +3,9 @@
     include("../includes/connection.php");
 
     $email = $_SESSION['adviser'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+    
     $query = "SELECT * FROM listadviser WHERE email ='$email'";
     $result = mysqli_query($connect, $query);
 ?>
