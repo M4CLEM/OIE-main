@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 if (!empty($companyName) && !empty($jobRole)) {
                     $stmt = $connect->prepare("INSERT INTO criteria_list_view (department, criteria, company, jobrole, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt->bind_param("ssssss", $department, $companyCriteriaJson, $companyName, $jobRole);
+                    $stmt->bind_param("ssssss", $department, $companyCriteriaJson, $companyName, $jobRole, $activeSemester, $activeSchoolYear);
                     $stmt->execute();
                     $stmt->close();
                 }
