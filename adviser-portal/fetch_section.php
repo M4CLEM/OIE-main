@@ -1,6 +1,8 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
+$semester = $_SESSION['semester'];
+$schoolYear = $_SESSION['schoolYear'];
 
 // Check if section is set in the POST request
 if (isset($_POST['section'])) {
@@ -17,9 +19,9 @@ if (isset($_POST['section'])) {
             $sections[] = $row['section'];
         }
         $sectionsString = implode("','", $sections);
-        $query = "SELECT * FROM student_masterlist WHERE section IN ('$sectionsString') ORDER BY section ASC, lastName ASC";
+        $query = "SELECT * FROM student_masterlist WHERE section IN ('$sectionsString') AND semester = '$semester' AND schoolYear = '$schoolYear' ORDER BY section ASC, lastName ASC";
     } else {
-        $query = "SELECT * FROM student_masterlist WHERE section = '$section' ORDER BY section ASC, lastName ASC";
+        $query = "SELECT * FROM student_masterlist WHERE section = '$section' AND semester = '$semester' AND schoolYear = '$schoolYear' ORDER BY section ASC, lastName ASC";
     }
 
     // Execute the query

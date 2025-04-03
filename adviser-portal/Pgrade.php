@@ -2,6 +2,9 @@
 session_start();
 include_once("../includes/connection.php");
 
+$semester = $_SESSION['semester'];
+$schoolYear = $_SESSION['schoolYear'];
+
 $getSections = "SELECT section FROM listadviser WHERE email = '{$_SESSION['adviser']}'";
 $sectionsResult = mysqli_query($connect, $getSections);
 
@@ -10,7 +13,7 @@ while ($row = mysqli_fetch_assoc($sectionsResult)) {
     $sections[] = $row['section'];
 }
 $sectionsString = implode("','", $sections);
-$query = "SELECT * FROM student_masterlist WHERE section IN ('$sectionsString') ORDER BY section ASC, lastname ASC";
+$query = "SELECT DISTINCT * FROM student_masterlist WHERE section IN ('$sectionsString') AND semester = '$semester' AND schoolYear = '$schoolYear' ORDER BY section ASC, lastname ASC";
 
 $result = mysqli_query($connect, $query);
 ?>
