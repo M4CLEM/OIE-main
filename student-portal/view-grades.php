@@ -3,87 +3,24 @@ session_start();
 include_once("../includes/connection.php"); 
 
 $email = $_SESSION['student'];
-$semester = $_SESSION['semester'];
-$schoolYear = $_SESSION['schoolYear'];
+$department = $_SESSION['department'];
 
-// Fetch adviser criteria and grades
-$stmt = $connect->prepare("SELECT * FROM adviser_student_grade WHERE email = ?");
-$stmt->bind_param("s", $email);
+$studNumberResult = mysqli_query($connect, "SELECT studentID FROM studentinfo WHERE email = '$email'");
+
+if ($studNumberResult && mysqli_num_rows($studNumberResult) > 0) {
+    $row = mysqli_fetch_assoc($studNumberResult);
+    $studentID = $row['studentID'];
+} 
+
+// Fetch unique semesters and school years for tabs
+$enrollmentsQuery = "SELECT DISTINCT semester, schoolYear FROM student_masterlist WHERE studentID = ? ORDER BY schoolYear DESC, semester DESC";
+$stmt = $connect->prepare($enrollmentsQuery);
+$stmt->bind_param("s", $studentID);
 $stmt->execute();
-$result = $stmt->get_result();
+$enrollmentsResult = $stmt->get_result();
+$enrollments = $enrollmentsResult->fetch_all(MYSQLI_ASSOC);
 
-$adviserCriteriaGrouped = [];
-$totalGradeAdviser = null;
-
-while ($row = $result->fetch_assoc()) {
-    $criteria = json_decode($row['criteria'], true);
-    $grade = json_decode($row['grade'], true);
-    $totalGradeAdviser = $row['finalGrade'];
-
-    if (!isset($adviserCriteriaGrouped[$row['id']])) {
-        $adviserCriteriaGrouped[$row['id']] = [
-            'adviserCriteria' => []
-        ];
-    }
-
-    if ($criteria && $grade) {
-        foreach ($criteria as $criterion) {
-            $name = $criterion['criteria'];
-            $percentage = $criterion['percentage'];
-            $score = isset($grade[$name]) ? $grade[$name] : 0;
-            
-            $adviserCriteriaGrouped[$row['id']]['adviserCriteria'][] = [
-                'adviserCriteria' => $name,
-                'adviserPercentage' => $percentage,
-                'adviserDescription' => $criterion['description'],
-                'score' => $score
-            ];
-        }
-    }
-}
-
-// Fetch company criteria and grades
-$stmt = $connect->prepare("SELECT * FROM student_grade WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$companyCriteriaGrouped = [];
-$totalGradeCompany = null;
-
-while ($row = $result->fetch_assoc()) {
-    $criteria = json_decode($row['criteria'], true);
-    $grade = json_decode($row['grade'], true);
-    $totalGradeCompany = $row['finalGrade'];
-
-    if (!isset($companyCriteriaGrouped[$row['id']])) {
-        $companyCriteriaGrouped[$row['id']] = [
-            'companyCriteria' => []
-        ];
-    }
-
-    if ($criteria && $grade) {
-        foreach ($criteria as $criterion) {
-            $name = $criterion['criteria'];
-            $percentage = $criterion['percentage'];
-            $score = isset($grade[$name]) ? $grade[$name] : 0;
-            
-            $companyCriteriaGrouped[$row['id']]['companyCriteria'][] = [
-                'companyCriteria' => $name,
-                'companyPercentage' => $percentage,
-                'companyDescription' => $criterion['description'],
-                'score' => $score
-            ];
-        }
-    }
-}
-
-// Pass data to frontend
-$adviserCriteriaJSON = json_encode($adviserCriteriaGrouped);
-$companyCriteriaJSON = json_encode($companyCriteriaGrouped);
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -154,142 +91,182 @@ $companyCriteriaJSON = json_encode($companyCriteriaGrouped);
                     </ul>
                 </nav>
 
-                <div class="col-lg-12 mb-4">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-2">
-                            <div class="row m-3">
-                                <div class="col md-6">
-                                    <h4 class="m-0 font-weight-bold text-dark">Company Name</h4>
-                                    <h5>Jobrole</h5>
-                                </div>
-                                <div class="col md-6">
-                                    <h4 class="m-0 font-weight-bold text-dark">Final Grade: %</h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body m-3">
-                            <div class="row">
-                                <!--ADVISER CRITERION-->
-                                <div class="col-md-6">
-                                    <div class="card mb-2">
-                                        <div class="card-header">
-                                            <div class="row">
-                                                <div class="col-md-10">
-                                                    <h6 class="m-0 font-weight-bold text-dark">ADVISER'S CRITERIA</h6>
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <h6 class="m-0 font-weight-bold text-dark">GRADE</h6>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body" id="adviserCriteria">
-                                            <div class="row">
-                                                <?php $id = key($adviserCriteriaGrouped);  // Use the first key if no specific ID is set ?>
-                                                <?php if (isset($adviserCriteriaGrouped[$id]['adviserCriteria'])) { ?>
-                                                    <?php foreach ($adviserCriteriaGrouped[$id]['adviserCriteria'] as $criteriaItem) { ?>
-                                                        <!-- Row for Criteria and Grade -->
-                                                        <div class="col-md-10">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <strong>
-                                                                    <?php echo $criteriaItem['adviserCriteria']; ?>
-                                                                </strong>
-                                                            </div>
+                <div class="card shadow mb-4">
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="gradesTabs" role="tablist">
+            <?php foreach ($enrollments as $index => $enrollment): ?>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" id="tab-<?php echo $index; ?>" data-toggle="tab" href="#semester-<?php echo $index; ?>" role="tab">
+                        <?php echo htmlspecialchars($enrollment['semester']) . ' ' . htmlspecialchars($enrollment['schoolYear']); ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+        <div class="tab-content mt-3" id="gradesTabsContent">
+            <?php foreach ($enrollments as $index => $enrollment): ?>
+                <div class="tab-pane fade <?php echo $index === 0 ? 'show active' : ''; ?>" id="semester-<?php echo $index; ?>" role="tabpanel">
+                    <?php
+                    $semester = $enrollment['semester'];
+                    $schoolYear = $enrollment['schoolYear'];
+                    
+                    // Fetch company name, job role, and grades
+                    $stmt = $connect->prepare("SELECT companyName, jobRole FROM adviser_student_grade WHERE email = ? AND semester = ? AND schoolYear = ? LIMIT 1");
+                    $stmt->bind_param("sss", $email, $semester, $schoolYear);
+                    $stmt->execute();
+                    $companyResult = $stmt->get_result();
+                    $companyInfo = $companyResult->fetch_assoc();
 
-                                                            <!-- Description Below the Criteria -->
-                                                            <div class="criteria-description" style="margin-left: 20px;">
-                                                                <strong>Description:</strong><br>
-                                                                <?php echo $criteriaItem['adviserDescription']; ?>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <!-- Score/Percentage aligned with Grade Column -->
-                                                            <div class="d-flex justify-content-start align-items-center">
-                                                                <span class="grade">
-                                                                    <?php echo $criteriaItem['score']; ?> / <?php echo $criteriaItem['adviserPercentage']; ?>%
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <hr style="width: 530px; margin-block-start: 0.5em; margin-block-end: 0.5em; display: block;">
-                                                    <?php } ?>
-                                                <?php } ?>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer">
-                                            <div class="row m-2">
-                                                <div class="col-md-10">
-                                                    <h5 class="m-0 font-weight-bold text-dark">Total Grade:</h5>
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <h5 class="m-0 font-weight-bold text-dark"><?php echo $totalGradeAdviser?>%</h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card mb-2">
-                                        <div>
-                                            <div class="card-header">
-                                                <div class="row">
-                                                    <div class="col-md-10">
-                                                        <h6 class="m-0 font-weight-bold text-dark">COMPANY'S CRITERIA</h6>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <h6 class="m-0 font-weight-bold text-dark">GRADE</h6>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="card-body" id="companyCriteria">
-                                                
-                                                <div class="row">
-                                                    <?php $id = key($companyCriteriaGrouped)?>
-                                                    <?php if (isset($companyCriteriaGrouped[$id]['companyCriteria'])) { ?>
-                                                    <?php foreach ($companyCriteriaGrouped[$id]['companyCriteria'] as $criteriaItem) { ?>
-                                                        <!-- Row for Criteria and Grade -->
-                                                        <div class="col-md-10">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <strong>
-                                                                    <?php echo $criteriaItem['companyCriteria']; ?>
-                                                                </strong>
-                                                            </div>
+                    if ($companyInfo) {
+                        $companyName = htmlspecialchars($companyInfo['companyName']);
+                        $jobRole = htmlspecialchars($companyInfo['jobRole']);
+                    } else {
+                        $companyName = null;
+                        $jobRole = null;
+                    }
+                    
+                    $stmt = $connect->prepare("SELECT * FROM adviser_student_grade WHERE email = ? AND semester = ? AND schoolYear = ?");
+                    $stmt->bind_param("sss", $email, $semester, $schoolYear);
+                    $stmt->execute();
+                    $adviserResult = $stmt->get_result();
+                    
+                    $stmt = $connect->prepare("SELECT * FROM student_grade WHERE email = ? AND semester = ? AND schoolYear = ?");
+                    $stmt->bind_param("sss", $email, $semester, $schoolYear);
+                    $stmt->execute();
+                    $companyResult = $stmt->get_result();
+                    
+                    $adviserCriteriaGrouped = [];
+                    $companyCriteriaGrouped = [];
+                    $totalGradeAdviser = null;
+                    $totalGradeCompany = null;
+                    
+                    while ($row = $adviserResult->fetch_assoc()) {
+                        $criteria = json_decode($row['criteria'], true);
+                        $grade = json_decode($row['grade'], true);
+                        $totalGradeAdviser = $row['finalGrade'];
 
-                                                            <!-- Description Below the Criteria -->
-                                                            <div class="criteria-description" style="margin-left: 20px;">
-                                                                <strong>Description:</strong><br>
-                                                                <?php echo $criteriaItem['companyDescription']; ?>
-                                                            </div>
-                                                        </div>
-                
-                                                        <div class="col-md-2">
-                                                            <!-- Score/Percentage aligned with Grade Column -->
-                                                            <div class="d-flex justify-content-start align-items-center">
-                                                                <span class="grade">
-                                                                    <?php echo $criteriaItem['score']; ?> / <?php echo $criteriaItem['companyPercentage']; ?>%
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <hr style="width: 530px; margin-block-start: 0.5em; margin-block-end: 0.5em; display: block;">
-                                                    <?php } ?>
-                                                <?php } ?>
-                                                </div>
-                                            </div>
-                                            <div class="card-footer">
-                                                <div class="row m-2">
-                                                    <div class="col-md-10">
-                                                        <h5 class="m-0 font-weight-bold text-dark">Total Grade:</h5>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <h5 class="m-0 font-weight-bold text-dark"><?php echo $totalGradeCompany?>%</h5>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        foreach ($criteria as $criterion) {
+                            $name = $criterion['criteria'];
+                            $percentage = $criterion['percentage'];
+                            $score = isset($grade[$name]) ? $grade[$name] : 0;
+                            
+                            $adviserCriteriaGrouped[] = [
+                                'adviserCriteria' => $name,
+                                'adviserPercentage' => $percentage,
+                                'adviserDescription' => $criterion['description'],
+                                'score' => $score
+                            ];
+                        }
+                    }
+                    
+                    while ($row = $companyResult->fetch_assoc()) {
+                        $criteria = json_decode($row['criteria'], true);
+                        $grade = json_decode($row['grade'], true);
+                        $totalGradeCompany = $row['finalGrade'];
+                        
+                        foreach ($criteria as $criterion) {
+                            $name = $criterion['criteria'];
+                            $percentage = $criterion['percentage'];
+                            $score = isset($grade[$name]) ? $grade[$name] : 0;
+                            
+                            $companyCriteriaGrouped[] = [
+                                'companyCriteria' => $name,
+                                'companyPercentage' => $percentage,
+                                'companyDescription' => $criterion['description'],
+                                'score' => $score
+                            ];
+                        }
+                    }
+
+                    $finalizedGradeQuery = "SELECT * FROM grading_rubics WHERE department = ? AND semester = ? AND schoolYear = ?";
+                    $stmt = $connect->prepare($finalizedGradeQuery);
+                    $stmt->bind_param("sss", $department, $semester, $schoolYear);
+                    $stmt->execute();
+                    $gradingResult = $stmt->get_result();
+                    $gradingInfo = $gradingResult->fetch_assoc();
+
+                    // Assuming 'adviserWeight' and 'companyWeight' are columns in the grading_rubics table
+                    if ($gradingInfo) {
+                        $adviserWeight = $gradingInfo['adviserWeight']; // this is line 180
+                        $companyWeight = $gradingInfo['companyWeight']; // this is line 181
+                        $finalizedGrade = ($totalGradeAdviser * ($adviserWeight / 100)) + ($totalGradeCompany * ($companyWeight / 100));
+                    } else {
+                        // Handle the case where no grading information is available
+                        $adviserWeight = 0;  // Set default values or handle the error
+                        $companyWeight = 0;  // Set default values or handle the error
+                        $finalizedGrade = 0; // Set default grade or handle the error
+                    }
+                    ?>
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h3 class="m-0 font-weight-bold text-dark">Grades Overview</h3>
+                        <h4 class="m-0 font-weight-bold text-dark">Final Grade: <?php echo $finalizedGrade;?>%</h4>
+                        <div>
+                            <?php if ($companyName && $jobRole): ?>
+                                <h5 class="m-0 font-weight-bold text-dark">Company: <?php echo $companyName; ?></h5>
+                                <h6 class="m-0 text-muted">Role: <?php echo $jobRole; ?></h6>
+                            <?php else: ?>
+                                <p class="m-0 text-muted">No company data available.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
+                    <div class="row mt-3">
+    <!-- ADVISER'S CRITERIA -->
+    <div class="col-md-6">
+        <div class="card mb-2">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-dark">ADVISER'S CRITERIA</h6>
+            </div>
+            <div class="card-body">
+                <?php if (!empty($adviserCriteriaGrouped)): ?>
+                    <?php foreach ($adviserCriteriaGrouped as $criteriaItem): ?>
+                        <div>
+                            <strong><?php echo $criteriaItem['adviserCriteria']; ?></strong>
+                            <p><strong>Description:</strong> <?php echo $criteriaItem['adviserDescription']; ?></p>
+                            <span><?php echo $criteriaItem['score']; ?> / <?php echo $criteriaItem['adviserPercentage']; ?>%</span>
+                        </div>
+                        <hr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="text-muted">No criteria available.</p>
+                <?php endif; ?>
+            </div>
+            <div class="card-footer">
+                <h5 class="m-0 font-weight-bold text-dark">Total Grade: <?php echo !empty($adviserCriteriaGrouped) ? $totalGradeAdviser : '0'; ?>%</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPANY'S CRITERIA -->
+    <div class="col-md-6">
+        <div class="card mb-2">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-dark">COMPANY'S CRITERIA</h6>
+            </div>
+            <div class="card-body">
+                <?php if (!empty($companyCriteriaGrouped)): ?>
+                    <?php foreach ($companyCriteriaGrouped as $criteriaItem): ?>
+                        <div>
+                            <strong><?php echo $criteriaItem['companyCriteria']; ?></strong>
+                            <p><strong>Description:</strong> <?php echo $criteriaItem['companyDescription']; ?></p>
+                            <span><?php echo $criteriaItem['score']; ?> / <?php echo $criteriaItem['companyPercentage']; ?>%</span>
+                        </div>
+                        <hr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="text-muted">No criteria available.</p>
+                <?php endif; ?>
+            </div>
+            <div class="card-footer">
+                <h5 class="m-0 font-weight-bold text-dark">Total Grade: <?php echo !empty($companyCriteriaGrouped) ? $totalGradeCompany : '0'; ?>%</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
                 </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
 
                 <!-- LOG OUT MODAL-->
                 <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -312,7 +289,7 @@ $companyCriteriaJSON = json_encode($companyCriteriaGrouped);
             </div>
         </div>
     </body>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
         crossorigin="anonymous"></script>
