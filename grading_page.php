@@ -2,20 +2,41 @@
     session_start();
     include_once("includes/connection.php");
 
+    date_default_timezone_set('Asia/Manila');
+    $current_date = date('Y-m-d');
+
+    $academicDateQuery = "SELECT semester, schoolYear FROM academic_year WHERE start_date <= ? AND end_date >= ? LIMIT 1";
+    $academicStmt = mysqli_prepare($connect, $academicDateQuery);
+    $academicStmt->bind_param("ss", $current_date, $current_date);
+    $academicStmt->execute();
+    $academicDateResult = $academicStmt->get_result();
+
+    if ($academicDateResult->num_rows > 0) {
+        $row = $academicDateResult->fetch_assoc();
+        $_SESSION['active_semester'] = $row['semester'];
+        $_SESSION['active_schoolYear'] = $row['schoolYear'];
+    }
+
+    $activeSemester = $_SESSION['active_semester'];
+    $activeSchoolYear = $_SESSION['active_schoolYear'];
+
     if (isset($_GET['student_id'])) {
         // Get the student_id from the URL
         $student_id = $_GET['student_id'];
 
         // Corrected query
         $query = "SELECT sm.*, si.*, ci.* 
-                  FROM student_masterlist sm 
-                  JOIN studentinfo si ON sm.studentID = si.studentID 
-                  JOIN company_info ci ON sm.studentID = ci.studentID 
-                  WHERE sm.studentID = ?";
+                    FROM student_masterlist sm 
+                    JOIN studentinfo si ON sm.studentID = si.studentID 
+                    JOIN company_info ci ON sm.studentID = ci.studentID 
+                    AND ci.semester = sm.semester 
+                    AND ci.schoolYear = sm.schoolYear 
+                    WHERE sm.studentID = ? AND sm.semester = ? AND sm.schoolYear = ?
+                    ";
 
         // Prepare and execute statement
         $stmt = mysqli_prepare($connect, $query);
-        mysqli_stmt_bind_param($stmt, "s", $student_id); // Only one parameter
+        mysqli_stmt_bind_param($stmt, "sss", $student_id, $activeSemester, $activeSchoolYear); // Only one parameter
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
 
@@ -31,7 +52,7 @@
             $_SESSION['companyName'] = "";
             $_SESSION['jobrole'] = "";
         }
-        
+
         // Close statement
         mysqli_stmt_close($stmt);
     }
@@ -121,13 +142,13 @@
                                             $student_id = $_GET['student_id'];
 
                                             // Query to select the specific student who does not have records in student_grade table
-                                            $queryStudents = "SELECT * FROM studentinfo s WHERE s.studentID = ? AND s.companyCode = ? AND s.status = 'Deployed'
+                                            $queryStudents = "SELECT * FROM studentinfo s WHERE s.studentID = ? AND s.companyCode = ? AND s.status = 'Deployed' AND s.semester = ? AND s.school_year = ?
                                                 AND NOT EXISTS (
                                                 SELECT 1 FROM student_grade sg
-                                                WHERE sg.studentID = s.studentID
+                                                WHERE sg.studentID = s.studentID AND sg.semester = s.semester AND sg.schoolYear = s.school_year
                                             )";
                                             $stmtStud = $connect->prepare($queryStudents);
-                                            $stmtStud->bind_param("ss", $student_id, $_SESSION['IP_num']);
+                                            $stmtStud->bind_param("ssss", $student_id, $_SESSION['IP_num'], $activeSemester, $activeSchoolYear);
                                             $stmtStud->execute();
                                             $resultStud = $stmtStud->get_result();
 

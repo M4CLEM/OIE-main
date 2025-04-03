@@ -2,6 +2,9 @@
 session_start();
 include_once("../includes/connection.php");
 
+$activeSemester = $_SESSION['active_semester'];
+$activeSchoolYear = $_SESSION['active_schoolYear'];
+
 header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -85,8 +88,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $jobrole = isset($_POST['jobrole']) ? trim($_POST['jobrole']) : null;
 
     // Insert into database
-    $stmt = $connect->prepare("INSERT INTO student_grade (studentID, email, criteria, grade, finalGrade, companyName, jobrole) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade, $companyName, $jobrole);
+    $stmt = $connect->prepare("INSERT INTO student_grade (studentID, email, criteria, grade, finalGrade, companyName, jobrole, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade, $companyName, $jobrole, $activeSemester, $activeSchoolYear);
     
     if ($stmt->execute()) {
         // Update student's status to "Completed" after inserting the grade
