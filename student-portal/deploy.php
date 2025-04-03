@@ -103,8 +103,22 @@ $activeSchoolYear = $_SESSION['schoolYear'];
 
                 if (isset($_SESSION['student'])) {
 
-                    $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ?");
-                    $stmt->bind_param("s", $_SESSION['student']);
+                    $studNumberResult = mysqli_query($connect, "SELECT studentID FROM studentinfo WHERE email = '$email'");
+
+                    if ($studNumberResult && mysqli_num_rows($studNumberResult) > 0) {
+                        $row = mysqli_fetch_assoc($studNumberResult);
+                        $studentID = $row['studentID'];
+                    }
+
+                    $enrollmentsQuery = "SELECT DISTINCT semester, schoolYear FROM student_masterlist WHERE studentID = ? ORDER BY schoolYear DESC, semester DESC";
+                    $stmt = $connect->prepare($enrollmentsQuery);
+                    $stmt->bind_param("s", $studentID);
+                    $stmt->execute();
+                    $enrollmentsResult = $stmt->get_result();
+                    $enrollments = $enrollmentsResult->fetch_all(MYSQLI_ASSOC);
+
+                    $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ? AND semester = ? AND schoolYear = ?");
+                    $stmt->bind_param("sss", $_SESSION['student'], $activeSemester, $activeSchoolYear);
                     $stmt->execute();
                     $result = $stmt->get_result(); 
                     $row = $result->fetch_assoc();

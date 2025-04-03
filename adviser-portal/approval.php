@@ -29,7 +29,7 @@ if (isset($_POST['Approve'])) {
     $updateCompanyInfo->bind_param("s", $companyCode);
     $updateCompanyInfo->execute();
 
-    $updateStudentInfo = $connect->prepare("UPDATE studentinfo SET status = 'Deployed', companyCode = ?, trainerEmail = ?, semester = ?, school_year = ? WHERE email = ?");
+    $updateStudentInfo = $connect->prepare("UPDATE studentinfo SET status = 'Deployed', companyCode = ?, trainerEmail = ? WHERE email = ? AND semester = ? AND school_year = ?");
     $updateStudentInfo->bind_param("sssss", $companyCode, $trainerEmail, $studentEmail, $activeSemester, $activeSchoolYear);
     $updateStudentInfo->execute();
 

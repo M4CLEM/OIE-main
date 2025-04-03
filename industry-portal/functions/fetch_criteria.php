@@ -9,9 +9,9 @@ if (isset($_POST['studentID']) && isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
     $studentId = $_POST['studentID'];
 
     // Fetch company and job role for selected student
-    $studQuery = "SELECT * FROM company_info WHERE studentID = ?";
+    $studQuery = "SELECT * FROM company_info WHERE studentID = ? AND semester = ? AND schoolYear = ?";
     $stmtStud = $connect->prepare($studQuery);
-    $stmtStud->bind_param("s", $studentId);
+    $stmtStud->bind_param("sss", $studentId, $activeSemester, $activeSchoolYear);
     $stmtStud->execute();
     $studResult = $stmtStud->get_result();
 

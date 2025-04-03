@@ -92,6 +92,7 @@ if (!$result) {
                                                                     </button>
                                                                 </td>";
                                                 echo "</tr>";
+                                                $counter++;
                                             }
                                         }
                                         ?>

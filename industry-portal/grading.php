@@ -9,7 +9,7 @@
 
     // Query to fetch data from both tables based on studentID
     $studentQuery = "
-        SELECT ci.studentID, 
+        SELECT DISTINCT ci.studentID, 
                ci.jobrole,
                CONCAT(si.firstname, ' ', si.lastname) AS fullStudentName
         FROM company_info ci

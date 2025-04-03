@@ -41,12 +41,28 @@ if (isset($_POST['submit'])) {
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
     $studentID = $row['studentID'];
+    $firstName = $row['firstname'];
+    $middleName = $row['middlename'];
+    $lastName = $row['lastname'];
+    $address = $row['address'];
+    $age = $row['age'];
+    $gender = $row['gender'];
+    $contactNo = $row['contactNo'];
     $section = $row['section'];
+    $course = $row['course'];
+    $image = $row['image'];
     $department = $row['department'];
+    $objective = $row['objective'];
+    $skills = $row['skills'];
+    $seminars = $row['seminars'];
     $stmt->close();
 
-
     if (count($error) < 1) {
+
+        $studentInfoQuery = "INSERT INTO studentinfo (studentID, firstname, middlename, lastname, address, age, gender, contactNo, section, course, department, email, status, image, school_year, semester, objective, skills, seminars) 
+            VALUES ('$studentID', '$firstName', '$middleName', '$lastName', '$address', '$age', '$gender', '$contactNo', '$section', '$course', '$department', '{$_SESSION['student']}', 'Undeployed', '$image', '$activeSchoolYear', '$activeSemester', '$objective', '$skills', '$seminars')";
+
+        $result = mysqli_query($connect, $studentInfoQuery);
 
         $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, jobrole, status, studentID, student_email, section, semester, schoolYear) 
                 VALUES ('$companyName', '$companyAddress', '$trainerContact', '$trainerEmail', '$workType', '$jobrole', 'Pending', $studentID, '{$_SESSION['student']}', '$section', '$activeSemester', '$activeSchoolYear')";
@@ -57,7 +73,7 @@ if (isset($_POST['submit'])) {
 
         $companyResult = mysqli_query($connect, $companyQuery);
 
-        if ($res || $companyResult) {
+        if ($res || $companyResult || $result) {
             header("Location:deploy.php");
         } else {
             $output = "Registration failed. Please try again.";
