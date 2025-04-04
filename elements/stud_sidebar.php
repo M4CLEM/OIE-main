@@ -1,5 +1,4 @@
 <?php
-    session_start();
     include("../includes/connection.php");
 
     $semester = $_SESSION['semester'];
@@ -27,7 +26,7 @@
     
     $studentEmail = $_SESSION['student'];
 
-    $queryChecker = "SELECT status FROM studentinfo WHERE email = ? AND semester = ? AND school_year";
+    $queryChecker = "SELECT status FROM studentinfo WHERE email = ? AND semester = ? AND school_year = ?";
     $stmtChecker = $connect->prepare($queryChecker);
     $stmtChecker->bind_param("sss", $studentEmail, $semester, $schoolYear);
     $stmtChecker->execute();

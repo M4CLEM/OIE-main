@@ -2,17 +2,20 @@
 session_start();
 include_once("../includes/connection.php");
 
+$semester = $_SESSION['semester'];
+$schoolYear = $_SESSION['schoolYear'];
+
 // Check if dept_sec is set and is an array
 if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
     // Create placeholders dynamically for the number of sections
     $placeholders = implode(',', array_fill(0, count($_SESSION['dept_sec']), '?'));
-    $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND section IN ($placeholders) ORDER BY section ASC, lastName ASC";
+    $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND semester = ? AND school_year = ? AND section IN ($placeholders) ORDER BY section ASC, lastName ASC";
 
     // Prepare the statement
     $stmt = $connect->prepare($query);
 
     // Merge department, course, and section values
-    $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs']], $_SESSION['dept_sec']);
+    $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $semester, $schoolYear], $_SESSION['dept_sec']);
 
     // Define parameter types
     $types = str_repeat('s', count($params));

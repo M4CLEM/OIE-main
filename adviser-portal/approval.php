@@ -8,7 +8,7 @@ $activeSchoolYear = $_SESSION['schoolYear'];
 if(isset($_SESSION['dept_sec']) && !empty($_SESSION['dept_sec'])) {
     // If sections are available, filter the query based on them
     $sections = implode("','", $_SESSION['dept_sec']);
-    $query = "SELECT * FROM company_info WHERE section IN ('$sections')";
+    $query = "SELECT * FROM company_info WHERE section IN ('$sections') AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
 }
 
 $result = mysqli_query($connect, $query);
