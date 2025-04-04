@@ -1,3 +1,11 @@
+<?php
+    session_start();
+    include("../includes/connection.php");
+
+    $semester = $_SESSION['semester'];
+    $schoolYear = $_SESSION['schoolYear'];
+?>
+
 <div class="d-flex">
     <button class="toggle-btn mt-2" type="button">
         <img src="../img/logo2.png" alt="Logo">
@@ -19,9 +27,9 @@
     
     $studentEmail = $_SESSION['student'];
 
-    $queryChecker = "SELECT status FROM studentinfo WHERE email = ?";
+    $queryChecker = "SELECT status FROM studentinfo WHERE email = ? AND semester = ? AND school_year";
     $stmtChecker = $connect->prepare($queryChecker);
-    $stmtChecker->bind_param("s", $studentEmail);
+    $stmtChecker->bind_param("sss", $studentEmail, $semester, $schoolYear);
     $stmtChecker->execute();
     $resultChecker = $stmtChecker->get_result();
     $rowChekcer = $resultChecker->fetch_assoc();
