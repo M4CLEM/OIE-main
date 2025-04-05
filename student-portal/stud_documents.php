@@ -197,19 +197,64 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                             <?php
                                                 // Active semester and schoolYear - Display documents from documents_list
                                                 if ($semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']) {
-                                                    // Loop through documents_list table for active semester and schoolYear
+                                                    // Manually insert the "Resume" row
+                                                    $documentName = 'Resume';
+                                                    // Check if the "Resume" document exists in the database
+                                                    $resumeQuery = "SELECT * FROM documents WHERE document = 'Resume' AND semester = '$semester' AND schoolYear = '$schoolYear'";
+                                                    $resumeResult = mysqli_query($connect, $resumeQuery);
+                                                    $resumeRow = mysqli_fetch_assoc($resumeResult);
+
+                                                    // Get document details for the hardcoded row (Resume)
+                                                    $fileName = $resumeRow ? $resumeRow['file_name'] : '';
+                                                    $status = $resumeRow ? $resumeRow['status'] : '';
+                                                    $date = $resumeRow ? $resumeRow['date'] : '';
+                                                    $fileLink = $resumeRow ? $resumeRow['file_link'] : '';
+                                                    ?>
+
+                                                    <!-- Hardcoded "Resume" row -->
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($documentName); ?></td>
+                                                        <td><?php echo htmlspecialchars($fileName); ?></td>
+                                                        <td>
+                                                            <?php if (!empty($status)): ?>
+                                                                <div class="text-center p-1 status-<?php echo strtolower($status); ?> bg-<?php echo strtolower($status) === 'pending' ? 'warning text-white' : (strtolower($status) === 'approved' ? 'success text-white' : 'danger text-white'); ?> rounded">
+                                                                    <?php echo htmlspecialchars($status); ?>
+                                                                </div>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td><?php echo htmlspecialchars($date); ?></td>
+                                                        <td>
+                                                            <!-- View Button - Disabled if no file is uploaded -->
+                                                            <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')" <?php echo empty($fileLink) ? 'disabled' : ''; ?>>
+                                                                <i class="far fa-eye"></i> View
+                                                            </button>
+
+                                                            <!-- Upload Button - Accessible only if no file is uploaded -->
+                                                            <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="Resume" <?php echo !empty($fileLink) ? 'disabled' : ''; ?>>
+                                                                <i class="fas fa-upload"></i> Upload
+                                                            </button>
+
+                                                            <!-- Delete Button - Disabled if no file is uploaded -->
+                                                            <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $resumeRow['id']; ?>" <?php echo empty($fileLink) ? 'disabled' : ''; ?>>
+                                                                <i class="fa fa-trash"></i> Delete
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                
+                                                    <?php
+                                                    // Now loop through the documents from the database for the active semester and school year
                                                     while ($docListRow = mysqli_fetch_assoc($documentResult)) {
                                                         $documentName = $docListRow['documentName'];
                                                         $doc_template = $docListRow['file_template'];
-
+                                                
                                                         // Extract file ID from Google Drive URL
                                                         preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
                                                         $file_id = $matches[1] ?? '';
-
+                                                
                                                         // Construct Google Drive download link
                                                         $drive_file_url = $file_id ? "https://drive.google.com/uc?export=download&id=" . urlencode($file_id) : "#";
-
-                                                        // Look for the corresponding student document from the documents table for active semester & school year
+                                                
+                                                        // Look for the corresponding student document from the documents table
                                                         $studentDocument = null;
                                                         mysqli_data_seek($studDocumentResult, 0); // Reset the pointer to the beginning of the result set
                                                         while ($docRow = mysqli_fetch_assoc($studDocumentResult)) {
@@ -218,13 +263,14 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                                                 break;
                                                             }
                                                         }
-
+                                                
                                                         // If document is uploaded by the student, show its details, else leave them empty
                                                         $fileName = $studentDocument ? $studentDocument['file_name'] : '';
                                                         $status = $studentDocument ? $studentDocument['status'] : '';
                                                         $date = $studentDocument ? $studentDocument['date'] : '';
                                                         $fileLink = $studentDocument ? $studentDocument['file_link'] : '';
-                                                    ?>
+                                                        ?>
+                                                        <!-- Dynamically generated row for other documents -->
                                                         <tr>
                                                             <td><?php echo htmlspecialchars($documentName); ?></td>
                                                             <td><?php echo htmlspecialchars($fileName); ?></td>
@@ -237,34 +283,31 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                                             </td>
                                                             <td><?php echo htmlspecialchars($date); ?></td>
                                                             <td>
-                                                                <!-- View Button - Always Available if File is Uploaded -->
                                                                 <?php if ($fileLink): ?>
                                                                     <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
                                                                         <i class="far fa-eye"></i> View
                                                                     </button>
                                                                 <?php endif; ?>
-
-                                                                <!-- Show Upload and Download buttons only if no file is uploaded and in active semester -->
+                                                
                                                                 <?php if (empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
                                                                     <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm" target="_blank">
                                                                         <i class="fas fa-download"></i> Download Template
                                                                     </a>
-                                                                <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
-                                                                    <i class="fas fa-upload"></i> Upload
-                                                                </button>
-                                                            <?php endif; ?>
-
-                                                            <!-- Show Delete Button only if a file is uploaded in the active semester -->
-                                                            <?php if (!empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
-                                                                <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $studentDocument['id']; ?>">
-                                                                    <i class="fa fa-trash"></i> Delete
-                                                                </button>
-                                                            <?php endif; ?>
-                                                        </td>
-                                                    </tr>
-                                                <?php
-                                            }
-                                        }
+                                                                    <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
+                                                                        <i class="fas fa-upload"></i> Upload
+                                                                    </button>
+                                                                <?php endif; ?>
+                                                
+                                                                <?php if (!empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
+                                                                    <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $studentDocument['id']; ?>">
+                                                                        <i class="fa fa-trash"></i> Delete
+                                                                    </button>
+                                                                <?php endif; ?>
+                                                            </td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                }
 
                                                 // Inactive semester and schoolYear - Display all documents from the documents table
                                                 if ($semester !== $enrollment['semester'] || $schoolYear !== $enrollment['schoolYear']) {
