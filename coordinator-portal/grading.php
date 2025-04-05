@@ -13,7 +13,7 @@ $department = $_SESSION['department'];
 $coordinatorRole = $_SESSION['coordinator']; // Get coordinator role
 
 // Fetch company names and job roles filtered by the department from the companylist database
-$companyQuery = mysqli_query($connect, "SELECT companyName, jobrole FROM companylist WHERE dept = '$department'");
+$companyQuery = mysqli_query($connect, "SELECT companyName, jobrole FROM companylist WHERE dept = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'");
 if (!$companyQuery) {
     die("Query Failed: " . mysqli_error($connect));
 }

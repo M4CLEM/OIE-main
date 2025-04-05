@@ -1,13 +1,21 @@
 <?php
+include_once("../includes/connection.php");
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$semester = $_SESSION['semester'];
+$schoolYear = $_SESSION['schoolYear'];
 
 date_default_timezone_set('Asia/Manila'); // Set correct timezone
 class updatelogs
 {
 
-    public function loadInfo($connect, $dept, $course, $studentNum, $section)
+    public function loadInfo($connect, $dept, $course, $studentNum, $section, $semester, $schoolYear)
     {
 
-        $student_details_query = mysqli_query($connect, "SELECT * FROM studentinfo WHERE studentID='$studentNum'");
+        $student_details_query = mysqli_query($connect, "SELECT * FROM studentinfo WHERE studentID='$studentNum' AND semester = '$semester' AND school_year = '$schoolYear'");
         $str = " ";
 
         if (mysqli_num_rows($student_details_query) > 0) {
@@ -91,11 +99,11 @@ class updatelogs
         }
     }
 
-    function loadLogs($connect, $studentNumber, $dateFrom = null, $dateTo = null)
+    function loadLogs($connect, $studentNumber, $dateFrom = null, $dateTo = null, $semester, $schoolYear)
     {
 
-        $queryParams = [$studentNumber];
-        $query = "SELECT * FROM logdata WHERE student_num = ?";
+        $queryParams = [$studentNumber, $semester, $schoolYear];
+        $query = "SELECT * FROM logdata WHERE student_num = ? AND semester = ? AND schoolYear = ?";
 
         if ($dateFrom && $dateTo) {
             $query .= " AND date BETWEEN ? AND ?";
@@ -162,8 +170,8 @@ if (isset($_POST['logState'], $_POST['studentNum'], $_POST['log_course'], $_POST
     if ($logState == 'In') {
 
         $status = "Out";
-        $sql = "INSERT INTO logdata (date, time_in, status, student_num, log_dept, log_course, log_section, log_company) 
-                VALUES ('$date', '$time', '$status', '$studentNum', '$logDept', '$logCourse', '$logSection', '$logCompany')";
+        $sql = "INSERT INTO logdata (date, time_in, status, student_num, log_dept, log_course, log_section, log_company, semester, schoolYear) 
+                VALUES ('$date', '$time', '$status', '$studentNum', '$logDept', '$logCourse', '$logSection', '$logCompany', '$semester', '$schoolYear')";
 
         if (mysqli_query($connect, $sql)) {
             echo "<script>alert('Logged In Successfully!');</script>";

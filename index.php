@@ -13,16 +13,62 @@ if (isset($_SESSION['registration_success'])) {
 date_default_timezone_set('Asia/Manila');
 $current_date = date('Y-m-d');
 
-$query = "SELECT semester, schoolYear FROM academic_year WHERE start_date <= ? AND end_date >= ? LIMIT 1";
-$stmt = $connect->prepare($query);
-$stmt->bind_param("ss", $current_date, $current_date);
-$stmt->execute();
-$result = $stmt->get_result();
+// Prepare SQL to fetch active semester and school year based on current date
+$query = "SELECT semester, schoolYear FROM academic_year 
+          WHERE start_date <= ? AND end_date >= ? 
+          LIMIT 1";
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $_SESSION['active_semester'] = $row['semester'];
-    $_SESSION['active_schoolYear'] = $row['schoolYear'];
+if ($stmt = $connect->prepare($query)) {
+    // Bind current date to both placeholders
+    $stmt->bind_param("ss", $current_date, $current_date);
+    
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        
+        // Check if we found a record within the date range
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $_SESSION['active_semester'] = $row['semester'];
+            $_SESSION['active_schoolYear'] = $row['schoolYear'];
+        } else {
+            // If no active semester found, select the latest semester based on the latest end_date
+            $query_fallback = "SELECT semester, schoolYear FROM academic_year 
+                               ORDER BY end_date DESC LIMIT 1";
+            
+            if ($stmt_fallback = $connect->prepare($query_fallback)) {
+                if ($stmt_fallback->execute()) {
+                    $result_fallback = $stmt_fallback->get_result();
+                    if ($result_fallback->num_rows > 0) {
+                        $row_fallback = $result_fallback->fetch_assoc();
+                        $_SESSION['active_semester'] = $row_fallback['semester'];
+                        $_SESSION['active_schoolYear'] = $row_fallback['schoolYear'];
+                    } else {
+                        // Handle the case where no data exists in the table
+                        error_log("No data found in academic_year table.");
+                        // Optionally, set default values or display a message to the user
+                        $_SESSION['active_semester'] = 'Default Semester';
+                        $_SESSION['active_schoolYear'] = 'Default Year';
+                    }
+                } else {
+                    // Log error if fallback query execution fails
+                    error_log("Fallback query execution failed: " . $stmt_fallback->error);
+                }
+
+                $stmt_fallback->close();
+            } else {
+                // Log error if fallback query preparation fails
+                error_log("Fallback statement preparation failed: " . $connect->error);
+            }
+        }
+    } else {
+        // Log error if main query fails to execute
+        error_log("Query execution failed: " . $stmt->error);
+    }
+
+    $stmt->close();
+} else {
+    // Log error if main query preparation fails
+    error_log("Statement preparation failed: " . $connect->error);
 }
 
 $output = "";

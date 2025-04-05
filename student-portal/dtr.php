@@ -1,6 +1,10 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
+
+$semester = $_SESSION['semester'];
+$schoolYear = $_SESSION['schoolYear'];
+
 include("includes/logs.php");
 date_default_timezone_set('Asia/Manila'); // Set correct timezone
 
@@ -8,7 +12,7 @@ $post = new updatelogs();
 
 $uname = $_SESSION['student'];
 
-$sql = "SELECT * FROM studentinfo WHERE email = '$uname'";
+$sql = "SELECT * FROM studentinfo WHERE email = '$uname' AND semester = '$semester' AND school_year = '$schoolYear'";
 $result = mysqli_query($connect, $sql);
 
 if (mysqli_num_rows($result) == 1) {
@@ -154,7 +158,7 @@ if ($row !== null) {
                         
                             <div class='card-body col-md-9 border mt-2 rounded p-4'>
                                 <h2 class='card-title'>On the Job Training: <?php echo $schoolYear?></h5><br>
-                                <?php $post->loadInfo($connect, $dept, $course, $studentNumber, $section); ?>
+                                <?php $post->loadInfo($connect, $dept, $course, $studentNumber, $section, $semester, $schoolYear); ?>
                             </div>
 
                             <div class="col-md-3 border mt-2 p-5 text-center rounded">
@@ -190,12 +194,14 @@ if ($row !== null) {
                                     </thead>
                                     <tbody>
                                         <?php
+                                            $dateFrom = null;
+                                            $dateTo = null;
                                             if (isset($_POST['filter'])) {
                                                 $dateFrom = $_POST['dateFrom'];
                                                 $dateTo = $_POST['dateTo'];
-                                                $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo);
+                                                $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo, $semester, $schoolYear);
                                             } else {
-                                                $post->loadLogs($connect, $studentNumber);
+                                                $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo, $semester, $schoolYear);
                                             }
                                         ?>
                                     </tbody>

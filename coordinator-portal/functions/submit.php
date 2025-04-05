@@ -43,8 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $companyCriteriaJson = json_encode($companyCriteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
         if (empty($company)) { // Apply to companies within the same department
-            $companyQuery = $connect->prepare("SELECT companyName, jobrole FROM companylist WHERE dept = ?");
-            $companyQuery->bind_param("s", $department);
+            $companyQuery = $connect->prepare("SELECT companyName, jobrole FROM companylist WHERE dept = ? AND semester = ? AND schoolYear = ?");
+            $companyQuery->bind_param("sss", $department, $activeSemester, $activeSchoolYear);
             $companyQuery->execute();
             $result = $companyQuery->get_result();
 
@@ -95,8 +95,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $adviserCriteriaJson = json_encode($adviserCriteriaArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
         if (empty($company)) { // Apply to companies within the same department
-            $companyQuery = $connect->prepare("SELECT companyName, jobrole FROM companylist WHERE dept = ?");
-            $companyQuery->bind_param("s", $department);
+            $companyQuery = $connect->prepare("SELECT companyName, jobrole FROM companylist WHERE dept = ? AND semester = ? AND schoolYear = ?");
+            $companyQuery->bind_param("sss", $department, $activeSemester, $activeSchoolYear);
             $companyQuery->execute();
             $result = $companyQuery->get_result();
 

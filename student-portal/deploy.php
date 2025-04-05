@@ -101,137 +101,174 @@ $activeSchoolYear = $_SESSION['schoolYear'];
 
             <?php
 
-                if (isset($_SESSION['student'])) {
+if (isset($_SESSION['student'])) {
 
-                    $studNumberResult = mysqli_query($connect, "SELECT studentID FROM studentinfo WHERE email = '$email'");
+    $studNumberResult = mysqli_query($connect, "SELECT studentID FROM studentinfo WHERE email = '$email'");
 
-                    if ($studNumberResult && mysqli_num_rows($studNumberResult) > 0) {
-                        $row = mysqli_fetch_assoc($studNumberResult);
-                        $studentID = $row['studentID'];
-                    }
+    if ($studNumberResult && mysqli_num_rows($studNumberResult) > 0) {
+        $row = mysqli_fetch_assoc($studNumberResult);
+        $studentID = $row['studentID'];
+    }
 
-                    $enrollmentsQuery = "SELECT DISTINCT semester, schoolYear FROM student_masterlist WHERE studentID = ? ORDER BY schoolYear DESC, semester DESC";
-                    $stmt = $connect->prepare($enrollmentsQuery);
-                    $stmt->bind_param("s", $studentID);
-                    $stmt->execute();
-                    $enrollmentsResult = $stmt->get_result();
-                    $enrollments = $enrollmentsResult->fetch_all(MYSQLI_ASSOC);
+    // Check if the student is enrolled in the current semester and school year
+    $enrollmentCheckQuery = "SELECT * FROM student_masterlist WHERE studentID = ? AND semester = ? AND schoolYear = ?";
+    $stmt = $connect->prepare($enrollmentCheckQuery);
+    $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+    $stmt->execute();
+    $enrollmentCheckResult = $stmt->get_result();
 
-                    $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ? AND semester = ? AND schoolYear = ?");
-                    $stmt->bind_param("sss", $_SESSION['student'], $activeSemester, $activeSchoolYear);
-                    $stmt->execute();
-                    $result = $stmt->get_result(); 
-                    $row = $result->fetch_assoc();
+    // If the student is enrolled in the current semester and school year
+    if (mysqli_num_rows($enrollmentCheckResult) > 0) {
+        // Check if there is deployment information for the active semester and school year
+        $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ? AND semester = ? AND schoolYear = ?");
+        $stmt->bind_param("sss", $_SESSION['student'], $activeSemester, $activeSchoolYear);
+        $stmt->execute();
+        $result = $stmt->get_result(); 
+        $row = $result->fetch_assoc();
 
-                    if ($row) {
-                        echo '<div class="col-md-12 my-3">';
-                        echo '<div class="card shadow-sm px-5">';
-                        echo '<div class="py-5">';
-                        echo '<h4 class="mb-2">Company Info</h4>';
-                        echo '<div class="pt-3 mb-2"><p>Company Name: ' . $row['companyName'] . '</p></div>';
-                        echo '<div class="pt-3 mb-2"><p>Company Address: ' . $row['companyAddress'] . '</p></div>';
-                        echo '<div class="pt-3 mb-2"><p>Trainer\'s Contact Number: ' . $row['trainerContact'] . '</p></div>';
-                        echo '<div class="pt-3"><p>Trainer\'s Email Address: ' . $row['trainerEmail'] . '</p></div>';
-                        echo '<div class="pt-3 mb-2"><p>Work Type: ' . $row['workType'] . '</p></div>';
-                        echo '<div class="mb-2 mt-4"><h3>Status: <b style="color: ';
-                        if ($row['status'] == 'Pending') {
-                            echo 'red';
-                        } elseif ($row['status'] == 'Approved') {
-                            echo 'green';
-                        } else {
-                            echo 'orange';
-                        }
-                        echo ';">' . $row['status'] . '</b></h3></div>';
-                        echo '</div>';
-                        echo '</div>';
-                    
-                        if ($row['status'] != 'Change Request') {
-                            echo '<div class="row"><div class="col text-center mt-3">';
-                            echo '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#areYouSureModal"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Request to Change</button>';
-                            echo '</div></div>';
-                        }                        
+        if ($row) {
+            // Display the current deployment information
+            echo '<div class="col-md-12 my-3">';
+            echo '<div class="card shadow-sm px-5">';
+            echo '<div class="py-5">';
+            echo '<h4 class="mb-2">Company Info</h4>';
+            echo '<div class="pt-3 mb-2"><p>Company Name: ' . $row['companyName'] . '</p></div>';
+            echo '<div class="pt-3 mb-2"><p>Company Address: ' . $row['companyAddress'] . '</p></div>';
+            echo '<div class="pt-3 mb-2"><p>Trainer\'s Contact Number: ' . $row['trainerContact'] . '</p></div>';
+            echo '<div class="pt-3"><p>Trainer\'s Email Address: ' . $row['trainerEmail'] . '</p></div>';
+            echo '<div class="pt-3 mb-2"><p>Work Type: ' . $row['workType'] . '</p></div>';
+            echo '<div class="mb-2 mt-4"><h3>Status: <b style="color: ';
+            if ($row['status'] == 'Pending') {
+                echo 'red';
+            } elseif ($row['status'] == 'Approved') {
+                echo 'green';
+            } else {
+                echo 'orange';
+            }
+            echo ';">' . $row['status'] . '</b></h3></div>';
+            echo '</div>';
+            echo '</div>';
 
-                    } else {
-                        echo '<div class="col-md-12 my-3">';
-                        echo '    <div class="card shadow-sm px-5">';
-                        echo '        <div class="py-5">';
-                        echo '            <form action="deployment-process.php" method="POST" enctype="multipart/form-data">';
-                        echo '                <h2 class="mb-5 text-center">DEPLOYMENT INFORMATION</h2>';
-                        echo '                <div class="row">';
-                        echo '                    <div class="col-6">';
-                        echo '                        <h4 class="mb-2">Company Info</h4>';
-                        echo '                        <div class="pt-3 mb-2">';
-                        echo '                            <label for="companyName">Company Name:</label>';
-                        echo '                            <input type="text" class="form-control" id="companyName" name="companyName" placeholder="Enter Company Name" required>';
-                        echo '                        </div>';
-                        echo '                        <div class="pt-3 mb-2">';
-                        echo '                            <label for="companyAddress">Company Address:</label>';
-                        echo '                            <input type="text" class="form-control" id="companyAddress" name="companyAddress" placeholder="Enter Company Address" required>';
-                        echo '                        </div>';
-                        echo '                        <div class="pt-3 mb-2">';
-                        echo '                            <label for="contactPerson">Contact Person:</label>';
-                        echo '                            <input type="text" class="form-control" id="contactPerson" name="contactPerson" placeholder="Enter Contact Person" required>';
-                        echo '                        </div>';
-                        echo '                        <div class="pt-3 mb-2">';
-                        echo '                            <label for="trainerContact">Trainer\'s Contact Number:</label>';
-                        echo '                            <input type="text" class="form-control" id="trainerContact" name="trainerContact" placeholder="Enter Contact Number" required>';
-                        echo '                        </div>';
-                        echo '                        <div class="pt-3 mb-2">';
-                        echo '                            <label for="trainerEmail">Trainer\'s Email Address:</label>';
-                        echo '                            <input type="text" class="form-control" id="trainerEmail" name="trainerEmail" placeholder="Enter Trainer\'s Email Address" required>';
-                        echo '                        </div>';
-                        echo '                        <div class="pt-3 mb-2">';
-                        echo '                            <label for="companyLink">Company Link:</label>';
-                        echo '                            <input type="text" class="form-control" id="companyLink" name="companyLink" placeholder="Enter Company Website/Social Media Link">';
-                        echo '                        </div>';
-                        echo '                    </div>';
-                        echo '                    <div class="col-6">';
-                        echo '                        <h4 class="mb-4">Work Type</h4>';
-                        echo '                        <div class="row mb-5">';
-                        echo '                            <div class="col">';
-                        echo '                                <div class="pt-3 mb-2">';
-                        echo '                                    <label for="workType">Type of work:</label>';
-                        echo '                                    <select class="form-control" name="workType" id="select">';
-                        echo '                                        <option hidden disable value="select">Select</option>';
-                        echo '                                        <option value="WFH">Work from Home</option>';
-                        echo '                                        <option value="Onsite">On site</option>';
-                        echo '                                        <option value="PB">Project-based</option>';
-                        echo '                                    </select>';
-                        echo '                                </div>';
-                        echo '                                <div class="pt-3 mb-2">';
-                        echo '                                    <label for="jobrole">Jobrole:</label>';
-                        echo '                                    <input type="text" class="form-control" id="jobrole" name="jobrole" placeholder="Enter Job Role" required>';
-                        echo '                                </div>';
-                        echo '                                <div class="pt-3 mb-2">';
-                        echo '                                    <label for="jobDescription">Job Description:</label>';
-                        echo '                                    <textarea class="form-control" name="jobDescription" id="jobDescription" placeholder="Enter Job description"></textarea>';
-                        echo '                                </div>';
+            if ($row['status'] != 'Change Request') {
+                echo '<div class="row"><div class="col text-center mt-3">';
+                echo '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#areYouSureModal"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Request to Change</button>';
+                echo '</div></div>';
+            }                        
+        } else {
+            // Display deployment form for the active semester
+            echo '<div class="col-md-12 my-3">';
+            echo '    <div class="card shadow-sm px-5">';
+            echo '        <div class="py-5">';
+            echo '            <form action="deployment-process.php" method="POST" enctype="multipart/form-data">';
+            echo '                <h2 class="mb-5 text-center">DEPLOYMENT INFORMATION</h2>';
+            echo '                <div class="row">';
+            echo '                    <div class="col-6">';
+            echo '                        <h4 class="mb-2">Company Info</h4>';
+            echo '                        <div class="pt-3 mb-2">';
+            echo '                            <label for="companyName">Company Name:</label>';
+            echo '                            <input type="text" class="form-control" id="companyName" name="companyName" placeholder="Enter Company Name" required>';
+            echo '                        </div>';
+            echo '                        <div class="pt-3 mb-2">';
+            echo '                            <label for="companyAddress">Company Address:</label>';
+            echo '                            <input type="text" class="form-control" id="companyAddress" name="companyAddress" placeholder="Enter Company Address" required>';
+            echo '                        </div>';
+            echo '                        <div class="pt-3 mb-2">';
+            echo '                            <label for="contactPerson">Contact Person:</label>';
+            echo '                            <input type="text" class="form-control" id="contactPerson" name="contactPerson" placeholder="Enter Contact Person" required>';
+            echo '                        </div>';
+            echo '                        <div class="pt-3 mb-2">';
+            echo '                            <label for="trainerContact">Trainer\'s Contact Number:</label>';
+            echo '                            <input type="text" class="form-control" id="trainerContact" name="trainerContact" placeholder="Enter Contact Number" required>';
+            echo '                        </div>';
+            echo '                        <div class="pt-3 mb-2">';
+            echo '                            <label for="trainerEmail">Trainer\'s Email Address:</label>';
+            echo '                            <input type="text" class="form-control" id="trainerEmail" name="trainerEmail" placeholder="Enter Trainer\'s Email Address" required>';
+            echo '                        </div>';
+            echo '                        <div class="pt-3 mb-2">';
+            echo '                            <label for="companyLink">Company Link:</label>';
+            echo '                            <input type="text" class="form-control" id="companyLink" name="companyLink" placeholder="Enter Company Website/Social Media Link">';
+            echo '                        </div>';
+            echo '                    </div>';
+            echo '                    <div class="col-6">';
 
-                        echo '                                <div class="pt-3 mb-2">';
-                        echo '                                    <label for="jobRequirement">Job Requirement:</label>';
-                        echo '                                    <textarea class="form-control" name="jobRequirement" id="jobRequirement" placeholder="Enter Job Requirement"></textarea>';
-                        echo '                                </div>';
-                        echo '                            </div>';
-                        echo '                        </div>';
-                        echo '                        <div class="row">';
-                        echo '                            <div class="col text-right">';
-                        echo '                                <button type="submit" class="btn btn-success" name="submit">';
-                        echo '                                    <span class="fas fa-save fw-fa"></span> Submit Info';
-                        echo '                                </button>';
-                        echo '                            </div>';
-                        echo '                        </div>';
-                        echo '                    </div>';
-                        echo '                </div>';
-                        echo '            </form>';
-                        echo '        </div>';
-                        echo '    </div>';
-                        echo '</div>';
+            // Display work type and other details form
+            echo '                        <h4 class="mb-4">Work Type</h4>';
+            echo '                        <div class="row mb-5">';
+            echo '                            <div class="col">';
+            echo '                                <div class="pt-3 mb-2">';
+            echo '                                    <label for="workType">Type of work:</label>';
+            echo '                                    <select class="form-control" name="workType" id="select">';
+            echo '                                        <option hidden disable value="select">Select</option>';
+            echo '                                        <option value="WFH">Work from Home</option>';
+            echo '                                        <option value="Onsite">On site</option>';
+            echo '                                        <option value="PB">Project-based</option>';
+            echo '                                    </select>';
+            echo '                                </div>';
+            echo '                                <div class="pt-3 mb-2">';
+            echo '                                    <label for="jobrole">Jobrole:</label>';
+            echo '                                    <input type="text" class="form-control" id="jobrole" name="jobrole" placeholder="Enter Job Role" required>';
+            echo '                                </div>';
+            echo '                                <div class="pt-3 mb-2">';
+            echo '                                    <label for="jobDescription">Job Description:</label>';
+            echo '                                    <textarea class="form-control" name="jobDescription" id="jobDescription" placeholder="Enter Job description"></textarea>';
+            echo '                                </div>';
+            echo '                                <div class="pt-3 mb-2">';
+            echo '                                    <label for="jobRequirement">Job Requirement:</label>';
+            echo '                                    <textarea class="form-control" name="jobRequirement" id="jobRequirement" placeholder="Enter Job Requirement"></textarea>';
+            echo '                                </div>';
+            echo '                            </div>';
+            echo '                        </div>';
+            echo '                        <div class="row">';
+            echo '                            <div class="col text-right">';
+            echo '                                <button type="submit" class="btn btn-success" name="submit">';
+            echo '                                    <span class="fas fa-save fw-fa"></span> Submit Info';
+            echo '                                </button>';
+            echo '                            </div>';
+            echo '                        </div>';
+            echo '                    </div>';
+            echo '                </div>';
+            echo '            </form>';
+            echo '        </div>';
+            echo '    </div>';
+            echo '</div>';
+        }
+    } else {
+        // Display previous deployment information if not enrolled in current semester
+        $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ? ORDER BY semester ASC, schoolYear ASC LIMIT 1");
+        $stmt->bind_param("s", $_SESSION['student']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
 
-                    }
-                } else {
-                    echo "Session variable 'student' is not set.";
-                }
-            ?>
+        if ($row) {
+            echo '<div class="col-md-12 my-3">';
+            echo '<div class="card shadow-sm px-5">';
+            echo '<div class="py-5">';
+            echo '<h4 class="mb-2">Previous Company Info</h4>';
+            echo '<div class="pt-3 mb-2"><p>Company Name: ' . $row['companyName'] . '</p></div>';
+            echo '<div class="pt-3 mb-2"><p>Company Address: ' . $row['companyAddress'] . '</p></div>';
+            echo '<div class="pt-3 mb-2"><p>Trainer\'s Contact Number: ' . $row['trainerContact'] . '</p></div>';
+            echo '<div class="pt-3"><p>Trainer\'s Email Address: ' . $row['trainerEmail'] . '</p></div>';
+            echo '<div class="pt-3 mb-2"><p>Work Type: ' . $row['workType'] . '</p></div>';
+            echo '<div class="mb-2 mt-4"><h3>Status: <b style="color: ';
+            if ($row['status'] == 'Pending') {
+                echo 'red';
+            } elseif ($row['status'] == 'Approved') {
+                echo 'green';
+            } else {
+                echo 'orange';
+            }
+            echo ';">' . $row['status'] . '</b></h3></div>';
+            echo '</div>';
+            echo '</div>';
+        }
+    }
+} else {
+    echo "Session variable 'student' is not set.";
+}
+
+?>
+
         </div>
     </div>
 
