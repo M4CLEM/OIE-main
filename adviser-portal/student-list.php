@@ -193,15 +193,15 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                             echo "<td>" . $row['section'] . "</td>";
                                             echo "<td>" . $row['status'] . "</td>";
 
-                                            $stmtGrade = $connect->prepare("SELECT * FROM student_grade WHERE email = ?");
-                                            $stmtGrade->bind_param("s", $row['email']);
+                                            $stmtGrade = $connect->prepare("SELECT * FROM adviser_student_grade WHERE email = ? AND semester = ? AND schoolYear = ?");
+                                            $stmtGrade->bind_param("sss", $row['email'], $semester, $schoolYear);
                                             $stmtGrade->execute();
                                             $resultGrade = $stmtGrade->get_result();
                                         
                                             $totalGrade = 0;
                                         
                                             while($rowGrade = $resultGrade->fetch_assoc()){
-                                                $totalGrade += intval($rowGrade['grade']);
+                                                $totalGrade = intval($rowGrade['finalGrade']);
                                             }
 
                                             echo "<td> <p>{$totalGrade}</p></td>";

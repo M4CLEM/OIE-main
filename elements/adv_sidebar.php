@@ -29,6 +29,13 @@
     </li>
 
     <li class="sidebar-item">
+        <a href="generate_report.php" class="sidebar-link">
+            <i class="fa fa-file-export fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Generate Report</span>
+        </a>
+    </li>
+
+    <li class="sidebar-item">
         <a href="approval.php" class="sidebar-link">
             <i class="fa fa-check-square fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Intern Approval</span></a>
