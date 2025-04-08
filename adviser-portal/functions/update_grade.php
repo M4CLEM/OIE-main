@@ -2,6 +2,9 @@
 session_start();
 include_once("../../includes/connection.php");
 
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 // Enable error reporting for debugging
 header('Content-Type: application/json');
 error_reporting(E_ALL);
@@ -77,16 +80,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Check if the grade record exists for the student
-    $stmt = $connect->prepare("SELECT id FROM adviser_student_grade WHERE studentID = ?");
-    $stmt->bind_param("s", $studentId);
+    $stmt = $connect->prepare("SELECT id FROM adviser_student_grade WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+    $stmt->bind_param("sss", $studentId, $activeSemester, $activeSchoolYear);
     $stmt->execute();
     $result = $stmt->get_result();
 
     // If record exists, update it; otherwise, insert a new record
     if ($result->num_rows > 0) {
         // Record exists, update it
-        $updateStmt = $connect->prepare("UPDATE adviser_student_grade SET criteria = ?, grade = ?, finalGrade = ? WHERE studentID = ?");
-        $updateStmt->bind_param("ssss", $criteriaJson, $gradesJson, $totalGrade, $studentId);
+        $updateStmt = $connect->prepare("UPDATE adviser_student_grade SET criteria = ?, grade = ?, finalGrade = ? WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $updateStmt->bind_param("ssssss", $criteriaJson, $gradesJson, $totalGrade, $studentId, $activeSemester, $activeSchoolYear);
         
         if ($updateStmt->execute()) {
             echo json_encode(['status' => 'success', 'message' => 'Grade successfully updated!']);
@@ -96,8 +99,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $updateStmt->close();
     } else {
         // Record does not exist, insert a new one
-        $insertStmt = $connect->prepare("INSERT INTO adviser_student_grade (studentID, email, criteria, grade, finalGrade) VALUES (?, ?, ?, ?, ?)");
-        $insertStmt->bind_param("sssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade);
+        $insertStmt = $connect->prepare("INSERT INTO adviser_student_grade (studentID, email, criteria, grade, finalGrade, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $insertStmt->bind_param("sssssss", $studentId, $email, $criteriaJson, $gradesJson, $totalGrade, $activeSemester, $activeSchoolYear);
         
         if ($insertStmt->execute()) {
             echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted!']);
