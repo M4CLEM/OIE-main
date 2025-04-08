@@ -114,12 +114,12 @@
                                                     while ($sect = mysqli_fetch_assoc($sections)) {
                                                         echo '<option value="' . $sect['section'] . '">' . $sect['section'] . '</option>';
                                                     }
-                                                    echo '</select>';
-
-                                                    // Export button
-                                                    echo '<button class="export-btn btn btn-primary" type="button">';
-                                                    echo 'Export <i class="far fa-file-pdf"></i>';
-                                                    echo '</button>';
+                                                    echo '</select>
+<form method="POST" action="export_pdf.php" target="_blank" style="display:inline-block; margin-left: 10px;">
+    <input type="hidden" name="selected_section" id="selected_section_input">
+    <button type="submit" class="btn btn-primary"><i class="fa fa-file-pdf-o"></i> Export PDF</button>
+</form>
+';
 
                                                     echo '</div>'; // Close input-group
                                                 } else {
@@ -537,5 +537,61 @@
                 });
             });
         </script>
-    </body>
+
+        <script>
+        document.getElementById('sections').addEventListener('change', function() {
+            var selectedSection = this.value;
+            filterTable(selectedSection);
+        });
+
+            function filterTable(section) {
+            var table = document.getElementById('studentTable');
+            var tr = table.getElementsByTagName('tr');
+
+            for (var i = 0; i < tr.length; i++) {
+                var td = tr[i].getElementsByTagName('td')[3]; // Column index for course-section
+                if (td) {
+                    var txtValue = td.textContent || td.innerText;
+                    if (section === "All Sections" || txtValue.indexOf(section) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        // Function to filter table based on search input
+        $('#searchInput').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('#studentTable tbody tr').filter(function() {
+                var rowText = $(this).text().toLowerCase();
+                var isVisible = rowText.indexOf(value) > -1;
+                $(this).toggle(isVisible);
+            });
+
+            // Check if any rows are visible after filtering
+            var visibleRows = $('#studentTable tbody tr:visible').length;
+            if (visibleRows === 0) {
+                $('#noResult').show(); // Display "No Results" message
+            } else {
+                $('#noResult').hide(); // Hide "No Results" message if there are visible rows
+            }
+        });
+        </script>
+    
+<script>
+    // Update hidden input when section changes
+    document.getElementById('sections').addEventListener('change', function () {
+        document.getElementById('selected_section_input').value = this.value;
+    });
+
+    // Set default section on page load
+    window.addEventListener('DOMContentLoaded', function () {
+        var selected = document.getElementById('sections').value;
+        document.getElementById('selected_section_input').value = selected;
+    });
+</script>
+
+</body>
 </html>

@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'setasign\\Fpdi\\' => array($vendorDir . '/setasign/fpdi/src'),
     'phpseclib3\\' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'ZipStream\\' => array($vendorDir . '/maennchen/zipstream-php/src'),
     'Symfony\\Polyfill\\Php72\\' => array($vendorDir . '/symfony/polyfill-php72'),
@@ -25,6 +26,9 @@ return array(
     'PhpOffice\\PhpSpreadsheet\\' => array($vendorDir . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet'),
     'ParagonIE\\ConstantTime\\' => array($vendorDir . '/paragonie/constant_time_encoding/src'),
     'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
+    'Mpdf\\PsrLogAwareTrait\\' => array($vendorDir . '/mpdf/psr-log-aware-trait/src'),
+    'Mpdf\\PsrHttpMessageShim\\' => array($vendorDir . '/mpdf/psr-http-message-shim/src'),
+    'Mpdf\\' => array($vendorDir . '/mpdf/mpdf/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'Matrix\\' => array($vendorDir . '/markbaker/matrix/classes/src'),
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
@@ -37,5 +41,6 @@ return array(
     'EllipticCurve\\' => array($vendorDir . '/starkbank/ecdsa/src'),
     'Egulias\\EmailValidator\\' => array($vendorDir . '/egulias/email-validator/src'),
     'Doctrine\\Common\\Lexer\\' => array($vendorDir . '/doctrine/lexer/lib/Doctrine/Common/Lexer'),
+    'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
     'Complex\\' => array($vendorDir . '/markbaker/complex/classes/src'),
 );

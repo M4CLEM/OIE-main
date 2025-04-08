@@ -14,8 +14,10 @@ return array(
     'f598d06aa772fa33d905e87be6398fb1' => $vendorDir . '/symfony/polyfill-intl-idn/bootstrap.php',
     '2cffec82183ee1cea088009cef9a6fc3' => $vendorDir . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
     '1f87db08236948d07391152dccb70f04' => $vendorDir . '/google/apiclient-services/autoload.php',
+    '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     'decc78cc4436b1292c6c0d151b19445c' => $vendorDir . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
     '79f66bc0a1900f77abe4a9a299057a0a' => $vendorDir . '/starkbank/ecdsa/src/ellipticcurve.php',
     'a8d3953fd9959404dd22d3dfcd0a79f0' => $vendorDir . '/google/apiclient/src/aliases.php',
+    'db356362850385d08a5381de2638b5fd' => $vendorDir . '/mpdf/mpdf/src/functions.php',
     '2c102faa651ef8ea5874edb585946bce' => $vendorDir . '/swiftmailer/swiftmailer/lib/swift_required.php',
 );

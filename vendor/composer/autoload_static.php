@@ -15,13 +15,19 @@ class ComposerStaticInit1c174ebd74c49a5b083d228991f38f32
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         '1f87db08236948d07391152dccb70f04' => __DIR__ . '/..' . '/google/apiclient-services/autoload.php',
+        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '79f66bc0a1900f77abe4a9a299057a0a' => __DIR__ . '/..' . '/starkbank/ecdsa/src/ellipticcurve.php',
         'a8d3953fd9959404dd22d3dfcd0a79f0' => __DIR__ . '/..' . '/google/apiclient/src/aliases.php',
+        'db356362850385d08a5381de2638b5fd' => __DIR__ . '/..' . '/mpdf/mpdf/src/functions.php',
         '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
     );
 
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
         'p' => 
         array (
             'phpseclib3\\' => 11,
@@ -55,6 +61,9 @@ class ComposerStaticInit1c174ebd74c49a5b083d228991f38f32
         ),
         'M' => 
         array (
+            'Mpdf\\PsrLogAwareTrait\\' => 22,
+            'Mpdf\\PsrHttpMessageShim\\' => 24,
+            'Mpdf\\' => 5,
             'Monolog\\' => 8,
             'Matrix\\' => 7,
         ),
@@ -79,6 +88,7 @@ class ComposerStaticInit1c174ebd74c49a5b083d228991f38f32
         'D' => 
         array (
             'Doctrine\\Common\\Lexer\\' => 22,
+            'DeepCopy\\' => 9,
         ),
         'C' => 
         array (
@@ -87,6 +97,10 @@ class ComposerStaticInit1c174ebd74c49a5b083d228991f38f32
     );
 
     public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
         'phpseclib3\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
@@ -164,6 +178,18 @@ class ComposerStaticInit1c174ebd74c49a5b083d228991f38f32
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
+        'Mpdf\\PsrLogAwareTrait\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mpdf/psr-log-aware-trait/src',
+        ),
+        'Mpdf\\PsrHttpMessageShim\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mpdf/psr-http-message-shim/src',
+        ),
+        'Mpdf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
+        ),
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
@@ -211,6 +237,10 @@ class ComposerStaticInit1c174ebd74c49a5b083d228991f38f32
         'Doctrine\\Common\\Lexer\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/lexer/lib/Doctrine/Common/Lexer',
+        ),
+        'DeepCopy\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
         ),
         'Complex\\' => 
         array (
