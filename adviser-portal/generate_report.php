@@ -242,12 +242,20 @@
                                                         $finalizedGrade = ($adviserGrade * ($adviserWeight / 100)) + ($companyGrade * ($companyWeight / 100));
 
                                                         echo "<td align=\"center\">" . $finalizedGrade . "</td>";
-                                                        echo    "<td>
-                                                                    <a href=\"#\" class=\"btn btn-primary btn-sm editBtn\" 
-                                                                    data-toggle=\"modal\" data-target=\"#editModal\">
+                                                        echo "<td>
+                                                                    <a href=\"#\" 
+                                                                        class=\"btn btn-primary btn-sm editBtn\" 
+                                                                        data-toggle=\"modal\" 
+                                                                        data-target=\"#editModal\"
+                                                                        data-adviser='" . json_encode($adviserCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "'
+                                                                        data-company='" . json_encode($companyCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "'
+                                                                        data-advisergrade=\"" . htmlspecialchars($adviserGrade) . "\"
+                                                                        data-companygrade=\"" . htmlspecialchars($companyGrade) . "\"
+                                                                        data-finalgrade=\"" . htmlspecialchars($finalizedGrade) . "\">
                                                                         <i class=\"fa fa-edit fw-fa\"></i> Edit
                                                                     </a>
                                                                 </td>";
+
                                                     echo "</tr>";
                                                 }
                                             }
@@ -260,7 +268,7 @@
                 </div>
 
                 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
+                    <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                             <form action="" method="POST">
                                 <div class="modal-header">
@@ -270,11 +278,22 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-
+                                    <div class="row">
+                                        <!-- Adviser Evaluation -->
+                                        <div class="col-md-6">
+                                            <h6>Adviser Evaluation</h6>
+                                            <div id="adviserCriteriaContainer"></div>
+                                        </div>
+                                        <!-- Company Evaluation -->
+                                        <div class="col-md-6">
+                                            <h6>Company Evaluation</h6>
+                                            <div id="companyCriteriaContainer"></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="modal-footer">
                                     <button class="btn btn-primary btn-sm" type="submit" id="submitBtn">
-                                        <span class="fa fa-save fw-fa"></span> Submit
+                                        <span class="fa fa-save fw-fa"></span> Save
                                     </button>
                                     <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
                                 </div>
@@ -282,7 +301,241 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
         </div>
+
+        <script>
+            $(document).on('click', '.editBtn', function () {
+                const adviserData = JSON.parse($(this).attr('data-adviser'));
+                const companyData = JSON.parse($(this).attr('data-company'));
+
+                // Clear previous content in the containers
+                $('#adviserCriteriaContainer').empty();
+                $('#companyCriteriaContainer').empty();
+
+                // Function to initialize event listeners for input elements in both containers
+                function initializeInputs(containerId) {
+                    const criteriaInputs = document.querySelectorAll(`#${containerId} .custom-number-input`);
+                    criteriaInputs.forEach(function(input) {
+                        input.addEventListener('input', function() {
+                            enforceMaxLimit(input, input.id.replace('displayValue', ''));
+                            updateTotal(containerId);
+                        });
+                    });
+                }
+
+                // Function to update the total grade dynamically
+                function updateTotal(containerId) {
+                    const criteriaInputs = document.querySelectorAll(`#${containerId} .custom-number-input`);
+                    let total = 0;
+                    criteriaInputs.forEach(function(input) {
+                        const value = parseInt(input.value);
+                        if (!isNaN(value)) {
+                            total += value;
+                        }
+                    });
+
+                    const totalGradeInput = document.querySelector(`#${containerId} .totalGrade`);
+                    if (totalGradeInput) {
+                        totalGradeInput.value = total;
+                    }
+                }
+
+                // Function to ensure input values stay within the allowed range
+                function enforceMaxLimit(input, criteriaId) {
+                    const maxValue = parseInt(input.max);
+                    let value = parseInt(input.value);
+                    if (value < 0) {
+                        input.value = 0;
+                    } else if (value > maxValue) {
+                        input.value = maxValue;
+                    }
+                    // Update the hidden value if necessary
+                    updateValue(value, criteriaId);
+                }
+
+                // Function to update the hidden input value when criteria changes
+                function updateValue(value, criteriaId) {
+                    const hiddenInput = document.getElementById(`hiddenInputForCriteria${criteriaId}`);
+                    if (hiddenInput) {
+                        hiddenInput.value = value;
+                    }
+                }
+
+                // Append Adviser data to the adviser container
+                adviserData.forEach(item => {
+                    $('#adviserCriteriaContainer').append(`
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>${item.adviserCriteria}</strong>
+                                <div class="input-group input-group-sm mb-2 mr-sm-2" style="max-width: 200px;">
+                                    <input type="number" required class="form-control custom-number-input" min="0" max="${item.adviserPercentage}" value="${item.score}" name="adviserScore[${item.adviserCriteria}]" id="displayValue${item.id}" data-percentage="${item.adviserPercentage}">
+                                    <div class="input-group-append">
+                                        <div class="input-group-text">${item.adviserPercentage}%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="adviserCriteria[${item.adviserCriteria}][criteria]" value="${item.adviserCriteria}">
+                            <input type="hidden" name="adviserCriteria[${item.adviserCriteria}][description]" value="${item.adviserDescription}">
+                            <input type="hidden" name="adviserCriteria[${item.adviserCriteria}][percentage]" value="${item.adviserPercentage}">
+
+                            <div class="description-row">
+                                <small>${item.adviserDescription}</small>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                // Append Company data to the company container
+                companyData.forEach(item => {
+                    $('#companyCriteriaContainer').append(`
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>${item.companyCriteria}</strong>
+                                <div class="input-group input-group-sm mb-2 mr-sm-2" style="max-width: 200px;">
+                                    <input type="number" required class="form-control custom-number-input" min="0" max="${item.companyPercentage}" value="${item.score}" name="companyScore[${item.companyCriteria}]" id="displayValue${item.id}" data-percentage="${item.companyPercentage}">
+                                    <div class="input-group-append">
+                                        <div class="input-group-text">${item.companyPercentage}%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="companyCriteria[${item.companyCriteria}][criteria]" value="${item.companyCriteria}">
+                            <input type="hidden" name="companyCriteria[${item.companyCriteria}][description]" value="${item.companyDescription}">
+                            <input type="hidden" name="companyCriteria[${item.companyCriteria}][percentage]" value="${item.companyPercentage}">
+
+                            <div class="description-row">
+                                <small>${item.companyDescription}</small>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                // Append Final Grade input for Adviser
+                $('#adviserCriteriaContainer').append(`
+                    <hr>
+                    <div class="form-group d-flex align-items-center">
+                        <label for="adviserGrade" class="mb-0 mr-2" style="min-width: 160px;"><strong>Adviser Final Grade:</strong></label>
+                        <div class="input-group" style="max-width: 120px;">
+                            <input type="number" 
+                                step="0.01" min="0" max="100" 
+                                class="form-control totalGrade" 
+                                oninput="distributeTotalGrade(); updateFinalGrade();" 
+                                id="adviserGrade" 
+                                name="adviserGrade" 
+                                value="<?= $adviserGrade ?>" 
+                                data-weight="<?= $adviserWeight ?>">
+                            <div class="input-group-append">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+                // Append Final Grade input for Company
+                $('#companyCriteriaContainer').append(`
+                    <hr>
+                    <div class="form-group d-flex align-items-center">
+                        <label for="companyGrade" class="mb-0 mr-2" style="min-width: 160px;"><strong>Company Final Grade:</strong></label>
+                        <div class="input-group" style="max-width: 120px;">
+                            <input type="number" 
+                                step="0.01" min="0" max="100" 
+                                class="form-control totalGrade" 
+                                oninput="distributeTotalGrade(); updateFinalGrade();" 
+                                id="companyGrade" 
+                                name="companyGrade"
+                                value="<?= $companyGrade ?>" 
+                                data-weight="<?= $companyWeight ?>">
+                            <div class="input-group-append">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+                // Set existing grade values
+                $('#adviserGrade').val($(this).data('advisergrade'));
+                $('#companyGrade').val($(this).data('companygrade'));
+                $('#finalGrade').text($(this).data('finalgrade') + '%');
+
+                // Initialize inputs for both Adviser and Company containers
+                initializeInputs('adviserCriteriaContainer');
+                initializeInputs('companyCriteriaContainer');
+
+                // Handle distributeTotalGrade
+                function distributeTotalGrade(event) {
+                    // Get the total grade input field (either adviserGrade or companyGrade)
+                    const totalGradeInput = event.target;  // This is the input that triggered the event
+                    const containerId = $(totalGradeInput).closest('.form-group').parent().attr('id');  // Get the parent container ID (either adviserCriteriaContainer or companyCriteriaContainer)
+
+                    // Get the total grade value from the input field
+                    let totalGradeValue = $(totalGradeInput).val().trim();
+                    if (totalGradeValue === "") {
+                        totalGradeValue = "0";
+                        $(totalGradeInput).val(totalGradeValue);
+                        $(this).siblings('.custom-number-input').val("0");
+                        return;
+                    }
+
+                    let totalGrade = parseFloat(totalGradeValue);
+                    totalGrade = Math.max(0, Math.min(100, totalGrade));  // Ensure the grade is between 0 and 100
+                    $(totalGradeInput).val(totalGrade);
+
+                    // Logic to distribute points across criteria
+                    let remainingPoints = totalGrade;
+                    const criteriaInputs = $(`#${containerId} .custom-number-input`);
+                    const criteriaPoints = [];
+
+                    // First pass: Calculate points for each criterion based on its percentage
+                    criteriaInputs.each(function() {
+                        const maxValue = parseInt($(this).data('percentage'));  // Get the max percentage from data-attribute
+                        let pointsForThisCriterion = Math.floor((maxValue / 100) * totalGrade);  // Calculate based on percentage
+                        pointsForThisCriterion = Math.min(pointsForThisCriterion, maxValue);  // Ensure it doesn't exceed max value
+                        criteriaPoints.push(pointsForThisCriterion);
+                        remainingPoints -= pointsForThisCriterion;
+                    });
+
+                    // Second pass: Distribute any remaining points
+                    if (remainingPoints > 0) {
+                        criteriaInputs.each(function(index) {
+                            if (remainingPoints > 0) {
+                                let points = criteriaPoints[index];
+                                const maxValue = parseInt($(this).data('percentage'));
+                
+                                // Add remaining points without exceeding the max value
+                                if (points < maxValue) {
+                                    let additionalPoints = Math.min(remainingPoints, maxValue - points);
+                                    points += additionalPoints;
+                                    criteriaPoints[index] = points;  // Update points for this criterion
+                                    remainingPoints -= additionalPoints;  // Subtract from remaining points
+                                }
+                            }
+                        });
+                    }
+
+                    // Update the input fields and hidden values with the calculated points
+                    criteriaInputs.each(function(index) {
+                        const points = criteriaPoints[index];
+                        $(this).val(points);
+                        $(this).siblings('input[type="hidden"]').val(points);  // Update the hidden input with the calculated points
+                    });
+                }
+
+                // Bind the event listeners for the total grade inputs (Adviser and Company)
+                $(document).ready(function() {
+                    // Bind the event listener for the adviser final grade
+                    $('#adviserCriteriaContainer .totalGrade').on('input', function(event) {
+                        distributeTotalGrade(event);
+                    });
+
+                    // Bind the event listener for the company final grade
+                    $('#companyCriteriaContainer .totalGrade').on('input', function(event) {
+                        distributeTotalGrade(event);
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
