@@ -251,7 +251,8 @@
                                                                         data-company='" . json_encode($companyCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "'
                                                                         data-advisergrade=\"" . htmlspecialchars($adviserGrade) . "\"
                                                                         data-companygrade=\"" . htmlspecialchars($companyGrade) . "\"
-                                                                        data-finalgrade=\"" . htmlspecialchars($finalizedGrade) . "\">
+                                                                        data-finalgrade=\"" . htmlspecialchars($finalizedGrade) . "\"
+                                                                        data-studentID=\"" . htmlspecialchars($row['studentID']) . "\">
                                                                         <i class=\"fa fa-edit fw-fa\"></i> Edit
                                                                     </a>
                                                                 </td>";
@@ -270,7 +271,8 @@
                 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
-                            <form action="" method="POST">
+                            <form action="functions/update_final_grade.php" method="POST">
+                                <input type="hidden" name="studentID" id="studentID" value="<?php $row['studentID'] ;?>">
                                 <div class="modal-header">
                                     <h5>Edit Grades</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -459,6 +461,7 @@
                 $('#adviserGrade').val($(this).data('advisergrade'));
                 $('#companyGrade').val($(this).data('companygrade'));
                 $('#finalGrade').text($(this).data('finalgrade') + '%');
+                $('#studentID').val($(this).data('studentid'));
 
                 // Initialize inputs for both Adviser and Company containers
                 initializeInputs('adviserCriteriaContainer');
