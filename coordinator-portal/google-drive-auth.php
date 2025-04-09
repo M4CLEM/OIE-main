@@ -8,11 +8,11 @@ session_start();
 
 function getClient() {
     $client = new Client();
-    $client->setAuthConfig('credentials.json');
+    $client->setAuthConfig('credentials2.json');
     $client->addScope(Drive::DRIVE_FILE);
     $client->setAccessType('offline');
     $client->setPrompt('select_account consent');
-    $client->setRedirectUri('http://localhost/OIE-portal/coordinator-portal/import.php');
+    $client->setRedirectUri('http://localhost/OIE-main/coordinator-portal/import.php');
 
     // Load previously authorized token from a file, if it exists.
     $tokenPath = 'token.json';
