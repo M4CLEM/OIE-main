@@ -435,23 +435,6 @@ $result = mysqli_query($connect, $query);
                             }
                         });
                     });
-
-                    function filterTable(section) {
-                        var table = document.getElementById('gradeTable');
-                        var tr = table.getElementsByTagName('tr');
-
-                        for (var i = 1; i < tr.length; i++) { // Start from 1 to skip the search bar row
-                            var td = tr[i].getElementsByTagName('td')[3]; // Section is column index 3
-                            if (td) {
-                                var txtValue = td.textContent || td.innerText;
-                                if (section === "All" || txtValue.indexOf(section) > -1) {
-                                    tr[i].style.display = "";
-                                } else {
-                                    tr[i].style.display = "none";
-                                }
-                            }
-                        }
-                    }
                 });
             </script>
             <script>

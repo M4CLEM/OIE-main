@@ -1,62 +1,77 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
+
 $semester = $_SESSION['semester'];
 $schoolYear = $_SESSION['schoolYear'];
 
-// Check if section is set in the POST request
 if (isset($_POST['section'])) {
-    // Sanitize the input to prevent SQL injection
     $section = mysqli_real_escape_string($connect, $_POST['section']);
-
-    // Prepare query to fetch data based on selected section
-    if ($section == "All Sections") {
-        $getSections = "SELECT section FROM listadviser WHERE email = '{$_SESSION['adviser']}'";
-        $sectionsResult = mysqli_query($connect, $getSections);
-
-        $sections = [];
-        while ($row = mysqli_fetch_assoc($sectionsResult)) {
-            $sections[] = $row['section'];
-        }
-        $sectionsString = implode("','", $sections);
-        $query = "SELECT * FROM student_masterlist WHERE section IN ('$sectionsString') AND semester = '$semester' AND schoolYear = '$schoolYear' ORDER BY section ASC, lastName ASC";
-    } else {
-        $query = "SELECT * FROM student_masterlist WHERE section = '$section' AND semester = '$semester' AND schoolYear = '$schoolYear' ORDER BY section ASC, lastName ASC";
-    }
-
-    // Execute the query
-    $result = mysqli_query($connect, $query);
-
-    // Initialize variable to store table rows
+    $adviserEmail = $_SESSION['adviser'];
     $tableRows = "";
 
-    // Check if query was successful
-    if ($result) {
-        // Check if there are any rows returned
-        if (mysqli_num_rows($result) > 0) {
-            // Loop through each row in the result set and create table rows
-            while ($row = mysqli_fetch_assoc($result)) {
-                $tableRows .= "<tr>";
-                $tableRows .= "<td class='text-center'><div class='form-check'><input name='studentIDs[]' class='form-check-input p-0 checkbox-highlight' type='checkbox' style='transform: scale(1.5);' value='{$row['studentID']}' id='flexCheck{$row['studentID']}'></div></td>";
-                //$tableRows .= "<td><a title='Input' href='pgrade-input.php?studentID={$row['studentID']}' class='btn btn-primary btn-sm'>Input<span class='fa fa-input fw-fa'></span></a></td>";
-                $tableRows .= "<td>{$row['studentID']}</td>";
-                $tableRows .= "<td>{$row['lastName']}, {$row['firstName']}</td>";
-                $tableRows .= "<td>{$row['section']}</td>";
-                $tableRows .= "<td>{$row['year']}</td>";
-                $tableRows .= "</tr>";
+    if ($section === "All") {
+        // Get all sections assigned to the adviser
+        $getSections = "SELECT section FROM listadviser WHERE email = '$adviserEmail'";
+        $sectionsResult = mysqli_query($connect, $getSections);
+
+        $sectionArray = [];
+
+        if ($sectionsResult) {
+            while ($row = mysqli_fetch_assoc($sectionsResult)) {
+                $splitSections = explode(',', $row['section']);
+                foreach ($splitSections as $sec) {
+                    $trimmed = trim($sec);
+                    if ($trimmed !== "") {
+                        $sectionArray[] = mysqli_real_escape_string($connect, $trimmed);
+                    }
+                }
             }
+        }
+
+        if (!empty($sectionArray)) {
+            $sectionList = "'" . implode("','", $sectionArray) . "'";
+            $query = "SELECT * FROM student_masterlist 
+                      WHERE section IN ($sectionList) 
+                      AND semester = '$semester' 
+                      AND schoolYear = '$schoolYear' 
+                      ORDER BY section ASC, lastName ASC";
         } else {
-            // If no rows found, set an appropriate message
-            $tableRows = "<tr><td colspan='5'>No Results Found</td></tr>";
+            echo "<tr><td colspan='5'>No sections assigned to this adviser.</td></tr>";
+            exit;
         }
     } else {
-        // If query fails, set an error message
-        $tableRows = "<tr><td colspan='5'>Error: " . mysqli_error($connect) . "</td></tr>";
+        // Single section selected
+        $query = "SELECT * FROM student_masterlist 
+                  WHERE section = '$section' 
+                  AND semester = '$semester' 
+                  AND schoolYear = '$schoolYear' 
+                  ORDER BY section ASC, lastName ASC";
     }
 
-    // Echo the table rows back to the AJAX request
+    $result = mysqli_query($connect, $query);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $tableRows .= "<tr>";
+            $tableRows .= "<td class='text-center'>
+                <div class='form-check'>
+                    <input name='studentIDs[]' class='form-check-input p-0 checkbox-highlight' 
+                        type='checkbox' style='transform: scale(1.5);' 
+                        value='{$row['studentID']}' id='flexCheck{$row['studentID']}'>
+                </div>
+            </td>";
+            $tableRows .= "<td>{$row['studentID']}</td>";
+            $tableRows .= "<td>{$row['lastName']}, {$row['firstName']}</td>";
+            $tableRows .= "<td>{$row['section']}</td>";
+            $tableRows .= "<td>{$row['year']}</td>";
+            $tableRows .= "</tr>";
+        }
+    } else {
+        $tableRows = "<tr><td colspan='5'>No Results Found</td></tr>";
+    }
+
     echo $tableRows;
 } else {
-    // If section is not set in the POST request, echo error message
-    echo "Error: Section not specified";
+    echo "<tr><td colspan='5'>Error: Section not specified</td></tr>";
 }
