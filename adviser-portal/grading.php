@@ -91,17 +91,27 @@
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    while ($rows = mysqli_fetch_assoc($result)) {
+                                                        while ($rows = mysqli_fetch_assoc($result)) {
+                                                            // Split the comma-separated sections into an array
+                                                            $sections = explode(',', $rows['section']);
+
+                                                            foreach ($sections as $section) {
+                                                                $section = trim($section); // Clean up any whitespace
                                                     ?>
-                                                        <tr>
-                                                            <td><a href="#" class="section-link" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course'];?>"><?php echo $rows['course'];?> <?php echo $rows['section']; ?></a></td>
-                                                            <td>
-                                                                <a title="Edit" href="" class="btn btn-xs"><span class="fa fa-edit fw-fa"></span></a>
-                                                                <a title="Delete" href="" class="btn btn-xs"><span class="fa fa-trash"></span></a>
-                                                            </td>
-                                                        </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <a href="#" class="section-link" data-section="<?php echo $section; ?>" data-course="<?php echo $rows['course']; ?>">
+                                                                            <?php echo $rows['course'] . ' ' . $section; ?>
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>
+                                                                        <a title="Edit" href="" class="btn btn-xs"><span class="fa fa-edit fw-fa"></span></a>
+                                                                        <a title="Delete" href="" class="btn btn-xs"><span class="fa fa-trash"></span></a>
+                                                                    </td>
+                                                                </tr>
                                                     <?php
-                                                    }
+                                                            }
+                                                        }
                                                     ?>
                                                 </tbody>
                                             </table>
@@ -247,35 +257,55 @@
                 let totalGradeInput = document.getElementById('totalGrade');
                 let totalGradeHiddenInput = document.getElementById('totalGradeInput');
             
-                $('.section-link').click(function(e) {
+                $(document).on('click', '.section-link', function(e) {
                     e.preventDefault();
                     var section = $(this).data('section');
                     var course = $(this).data('course');
 
                     $.ajax({
-                        url: 'functions/fetch_masterlist.php', // Provide the path to your PHP script that fetches student data
+                        url: 'functions/fetch_masterlist.php',
                         method: 'POST',
                         data: {
                             section: section,
                             course: course
                         },
                         success: function(response) {
-                            // Destroy existing DataTable
+                            console.log("AJAX Response: ", response);
+
+                            // Destroy existing DataTable if already initialized
                             if ($.fn.DataTable.isDataTable('#students-table')) {
                                 $('#students-table').DataTable().clear().destroy();
                             }
 
-                            // Clear table body
+                            // Clear table body before inserting new rows
                             $('#students-table tbody').empty();
 
-                            // After successfully loading data, call the loadMasterList function
-                            loadMasterList(section, course, response);
+                            // Check if the response contains "No students"
+                            if (response.includes("No students found")) {
+                                $('#students-table tbody').html(response); // 💡 Display the no-data row
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'No data available',
+                                    text: 'There are no students found for this section.',
+                                    showConfirmButton: true,
+                                    position: 'top',
+                                    toast: true
+                                });
+                            } else {
+                                loadMasterList(section, course, response);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.log("AJAX Error: ", status, error);
                         }
                     });
                 });
 
+
                 function loadMasterList(section, course, response) {
-                    // Show SweetAlert2 alert with loading animation
+                    console.log("Loading master list for: ", course, section);
+
+                    // Show SweetAlert2 loading animation
                     Swal.fire({
                         title: 'Please Wait...',
                         showConfirmButton: false,
@@ -285,6 +315,7 @@
                             Swal.showLoading();
                         },
                         didOpen: () => {
+                            // Delay the success alert for better UX
                             setTimeout(() => {
                                 Swal.fire({
                                     icon: 'success',
@@ -295,27 +326,18 @@
                                     timer: 2000
                                 });
 
-                                // Replace table data with new response
+                                // Insert the response (HTML rows) into the table body
                                 $('#students-table tbody').html(response);
 
-                                // Check if DataTables has already been initialized on the element
-                                if ($.fn.DataTable.isDataTable('#students-table')) {
-                                    // If DataTables is already initialized, clear and destroy it
-                                    $('#students-table').DataTable().clear().destroy();
+                                // If the table has rows, reinitialize DataTable
+                                if ($('#students-table tbody tr').length > 0) {
+                                    $('#students-table').DataTable();
                                 }
-
-                                // Delay the initialization of DataTables to ensure the table is fully rendered
-                                setTimeout(function() {
-                                    // Check if the table body has rows
-                                    if ($('#students-table tbody tr').length > 0) {
-                                        // If there are rows, reinitialize DataTables
-                                        $('#students-table').DataTable();
-                                    }
-                                }, 100); // Delay of 100 milliseconds
                             }, 2000); // Simulated loading delay of 2 seconds
                         }
                     });
                 }
+
 
                 // Function to fetch and update student information
                 function fetchAndUpdateStudentInfo(studentID) {

@@ -161,9 +161,16 @@ $result = mysqli_query($connect, $query);
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
-                                <select class="form-control" name="section" id="dropdownsection" required>
-                                    <option value="" selected disabled>Select Section</option>
-                                </select>
+                                <div class="dropdown">
+                                    <button class="form-control text-start dropdown-toggle" type="button" id="dropdownSectionBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Select Sections
+                                    </button>
+                                    <ul class="dropdown-menu w-100" id="dropdownsection">
+                                        <!-- AJAX will populate this -->
+                                    </ul>
+                                </div>
+                                <!-- Hidden input to submit selected values -->
+                                <input type="hidden" name="section" id="sectionInput" required>
                             </div>
                         </div>
 
@@ -189,6 +196,42 @@ $result = mysqli_query($connect, $query);
     </div>
     </div>
 
+
+    <style>
+        /* Style for selected checkbox items */
+        .dropdown-item.selected {
+            background-color: #0d6efd;
+            color: white;
+            margin: 0;
+            padding: 8px 12px;
+            border-radius: 0;
+        }
+
+        /* Tighten up list and remove gaps */
+        .dropdown-menu li {
+            margin: 0;
+            padding: 0;
+        }
+
+        .dropdown-menu .dropdown-item {
+            margin: 0;
+            padding: 8px 12px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dropdown-item input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .dropdown-item:active {
+            background-color: transparent;
+            color: inherit;
+        }
+
+    </style>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
@@ -228,9 +271,41 @@ $result = mysqli_query($connect, $query);
                 },
                 success: function(data) {
                     document.getElementById('dropdownsection').innerHTML = data;
+                    bindSectionCheckboxes(); // Bind after content is loaded
                 }
             });
         }
+
+        function bindSectionCheckboxes() {
+            const checkboxes = document.querySelectorAll('.section-check');
+            const sectionInput = document.getElementById('sectionInput');
+            const dropdownBtn = document.getElementById('dropdownSectionBtn');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const selected = Array.from(checkboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                    // Update hidden input
+                    sectionInput.value = selected.join(',');
+
+                    // Update dropdown button text
+                    dropdownBtn.textContent = selected.length > 0 ? selected.join(', ') : 'Select Sections';
+
+                    // Toggle "selected" class on labels
+                    checkboxes.forEach(cb => {
+                        const label = cb.closest('.dropdown-item');
+                        if (cb.checked) {
+                            label.classList.add('selected');
+                        } else {
+                            label.classList.remove('selected');
+                        }
+                    });
+                });
+            });
+        }
+
     </script>
 </body>
 

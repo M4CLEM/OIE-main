@@ -5,7 +5,7 @@ include_once("../includes/connection.php");
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST['fullName'];
     $email = $_POST['email'];
-    $section = $_POST['section'];
+    $sectionRaw = $_POST['section']; // Comma-separated section IDs
     $dept = $_POST['dept'];
     $course = $_POST['course'];
 
@@ -16,8 +16,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate password confirmation
     if ($password !== $confirmPassword) {
         echo '<div class="alert alert-danger" role="alert">Passwords do not match. Please try again.</div>';
-        // You can customize the error message or style as needed.
     } else {
+        // Sanitize section input
+        $sections = array_filter(array_map('trim', explode(',', $sectionRaw)));
+        $sectionString = implode(',', $sections); // This will be stored in one column
+
         // Check if the email already exists in the users table
         $checkUserExists = $connect->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
         $checkUserExists->bind_param('s', $email);
@@ -26,20 +29,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $checkUserExists->fetch();
         $checkUserExists->close();
 
-        if ($userCount > 0) {
-            // Insert values into Adviser List
-            $addToList = $connect->prepare('INSERT INTO listadviser (fullName, email, section, course, dept) VALUES (?, ?, ?, ?, ?)');
-            $addToList->bind_param('sssss', $fullName, $email, $section, $course, $dept);
-            $addToList->execute();
-            $addToList->close();
-        } else {
-            // Insert values into Adviser List
-            $addToList = $connect->prepare('INSERT INTO listadviser (fullName, email, section, course, dept) VALUES (?, ?, ?, ?, ?)');
-            $addToList->bind_param('sssss', $fullName, $email, $section, $course, $dept);
-            $addToList->execute();
-            $addToList->close();
+        // Insert values into listadviser (only once)
+        $addToList = $connect->prepare('INSERT INTO listadviser (fullName, email, section, course, dept) VALUES (?, ?, ?, ?, ?)');
+        $addToList->bind_param('sssss', $fullName, $email, $sectionString, $course, $dept);
+        $addToList->execute();
+        $addToList->close();
 
-            // Insert values into Users table
+        // Insert into users table only if they don't exist yet
+        if ($userCount == 0) {
             $addToUsers = $connect->prepare('INSERT INTO users (username, role, password) VALUES (?, ?, ?)');
             $addToUsers->bind_param('sss', $email, $role, $password);
             $addToUsers->execute();
@@ -47,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         header("Location: advisers.php");
-    exit;
+        exit;
     }
 }
 ?>

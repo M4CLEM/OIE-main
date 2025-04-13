@@ -96,33 +96,41 @@ $result = mysqli_query($connect, $query);
                             <div class="col-md-6">
                                 <div class="row justify-content-end align-items-center">
                                     <div class="col-md-3">
-                                    <button id="composeButton" class="btn btn-primary btn-sm mr-6" onclick="openComposeModal()">
-    Compose <i class="fa fa-envelope" aria-hidden="true"></i>
-</button>
-
+                                        <button id="composeButton" class="btn btn-primary btn-sm mr-6" onclick="openComposeModal()">
+                                            Compose <i class="fa fa-envelope" aria-hidden="true"></i>
+                                        </button>
                                     </div>
-
                                     <div class="col-md-9">
-                                        <?php
+                                    <?php
                                         $email = $_SESSION['adviser'];
-                                        // Assuming $connect is your mysqli connection object
                                         $getsections = "SELECT section FROM listadviser WHERE email = '$email'";
                                         $sections = mysqli_query($connect, $getsections);
 
-                                        // Check if query was successful
                                         if ($sections) {
-                                            echo '<select name="sections" id="sections" class="form-control form-control-sm">';
-                                            // Default option
-                                            echo '<option value="All Sections">All Sections</option>'; // Change the value to "All Sections"
-                                            // Loop through each row in the result set
+                                            echo '<select name="sections" id="sections" class="form-control form-control-sm" onchange="filterTable(this.value)">';
+    
+                                            // "All Sections" option at the top
+                                            echo '<option value="All">All Sections</option>';
+
+                                            $addedSections = []; // Track unique section entries
+
                                             while ($sect = mysqli_fetch_assoc($sections)) {
-                                                echo '<option value="' . $sect['section'] . '">' . $sect['section'] . '</option>';
+                                                $sectionList = explode(',', $sect['section']);
+
+                                                foreach ($sectionList as $singleSection) {
+                                                    $singleSection = trim($singleSection);
+                                                    if (!in_array($singleSection, $addedSections) && $singleSection !== '') {
+                                                        $addedSections[] = $singleSection;
+                                                        echo '<option value="' . $singleSection . '">' . $singleSection . '</option>';
+                                                    }
+                                                }
                                             }
+
                                             echo '</select>';
                                         } else {
                                             echo "Error: " . mysqli_error($connect);
                                         }
-                                        ?>
+                                    ?>
                                     </div>
                                 </div>
                             </div>
@@ -243,31 +251,28 @@ $result = mysqli_query($connect, $query);
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script>
                 $(document).ready(function() {
-
-
                     $('#composeEmailForm').on('submit', function(event) {
-                event.preventDefault(); // Prevent default form submission
+                        event.preventDefault(); // Prevent default form submission
                 
-                // Show loading modal
-                var loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
-                loadingModal.show();
+                        // Show loading modal
+                        var loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+                        loadingModal.show();
                 
-                $.ajax({
-                    url: 'grading_email.php',
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        loadingModal.hide(); // Hide loading modal
-                        var composeModal = bootstrap.Modal.getInstance(document.getElementById('composeEmailModal'));
-                        composeModal.hide(); // Hide compose email modal
-                    },
-                    error: function() {
-                        loadingModal.hide(); // Hide loading modal
-                        alert('Failed to send email. Please try again.');
-                    }
-                });
-            });
-
+                        $.ajax({
+                            url: 'grading_email.php',
+                            type: 'POST',
+                            data: $(this).serialize(),
+                            success: function(response) {
+                                loadingModal.hide(); // Hide loading modal
+                                var composeModal = bootstrap.Modal.getInstance(document.getElementById('composeEmailModal'));
+                                composeModal.hide(); // Hide compose email modal
+                            },
+                            error: function() {
+                                loadingModal.hide(); // Hide loading modal
+                                alert('Failed to send email. Please try again.');
+                            }
+                        });
+                    });
 
                     // Function to handle clicking on the "Compose Email" button
                     $('#composeButton').click(function() {
@@ -430,46 +435,60 @@ $result = mysqli_query($connect, $query);
                             }
                         });
                     });
+
+                    function filterTable(section) {
+                        var table = document.getElementById('gradeTable');
+                        var tr = table.getElementsByTagName('tr');
+
+                        for (var i = 1; i < tr.length; i++) { // Start from 1 to skip the search bar row
+                            var td = tr[i].getElementsByTagName('td')[3]; // Section is column index 3
+                            if (td) {
+                                var txtValue = td.textContent || td.innerText;
+                                if (section === "All" || txtValue.indexOf(section) > -1) {
+                                    tr[i].style.display = "";
+                                } else {
+                                    tr[i].style.display = "none";
+                                }
+                            }
+                        }
+                    }
                 });
             </script>
-<script>
-function openComposeModal() {
-    // Get selected student IDs
-    let selectedStudents = Array.from(document.querySelectorAll("input[name='studentIDs[]']:checked"))
-        .map(checkbox => checkbox.value);
+            <script>
+                function openComposeModal() {
+                    // Get selected student IDs
+                    let selectedStudents = Array.from(document.querySelectorAll("input[name='studentIDs[]']:checked"))
+                    .map(checkbox => checkbox.value);
 
-    if (selectedStudents.length === 0) {
-        alert("Please select at least one student.");
-        return;
-    }
+                    if (selectedStudents.length === 0) {
+                        alert("Please select at least one student.");
+                        return;
+                    }
 
-    console.log("Selected Student IDs:", selectedStudents); // Debugging
+                    console.log("Selected Student IDs:", selectedStudents); // Debugging
 
-    // Send selected student IDs to PHP
-    fetch("fetch_trainer_email.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentIDs: selectedStudents })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Trainer Email Response:", data); // Debugging
+                    // Send selected student IDs to PHP
+                    fetch("fetch_trainer_email.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ studentIDs: selectedStudents })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Trainer Email Response:", data); // Debugging
 
-        if (data.error) {
-            alert("Error: " + data.error);
-        } else {
-            // Combine all trainer emails into one string (comma-separated)
-            document.getElementById("recipient-email").value = data.trainerEmails.join(", ");
-        }
-    })
-    .catch(error => console.error("Error fetching trainerEmail:", error));
+                        if (data.error) {
+                            alert("Error: " + data.error);
+                        } else {
+                            // Combine all trainer emails into one string (comma-separated)
+                            document.getElementById("recipient-email").value = data.trainerEmails.join(", ");
+                        }
+                    })
+                    .catch(error => console.error("Error fetching trainerEmail:", error));
     
-    // Show the modal
-    $('#composeEmailModal').modal('show');
-}
-
-</script>
-
+                    // Show the modal
+                    $('#composeEmailModal').modal('show');
+                }
+            </script>
 </body>
-
 </html>

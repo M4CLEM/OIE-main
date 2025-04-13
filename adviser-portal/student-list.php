@@ -133,31 +133,38 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <?php
+                                    <?php
                                         $email = $_SESSION['adviser'];
-                                        // Assuming $connect is your mysqli connection object
+
+                                        // Fetch the comma-separated section string
                                         $getsections = "SELECT section FROM listadviser WHERE email = '$email'";
-                                        $sections = mysqli_query($connect, $getsections);
+                                        $sectionsResult = mysqli_query($connect, $getsections);
 
                                         // Check if query was successful
-                                        if ($sections) {
+                                        if ($sectionsResult) {
                                             echo '<select name="sections" id="sections" class="form-control form-control-sm">';
-                                            // Default option
-                                            echo '<option value="All Sections">All Sections</option>'; // Change the value to "All Sections"
-                                            // Loop through each row in the result set
-                                            while ($sect = mysqli_fetch_assoc($sections)) {
-                                                echo '<option value="' . $sect['section'] . '">' . $sect['section'] . '</option>';
+                                            echo '<option value="All Sections">All Sections</option>'; // Default option
+
+                                            // Loop through all matching rows
+                                            while ($row = mysqli_fetch_assoc($sectionsResult)) {
+                                                $sectionString = $row['section'];
+                                                $individualSections = explode(',', $sectionString); // Split by comma
+
+                                                foreach ($individualSections as $section) {
+                                                    $trimmed = trim($section); // Optional: remove extra spaces
+                                                    echo '<option value="' . $trimmed . '">' . $trimmed . '</option>';
+                                                }
                                             }
+
                                             echo '</select>';
                                         } else {
                                             echo "Error: " . mysqli_error($connect);
                                         }
-                                        ?>
+                                    ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <div class="card-body">

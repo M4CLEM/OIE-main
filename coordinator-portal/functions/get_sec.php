@@ -9,9 +9,16 @@ $stmt->bind_param("ss", $department, $course);
 $stmt->execute();
 $sections = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-echo "<option value='' selected disabled>Select Section</option>";
-
+// Build checkbox list for dropdown menu
 foreach ($sections as $section) {
-    echo "<option value='{$section['section']}'>{$section['section']}</option>";
+    $secName = htmlspecialchars($section['section']);
+    echo "
+        <li>
+            <label class='dropdown-item'>
+                <input type='checkbox' class='section-check' value='{$secName}'> {$secName}
+            </label>
+        </li>
+    ";
 }
 ?>
+

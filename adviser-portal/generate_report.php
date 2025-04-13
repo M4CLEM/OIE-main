@@ -107,19 +107,34 @@
                                                 // Check if query was successful
                                                 if ($sections) {
                                                     echo '<div class="input-group input-group-sm">';
-        
+
                                                     // Dropdown
                                                     echo '<select name="sections" id="sections" class="form-control form-control-sm">';
                                                     echo '<option value="All Sections">All Sections</option>';
+
+                                                    $sectionSet = [];
+
+                                                    // Collect and split sections
                                                     while ($sect = mysqli_fetch_assoc($sections)) {
-                                                        echo '<option value="' . $sect['section'] . '">' . $sect['section'] . '</option>';
+                                                        $individualSections = array_map('trim', explode(',', $sect['section']));
+                                                        foreach ($individualSections as $s) {
+                                                            if (!in_array($s, $sectionSet)) {
+                                                                $sectionSet[] = $s;
+                                                            }
+                                                        }
                                                     }
+
+                                                    // Sort the sections before displaying
+                                                    sort($sectionSet);
+                                                    foreach ($sectionSet as $s) {
+                                                        echo '<option value="' . $s . '">' . $s . '</option>';
+                                                    }
+
                                                     echo '</select>
-<form method="POST" action="export_pdf.php" target="_blank" style="display:inline-block; margin-left: 10px;">
-    <input type="hidden" name="selected_section" id="selected_section_input">
-    <button type="submit" class="btn btn-primary"><i class="fa fa-file-pdf-o"></i> Export PDF</button>
-</form>
-';
+                                                            <form method="POST" action="export_pdf.php" target="_blank" style="display:inline-block; margin-left: 10px;">
+                                                                <input type="hidden" name="selected_section" id="selected_section_input">
+                                                                <button type="submit" class="btn btn-primary"><i class="fa fa-file-pdf-o"></i> Export PDF</button>
+                                                            </form>';
 
                                                     echo '</div>'; // Close input-group
                                                 } else {
