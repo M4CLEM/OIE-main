@@ -2,6 +2,26 @@
 session_start();
 include("includes/connection.php");
 
+$show_registration = false;
+
+$check_query = "SELECT COUNT(*) as total FROM users";
+$result = mysqli_query($connect, $check_query);
+$row = mysqli_fetch_assoc($result);
+$total_users = $row['total'];
+
+// Check if users table is empty or no CIPA exists
+if ($total_users == 0) {
+    $show_registration = true;
+} else {
+    $check_cipa_query = "SELECT COUNT(*) as total FROM users WHERE role = 'CIPA'";
+    $cipa_result = mysqli_query($connect, $check_cipa_query);
+    $cipa_row = mysqli_fetch_assoc($cipa_result);
+    if ($cipa_row['total'] == 0) {
+        $show_registration = true;
+    }
+}
+
+
 if (isset($_SESSION['registration_success'])) {
     echo '<div id="registrationSuccess" class="alert alert-success ml-5" role="alert">';
     echo '<button type="button" class="close" onclick="dismissSuccessMessage()">&times;</button>';
@@ -211,33 +231,55 @@ if (isset($_POST['login'])) {
             <!-- Right Box -->
             <div class="col-md-6 right-box">
                 <div class="row align-items-center">
-                    <form method="post">
-                        <div class="header-text mb-2">
-                            <h2>Hello!</h2>
-                            <p>Welcome to PLMUN OJT Portal</p>
-                        </div>
-                        <div class="input-group mb-3">
-                            <input type="text" name="uname" class="form-control form-control-lg bg-light fs-6" placeholder="Email address">
-                        </div>
-                        <div class="input-group mb-3">
-                            <input type="password" name="pass" class="form-control form-control-lg bg-light fs-6" placeholder="Password">
-                        </div>
-
-                        <div class="input-group mb-3">
-                            <!-- Removed role dropdown -->
-                        </div>
-
-                        <div class="input-group mb-3">
-                            <input type="submit" name="login" class="btn btn-success w-100 rounded-2" value="Login"><span class="fa fa-sign-in fw-fa"></span>
-                        </div>
-
-                        <div class="row">
-                            <small>Don't have an account? <a href="student-register.php">Sign Up</a></small>
-                        </div>
-                    </form>
+                    <?php if ($show_registration): ?>
+                        <!-- Registration Form -->
+                        <form method="post" action="cipa-director-portal/initialization-registration.php">
+                            <div class="header-text mb-2">
+                                <h2>Welcome!</h2>
+                                <p>Please register the first CIPA account</p>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" name="reg_name" class="form-control form-control-lg bg-light fs-6" placeholder="Full Name" required>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" name="reg_uname" class="form-control form-control-lg bg-light fs-6" placeholder="Username (Email)" required>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="password" name="reg_pass" class="form-control form-control-lg bg-light fs-6" placeholder="Password" required>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="password" name="reg_confirm_pass" class="form-control form-control-lg bg-light fs-6" placeholder="Confirm Password" required>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="submit" name="register" class="btn btn-success w-100 rounded-2" value="Register">
+                            </div>
+                        </form>
+                    <?php else: ?>
+                        <!-- Login Form -->
+                        <form method="post">
+                            <div class="header-text mb-2">
+                                <h2>Hello!</h2>
+                                <p>Welcome to PLMUN OJT Portal</p>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" name="uname" class="form-control form-control-lg bg-light fs-6" placeholder="Email address">
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="password" name="pass" class="form-control form-control-lg bg-light fs-6" placeholder="Password">
+                            </div>
+                            <div class="input-group mb-3">
+                                <!-- Removed role dropdown -->
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="submit" name="login" class="btn btn-success w-100 rounded-2" value="Login"><span class="fa fa-sign-in fw-fa"></span>
+                            </div>
+                            <div class="row">
+                                <small>Don't have an account? <a href="student-register.php">Sign Up</a></small>
+                            </div>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
-
         </div>
     </div>
 
