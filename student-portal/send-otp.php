@@ -1,23 +1,19 @@
 <?php
 
 require '../vendor/autoload.php';
-
-// Fix the incorrect path issue
 include("../includes/connection.php");
 
-// Ensure database connection exists
 if (!isset($connect)) {
     die("Database connection not established.");
 }
 
-// Prevent duplicate session start warning
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 use Swift\Mailer;
 use Swift\Message;
-use Swift\Transport\SmtpTransport;
+use Swift\SmtpTransport;
 
 try {
     if (isset($_POST['send'])) {
@@ -27,7 +23,7 @@ try {
             exit;
         }
 
-        // Optional: check if user exists (optional for sending OTP)
+        // Optional: check if user exists
         $query = "SELECT username FROM users WHERE username = ?";
         $stmt = $connect->prepare($query);
         if (!$stmt) {
@@ -46,11 +42,11 @@ try {
         $otp = mt_rand(100000, 999999);
         $_SESSION['otp'] = $otp;
 
-        // Your system's SMTP credentials
-        $smtpEmail = 'cipa@plmun.edu.ph'; // Replace with your app sender email
-        $smtpPassword = 'iqwrimadvoliiaoc';   // Replace with your Gmail App Password
+        // SMTP credentials
+        $smtpEmail = 'cipa@plmun.edu.ph'; // App email
+        $smtpPassword = 'iqwrimadvoliiaoc'; // App password
 
-        // Create the Transport
+        // Create transport
         $transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
             ->setUsername($smtpEmail)
             ->setPassword($smtpPassword)
@@ -62,10 +58,9 @@ try {
                 ]
             ]);
 
-        // Create the Mailer using your created Transport
         $mailer = new Swift_Mailer($transport);
 
-        // Create a message
+        // Create email message
         $message = (new Swift_Message('OTP Verification Code'))
             ->setFrom([$smtpEmail => 'PLMUN OIE'])
             ->setTo([$email])
@@ -73,47 +68,38 @@ try {
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            background-color: #f0f0f0;
-                        }
-                        .container {
-                            max-width: 600px;
-                            margin: 0 auto;
-                            padding: 20px;
-                            background-color: #ffffff;
-                            border-radius: 5px;
-                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-                        }
-                        h1 {
-                            color: #333;
-                        }
-                        p {
-                            font-size: 16px;
-                            line-height: 1.6;
-                        }
-                        #otp {
-                            font-size: 24px;
-                            font-weight: bold;
-                            color: #007bff;
-                        }
-                    </style>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 </head>
                 <body>
-                    <div class="container">
-                        <h1>OTP Verification</h1>
-                        <p>Your OTP (One-Time Password) for verification is: <span id="otp">' . $otp . '</span></p>
+                    <div class="container mt-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h3 class="card-title text-primary">OTP Verification</h3>
+                                <p class="card-text">
+                                    Your OTP (One-Time Password) for verification is:
+                                    <strong class="text-success" style="font-size: 1.5rem;">' . $otp . '</strong>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </body>
                 </html>', 'text/html');
 
-        // Send the message
         $result = $mailer->send($message);
 
-        echo "OTP sent successfully.";
+        echo '
+        <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050; width: 100%; max-width: 600px;">
+            <div class="alert alert-success d-flex align-items-center justify-content-center shadow" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" class="bi flex-shrink-0 me-2" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.07 0l4.992-4.992a.75.75 0 0 0-1.06-1.06L7.5 9.439 5.53 7.47a.75.75 0 0 0-1.06 1.06l2.5 2.5z"/>
+                </svg>
+                <div>
+                    Send OTP successfully. Please check your Gmail.
+                </div>
+            </div>
+        </div>';        
     }
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo '<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>';
 }
 ?>

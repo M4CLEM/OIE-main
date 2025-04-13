@@ -84,5 +84,32 @@ if (isset($_POST['verify'])) {
 	</div>
 	</div>
 
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-body py-5">
+        <div class="spinner-border text-primary mb-3" role="status"></div>
+        <h5>Please wait...</h5>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const form = document.querySelector('form');
+  const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+
+  form.addEventListener('submit', function (e) {
+    const clickedButton = document.activeElement;
+
+    if (clickedButton.name === "verify") {
+      loadingModal.show(); // Show "please wait" only for Submit OTP
+    }
+  });
+</script>
+
+
 </body>
 </html>
