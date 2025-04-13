@@ -5,29 +5,28 @@ include_once("../includes/connection.php");
 $semester = $_SESSION['semester'];
 $schoolYear = $_SESSION['schoolYear'];
 
-// Check if dept_sec is set and is an array
-if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
-    // Create placeholders dynamically for the number of sections
-    $placeholders = implode(',', array_fill(0, count($_SESSION['dept_sec']), '?'));
-    $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND semester = ? AND school_year = ? AND section IN ($placeholders) ORDER BY section ASC, lastName ASC";
+if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
+    // Explode the first (and only) string in dept_sec into an array
+    $sections = explode(',', $_SESSION['dept_sec'][0]);
 
-    // Prepare the statement
+    // Build the SQL condition dynamically using FIND_IN_SET
+    $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND semester = ? AND school_year = ? AND ("
+        . implode(" OR ", array_fill(0, count($sections), "FIND_IN_SET(?, section)")) .
+        ") ORDER BY section ASC, lastName ASC";
+
     $stmt = $connect->prepare($query);
 
-    // Merge department, course, and section values
-    $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $semester, $schoolYear], $_SESSION['dept_sec']);
-
-    // Define parameter types
+    // Merge all the parameters
+    $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $semester, $schoolYear], $sections);
     $types = str_repeat('s', count($params));
 
-    // Bind the parameters dynamically
+    // Bind and execute
     $stmt->bind_param($types, ...$params);
 
-    // Execute the statement
     if ($stmt->execute()) {
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
-            // Fetch all rows
+            // Fetch and process rows here
         } else {
             echo "No results found for the given criteria.";
         }
@@ -38,6 +37,7 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
     echo "No sections found for the adviser.";
 }
 ?>
+
 
 
 <!DOCTYPE html>
@@ -96,7 +96,7 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                 Activity Log
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="../logout.php" data-toggle="logout" data-target="logout">
+                            <a class="dropdown-item" href="../logout.php" data-toggle="modal" data-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Logout
                             </a>
@@ -304,6 +304,25 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="../logout.php">Logout</a>
+                </div>
             </div>
         </div>
     </div>

@@ -5,18 +5,30 @@
     $email = $_SESSION['adviser'];
     $activeSemester = $_SESSION['semester'];
     $activeSchoolYear = $_SESSION['schoolYear'];
-    
+
     // Check if dept_sec is set and is an array
     if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
-        // Create placeholders dynamically for the number of sections
-        $placeholders = implode(',', array_fill(0, count($_SESSION['dept_sec']), '?'));
+        // Create an array to hold exploded section values
+        $explodedSections = [];
+
+        // Exploding the sections into individual values and adding to the array
+        foreach ($_SESSION['dept_sec'] as $section) {
+            $sectionsArray = explode(',', $section); // Explode the section string into individual sections
+            foreach ($sectionsArray as $individualSection) {
+                $explodedSections[] = trim($individualSection); // Add each exploded section to the array
+            }
+        }
+
+        // Create placeholders dynamically for the number of exploded sections
+        $placeholders = implode(',', array_fill(0, count($explodedSections), '?'));
+
         $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND semester = ? AND school_year = ? AND section IN ($placeholders) ORDER BY section ASC, lastName ASC";
 
         // Prepare the statement
         $stmt = $connect->prepare($query);
 
         // Merge department, course, and section values
-        $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $activeSemester, $activeSchoolYear], $_SESSION['dept_sec']);
+        $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $activeSemester, $activeSchoolYear], $explodedSections);
 
         // Define parameter types
         $types = str_repeat('s', count($params));
@@ -28,7 +40,7 @@
         if ($stmt->execute()) {
             $result = $stmt->get_result();
             if ($result->num_rows > 0) {
-                // Fetch all rows
+                // Continue processing rows
             } else {
                 echo "No results found for the given criteria.";
             }
@@ -172,8 +184,12 @@
                                                 while ($row = $result->fetch_assoc()) {
                                                     $semester = $row['semester'];
                                                     $schoolYear = $row['school_year'];
-                                        ?>
-                                        <?php            
+
+                                                    // Initialize grades to 0 to prevent undefined variable warnings
+                                                    $adviserGrade = 0;
+                                                    $companyGrade = 0;
+
+                                                    // Your original echo statement
                                                     echo "<tr>";
                                                         echo "<td>" . $row['studentID'] . "</td>";
                                                         echo "<td>" . $row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname'] . "</td>";
@@ -181,61 +197,71 @@
                                                         echo "<td>" . $row['course'] . '-' . $row['section'] . "</td>";
                                                         echo "<td>" . $row['status'] . "</td>";
 
+                                                        // Initialize the grouped criteria arrays
                                                         $adviserCriteriaGrouped = [];
                                                         $companyCriteriaGrouped = [];
 
+                                                        // Adviser Grade Query
                                                         $adviserGradeStmt = $connect->prepare("SELECT * FROM adviser_student_grade WHERE email = ? AND semester = ? AND schoolYear = ?");
                                                         $adviserGradeStmt->bind_param("sss", $row['email'], $activeSemester, $activeSchoolYear);
                                                         $adviserGradeStmt->execute();
                                                         $adviserGradeResult = $adviserGradeStmt->get_result();
 
-                                                        while ($rowAdviserGrade = $adviserGradeResult->fetch_assoc()) {
-                                                            $adviserGrade = $rowAdviserGrade['finalGrade'];
-                                                            $criteria = json_decode($rowAdviserGrade['criteria'], true);
-                                                            $grade = json_decode($rowAdviserGrade['grade'], true);
+                                                        // If grades found, assign them
+                                                        if ($adviserGradeResult->num_rows > 0) {
+                                                            while ($rowAdviserGrade = $adviserGradeResult->fetch_assoc()) {
+                                                                $adviserGrade = $rowAdviserGrade['finalGrade']; // Assign grade if found
+                                                                $criteria = json_decode($rowAdviserGrade['criteria'], true);
+                                                                $grade = json_decode($rowAdviserGrade['grade'], true);
 
-                                                            foreach ($criteria as $criterion) {
-                                                                $name = $criterion['criteria'];
-                                                                $percentage = $criterion['percentage'];
-                                                                $score = isset($grade[$name]) ? $grade[$name] : 0;
-                                                                
-                                                                $adviserCriteriaGrouped[] = [
-                                                                    'adviserCriteria' => $name,
-                                                                    'adviserPercentage' => $percentage,
-                                                                    'adviserDescription' => $criterion['description'],
-                                                                    'score' => $score
-                                                                ];
+                                                                foreach ($criteria as $criterion) {
+                                                                    $name = $criterion['criteria'];
+                                                                    $percentage = $criterion['percentage'];
+                                                                    $score = isset($grade[$name]) ? $grade[$name] : 0;
+
+                                                                    $adviserCriteriaGrouped[] = [
+                                                                        'adviserCriteria' => $name,
+                                                                        'adviserPercentage' => $percentage,
+                                                                        'adviserDescription' => $criterion['description'],
+                                                                        'score' => $score
+                                                                    ];
+                                                                }
                                                             }
                                                         }
 
-                                                        echo "<td align=\"center\">" . $adviserGrade . "</td>";
+                                                        echo "<td align=\"center\">" . $adviserGrade . "</td>"; // Display adviser grade
 
+                                                        // Company Grade Query
                                                         $companyGradeStmt = $connect->prepare("SELECT * FROM student_grade WHERE email = ? AND semester = ? AND schoolYear = ?");
                                                         $companyGradeStmt->bind_param("sss", $row['email'], $activeSemester, $activeSchoolYear);
                                                         $companyGradeStmt->execute();
                                                         $companyGradeResult = $companyGradeStmt->get_result();
 
-                                                        while ($rowCompanyGrade = $companyGradeResult->fetch_assoc()) {
-                                                            $companyGrade = $rowCompanyGrade['finalGrade'];
-                                                            $criteria = json_decode($rowCompanyGrade['criteria'], true);
-                                                            $grade = json_decode($rowCompanyGrade['grade'], true);
+                                                        // If grades found, assign them
+                                                        if ($companyGradeResult->num_rows > 0) {
+                                                            while ($rowCompanyGrade = $companyGradeResult->fetch_assoc()) {
+                                                                $companyGrade = $rowCompanyGrade['finalGrade']; // Assign grade if found
+                                                                $criteria = json_decode($rowCompanyGrade['criteria'], true);
+                                                                $grade = json_decode($rowCompanyGrade['grade'], true);
 
-                                                            foreach ($criteria as $criterion) {
-                                                                $name = $criterion['criteria'];
-                                                                $percentage = $criterion['percentage'];
-                                                                $score = isset($grade[$name]) ? $grade[$name] : 0;
-                                                                
-                                                                $companyCriteriaGrouped[] = [
-                                                                    'companyCriteria' => $name,
-                                                                    'companyPercentage' => $percentage,
-                                                                    'companyDescription' => $criterion['description'],
-                                                                    'score' => $score
-                                                                ];
+                                                                foreach ($criteria as $criterion) {
+                                                                    $name = $criterion['criteria'];
+                                                                    $percentage = $criterion['percentage'];
+                                                                    $score = isset($grade[$name]) ? $grade[$name] : 0;
+
+                                                                    $companyCriteriaGrouped[] = [
+                                                                        'companyCriteria' => $name,
+                                                                        'companyPercentage' => $percentage,
+                                                                        'companyDescription' => $criterion['description'],
+                                                                        'score' => $score
+                                                                    ];
+                                                                }
                                                             }
                                                         }
 
-                                                        echo "<td align=\"center\">" . $companyGrade . "</td>";
+                                                        echo "<td align=\"center\">" . $companyGrade . "</td>"; // Display company grade
 
+                                                        // Finalized grade calculation
                                                         $finalizedGradeQuery = "SELECT * FROM grading_rubics WHERE department = ? AND semester = ? AND schoolYear = ?";
                                                         $stmt = $connect->prepare($finalizedGradeQuery);
                                                         $stmt->bind_param("sss", $row['department'], $semester, $schoolYear);
@@ -248,29 +274,20 @@
                                                             $adviserWeight = $gradingInfo['adviserWeight'];
                                                             $companyWeight = $gradingInfo['companyWeight'];
                                                         } else {
-                                                            // Handle the case where no grading information is available
-                                                            $adviserWeight = 0;  // Set default values or handle the error
-                                                            $companyWeight = 0;  // Set default values or handle the error
-                                                            $finalizedGrade = 0; // Set default grade or handle the error
+                                                            $adviserWeight = 0; // Default value
+                                                            $companyWeight = 0; // Default value
                                                         }
 
                                                         $finalizedGrade = ($adviserGrade * ($adviserWeight / 100)) + ($companyGrade * ($companyWeight / 100));
 
                                                         echo "<td align=\"center\">" . $finalizedGrade . "</td>";
+
+                                                        // Edit button and modal (no changes here)
                                                         echo "<td>
-                                                                    <a href=\"#\" 
-                                                                        class=\"btn btn-primary btn-sm editBtn\" 
-                                                                        data-toggle=\"modal\" 
-                                                                        data-target=\"#editModal\"
-                                                                        data-adviser='" . json_encode($adviserCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "'
-                                                                        data-company='" . json_encode($companyCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "'
-                                                                        data-advisergrade=\"" . htmlspecialchars($adviserGrade) . "\"
-                                                                        data-companygrade=\"" . htmlspecialchars($companyGrade) . "\"
-                                                                        data-finalgrade=\"" . htmlspecialchars($finalizedGrade) . "\"
-                                                                        data-studentID=\"" . htmlspecialchars($row['studentID']) . "\">
-                                                                        <i class=\"fa fa-edit fw-fa\"></i> Edit
-                                                                    </a>
-                                                                </td>";
+                                                            <a href=\"#\" class=\"btn btn-primary btn-sm editBtn\" data-toggle=\"modal\" data-target=\"#editModal\" data-adviser='" . json_encode($adviserCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "' data-company='" . json_encode($companyCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "' data-advisergrade=\"" . htmlspecialchars($adviserGrade) . "\" data-companygrade=\"" . htmlspecialchars($companyGrade) . "\" data-finalgrade=\"" . htmlspecialchars($finalizedGrade) . "\" data-studentID=\"" . htmlspecialchars($row['studentID']) . "\">
+                                                                <i class=\"fa fa-edit fw-fa\"></i> Edit
+                                                            </a>
+                                                        </td>";
 
                                                     echo "</tr>";
                                                 }
@@ -319,6 +336,25 @@
                     </div>
                 </div>
                 
+                <!-- Logout Modal-->
+                <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                <a class="btn btn-primary" href="../logout.php">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
