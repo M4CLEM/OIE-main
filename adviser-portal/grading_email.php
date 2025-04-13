@@ -20,8 +20,8 @@ try {
 
         // Create the Transport
         $transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
-            ->setUsername('johncantos01@gmail.com')
-            ->setPassword('oneusycqneynrgvt')
+            ->setUsername('cipa@plmun.edu.ph')
+            ->setPassword('iqwrimadvoliiaoc')
             ->setStreamOptions([
                 'ssl' => [
                     'verify_peer' => false,
