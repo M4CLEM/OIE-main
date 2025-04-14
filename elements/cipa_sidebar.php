@@ -49,7 +49,7 @@
     <li class="sidebar-item">
         <a href="add_company_acc.php" class="sidebar-link">
             <i class="fa fa-file" aria-hidden="true"></i>
-            <span>Add Company</span></a>
+            <span>Company Accounts</span></a>
         </a>
     </li>
     <li class="sidebar-item">

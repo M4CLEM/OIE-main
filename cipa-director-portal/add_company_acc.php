@@ -123,6 +123,9 @@
                             </button>
                         </div>
                         <div class="modal-body">
+                        <div class="form-group">
+                                <input type="text" class="form-control" id="searchCompany" placeholder="Search Company">
+                        </div>
                             <div class="form-group">
                                 <select class="form-control" id="companyName" name="companyName" required>
                                     <option value="">Select Company</option>
@@ -134,9 +137,6 @@
                                         }
                                     ?>
                                 </select>
-                            </div>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="searchCompany" placeholder="Search Company">
                             </div>
                             <div class="form-group">
                                 <input class="form-control" id="email" name="email" type="text" placeholder="Email" required>
