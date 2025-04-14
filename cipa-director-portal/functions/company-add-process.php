@@ -1,8 +1,12 @@
 <?php 
+session_start();
 include_once("../../includes/connection.php");
 
 $department = isset($_GET['dept']) ? $_GET['dept'] : '';
 $targetPage = $department !== '' ? 'company-filter.php?dept=' . $department : 'company.php';
+
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
 
 
 if(isset($_POST['save']))
@@ -16,8 +20,8 @@ if(isset($_POST['save']))
 	$link = $_POST['link'];
 	$dept = $_POST['dept'];
 
-	$stmt = $connect->prepare("INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, jobdescription, jobreq, link, dept) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-	$stmt->bind_param("ssssssss", $companyName, $companyaddress, $contact, $jobrole, $jobdescription, $jobreq, $link, $dept);
+	$stmt = $connect->prepare("INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, jobdescription, jobreq, link, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$stmt->bind_param("ssssssssss", $companyName, $companyaddress, $contact, $jobrole, $jobdescription, $jobreq, $link, $dept, $activeSemester, $activeSchoolYear);
 	
 	if ($stmt->execute()) {
 
