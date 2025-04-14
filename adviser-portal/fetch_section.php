@@ -31,10 +31,11 @@ if (isset($_POST['section'])) {
 
         if (!empty($sectionArray)) {
             $sectionList = "'" . implode("','", $sectionArray) . "'";
-            $query = "SELECT * FROM student_masterlist 
+            $query = "SELECT * FROM studentinfo 
                       WHERE section IN ($sectionList) 
                       AND semester = '$semester' 
-                      AND schoolYear = '$schoolYear' 
+                      AND schoolYear = '$schoolYear'
+                      AND status = 'Deployed' 
                       ORDER BY section ASC, lastName ASC";
         } else {
             echo "<tr><td colspan='5'>No sections assigned to this adviser.</td></tr>";
@@ -42,10 +43,11 @@ if (isset($_POST['section'])) {
         }
     } else {
         // Single section selected
-        $query = "SELECT * FROM student_masterlist 
+        $query = "SELECT * FROM studentinfo 
                   WHERE section = '$section' 
                   AND semester = '$semester' 
                   AND schoolYear = '$schoolYear' 
+                  AND status = 'Deployed' 
                   ORDER BY section ASC, lastName ASC";
     }
 
