@@ -34,7 +34,7 @@ if (isset($_POST['section'])) {
             $query = "SELECT * FROM studentinfo 
                       WHERE section IN ($sectionList) 
                       AND semester = '$semester' 
-                      AND schoolYear = '$schoolYear'
+                      AND school_year = '$schoolYear'
                       AND status = 'Deployed' 
                       ORDER BY section ASC, lastName ASC";
         } else {
@@ -46,7 +46,7 @@ if (isset($_POST['section'])) {
         $query = "SELECT * FROM studentinfo 
                   WHERE section = '$section' 
                   AND semester = '$semester' 
-                  AND schoolYear = '$schoolYear' 
+                  AND school_year = '$schoolYear' 
                   AND status = 'Deployed' 
                   ORDER BY section ASC, lastName ASC";
     }
