@@ -13,7 +13,7 @@ while ($row = mysqli_fetch_assoc($sectionsResult)) {
     $sections[] = $row['section'];
 }
 $sectionsString = implode("','", $sections);
-$query = "SELECT DISTINCT * FROM student_masterlist WHERE section IN ('$sectionsString') AND semester = '$semester' AND schoolYear = '$schoolYear' ORDER BY section ASC, lastname ASC";
+$query = "SELECT DISTINCT * FROM studentinfo WHERE section IN ('$sectionsString') AND semester = '$semester' AND school_year = '$schoolYear' AND status = 'Deployed' ORDER BY section ASC, lastname ASC";
 
 $result = mysqli_query($connect, $query);
 ?>

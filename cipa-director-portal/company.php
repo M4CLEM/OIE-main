@@ -3,6 +3,10 @@ session_start();
 include_once("../includes/connection.php");
 $query = "select * from companylist";
 $result = mysqli_query($connect, $query);
+
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
