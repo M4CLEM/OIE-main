@@ -55,18 +55,36 @@ if (isset($_POST['section'])) {
 
     if ($result && mysqli_num_rows($result) > 0) {
         while ($row = mysqli_fetch_assoc($result)) {
+            // Safe access with null coalescing operator
+            $studentID = $row['studentID'] ?? '';
+            $lastName = $row['lastname'] ?? '';
+            $firstName = $row['firstname'] ?? '';
+            $section = $row['section'] ?? '';
+            $year = '';
+
+            $yearQuery = "SELECT year FROM student_masterlist 
+                          WHERE studentID = '$studentID' 
+                          AND semester = '$semester' 
+                          AND schoolYear = '$schoolYear' 
+                          LIMIT 1";
+            $yearResult = mysqli_query($connect, $yearQuery);
+            if ($yearResult && mysqli_num_rows($yearResult) > 0) {
+                $yearRow = mysqli_fetch_assoc($yearResult);
+                $year = $yearRow['year'] ?? '';
+            }
+
             $tableRows .= "<tr>";
             $tableRows .= "<td class='text-center'>
                 <div class='form-check'>
                     <input name='studentIDs[]' class='form-check-input p-0 checkbox-highlight' 
                         type='checkbox' style='transform: scale(1.5);' 
-                        value='{$row['studentID']}' id='flexCheck{$row['studentID']}'>
+                        value='{$studentID}' id='flexCheck{$studentID}'>
                 </div>
             </td>";
-            $tableRows .= "<td>{$row['studentID']}</td>";
-            $tableRows .= "<td>{$row['lastName']}, {$row['firstName']}</td>";
-            $tableRows .= "<td>{$row['section']}</td>";
-            $tableRows .= "<td>{$row['year']}</td>";
+            $tableRows .= "<td>{$studentID}</td>";
+            $tableRows .= "<td>{$lastName}, {$firstName}</td>";
+            $tableRows .= "<td>{$section}</td>";
+            $tableRows .= "<td>{$year}</td>";
             $tableRows .= "</tr>";
         }
     } else {
