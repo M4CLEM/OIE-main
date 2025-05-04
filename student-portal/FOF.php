@@ -87,10 +87,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert resume document information
     if ($resumeLink) {
-        $stmtResume = $connect->prepare("INSERT INTO documents (student_ID, email, document, file_name, file_link, status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmtResume = $connect->prepare("INSERT INTO documents (student_ID, email, document, file_name, file_link, status, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $documentType = 'Resume';
         $documentStatus = 'Pending';
-        $stmtResume->bind_param('isssss', $studentID, $email, $documentType, $_FILES["resume"]["name"], $resumeLink, $documentStatus);
+        $stmtResume->bind_param('isssssss', $studentID, $email, $documentType, $_FILES["resume"]["name"], $resumeLink, $documentStatus, $semester, $SY);
         $stmtResume->execute();
         $stmtResume->close();
     }
