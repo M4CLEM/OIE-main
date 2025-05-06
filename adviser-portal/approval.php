@@ -5,13 +5,43 @@ include_once("../includes/connection.php");
 $activeSemester = $_SESSION['semester'];
 $activeSchoolYear = $_SESSION['schoolYear'];
 
-if(isset($_SESSION['dept_sec']) && !empty($_SESSION['dept_sec'])) {
-    // If sections are available, filter the query based on them
-    $sections = implode("','", $_SESSION['dept_sec']);
-    $query = "SELECT * FROM company_info WHERE section IN ('$sections') AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
+if (isset($_SESSION['dept_sec']) && !empty($_SESSION['dept_sec'])) {
+    // Handle case where dept_sec is a single string with comma-separated values
+    if (is_array($_SESSION['dept_sec'])) {
+        $sectionArray = [];
+        foreach ($_SESSION['dept_sec'] as $sec) {
+            $parts = explode(',', $sec); // Split strings like "4A,4B,4C"
+            foreach ($parts as $part) {
+                $sectionArray[] = trim($part);
+            }
+        }
+    } else {
+        $sectionArray = explode(',', $_SESSION['dept_sec']); // fallback, just in case
+        $sectionArray = array_map('trim', $sectionArray);
+    }
+
+    // Build FIND_IN_SET conditions
+    $conditions = [];
+    foreach ($sectionArray as $section) {
+        $section = mysqli_real_escape_string($connect, $section);
+        $conditions[] = "FIND_IN_SET('$section', section)";
+    }
+
+    $sectionFilter = implode(" OR ", $conditions);
+
+    // Escape semester and school year
+    $activeSemesterEscaped = mysqli_real_escape_string($connect, $activeSemester);
+    $activeSchoolYearEscaped = mysqli_real_escape_string($connect, $activeSchoolYear);
+
+    // Build the query
+    $query = "SELECT * FROM company_info 
+              WHERE ($sectionFilter) 
+              AND semester = '$activeSemesterEscaped' 
+              AND schoolYear = '$activeSchoolYearEscaped'";
+
+    $result = mysqli_query($connect, $query);
 }
 
-$result = mysqli_query($connect, $query);
 
 
 if (isset($_POST['Approve'])) {
