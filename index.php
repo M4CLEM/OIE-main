@@ -166,8 +166,13 @@ if (isset($_POST['login'])) {
                 if ($courseResult->num_rows > 0) {
                     $rowsCourse = $courseResult->fetch_assoc();
                     $_SESSION['course'] = $rowsCourse['course'];
+                    header("Location: student-portal/student.php");
+                    exit();
+                } else {
+                    header("Location: student-portal/fill-out-form.php");
+                    exit();
                 }
-                header("Location: student-portal/student.php");
+                
             } else if ($role == "IndustryPartner") {
                 $_SESSION['IndustryPartner'] = $uname;
                 $stmtCompany = $connect->prepare("SELECT companyName FROM users WHERE username = ?");
