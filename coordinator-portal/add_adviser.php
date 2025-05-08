@@ -8,6 +8,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sectionRaw = $_POST['section']; // Comma-separated section IDs
     $dept = $_POST['dept'];
     $course = $_POST['course'];
+    $semester = $_POST['semester'];
+    $schoolYear = $_POST['schoolYear'];
 
     $role = "Adviser";
     $password = $_POST['password'];
@@ -30,8 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $checkUserExists->close();
 
         // Insert values into listadviser (only once)
-        $addToList = $connect->prepare('INSERT INTO listadviser (fullName, email, section, course, dept) VALUES (?, ?, ?, ?, ?)');
-        $addToList->bind_param('sssss', $fullName, $email, $sectionString, $course, $dept);
+        $addToList = $connect->prepare('INSERT INTO listadviser (fullName, email, section, course, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $addToList->bind_param('sssssss', $fullName, $email, $sectionString, $course, $dept, $semester, $schoolYear);
         $addToList->execute();
         $addToList->close();
 

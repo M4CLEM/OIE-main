@@ -9,6 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sectionRaw = $_POST['section'];
     $dept = $_POST['dept'];
     $course = $_POST['course'];
+    $semester = $_POST['editSemester'];
+    $schoolYear = $_POST['editSchoolYear'];
     $password = $_POST['editPassword'];
     $confirmPassword = $_POST['confirmEdit'];
 
@@ -32,8 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->close();
 
     // Update listadviser table
-    $updateAdviser = $connect->prepare("UPDATE listadviser SET fullName = ?, email = ?, section = ?, course = ?, dept = ? WHERE id = ?");
-    $updateAdviser->bind_param("sssssi", $fullName, $newEmail, $sectionString, $course, $dept, $id);
+    $updateAdviser = $connect->prepare("UPDATE listadviser SET fullName = ?, email = ?, section = ?, course = ?, dept = ?, semester = ?, schoolYear = ? WHERE id = ?");
+    $updateAdviser->bind_param("sssssssi", $fullName, $newEmail, $sectionString, $course, $dept, $semester, $schoolYear, $id);
     $updateAdviser->execute();
     $updateAdviser->close();
 

@@ -86,6 +86,7 @@ $result = mysqli_query($connect, $query);
                                     <th scope="col">Section</th>
                                     <th scope="col">Course</th>
                                     <th scope="col">Department</th>
+                                    <th scope="col">Semester-SchoolYear</th>
                                     <th width="8%" align="center">Action</th>
                                 </tr>
                             </thead>
@@ -99,8 +100,9 @@ $result = mysqli_query($connect, $query);
                                         <td><?php echo $rows['section']; ?></td>
                                         <td><?php echo $rows['course']; ?></td>
                                         <td><?php echo $rows['dept']; ?></td>
+                                        <td><?php echo $rows['semester']; ?> - <?php echo $rows['schoolYear']; ?></td>
                                         <td>
-                                            <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $rows['id']; ?>" data-name="<?php echo $rows['fullName']; ?>" data-email="<?php echo $rows['email']; ?>" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course']; ?>" data-department="<?php echo $rows['dept']; ?>"><span class="fa fa-edit fw-fa"></span></a>
+                                            <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $rows['id']; ?>" data-name="<?php echo $rows['fullName']; ?>" data-email="<?php echo $rows['email']; ?>" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course']; ?>" data-department="<?php echo $rows['dept']; ?>" data-semester="<?php echo $rows['semester']; ?>" data-schoolyear="<?php echo $rows['schoolYear']; ?>"><span class="fa fa-edit fw-fa"></span></a>
 
                                             <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
                                             data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>" data-email="<?php echo $rows['email']; ?>"><span class="fa fa-trash fw-fa"></span></button>
@@ -175,6 +177,22 @@ $result = mysqli_query($connect, $query);
                                 </div>
                                 <!-- Hidden input to submit selected values -->
                                 <input type="hidden" name="section" id="sectionInput" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">  
+                                <select name="semester" class="form-control">
+                                    <option hidden disable value="select ">Select Semester</option>
+                                    <option value="1st Semester">1st Semester</option>
+                                    <option value = "2nd Semester">2nd Semester</option>          
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input type="text" class="form-control" id="schoolYear" name="schoolYear" value="" autocomplete="none" placeholder="School Year" required>
                             </div>
                         </div>
 
@@ -259,6 +277,22 @@ $result = mysqli_query($connect, $query);
                                 </div>
                                 <!-- Hidden input to submit selected values -->
                                 <input type="hidden" name="section" id="editSectionInput" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">  
+                                <select name="editSemester" id="editSemester" class="form-control">
+                                    <option hidden disable value="select ">Select Semester</option>
+                                    <option value="1st Semester">1st Semester</option>
+                                    <option value = "2nd Semester">2nd Semester</option>          
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input type="text" class="form-control" id="editSchoolYear" name="editSchoolYear" value="" autocomplete="none" placeholder="School Year" required>
                             </div>
                         </div>
 
@@ -487,12 +521,17 @@ $result = mysqli_query($connect, $query);
                 var section = $(this).data('section');
                 var course = $(this).data('course');
                 var department = $(this).data('department');
+                var semester = $(this).data('semester');
+                var schoolYear = $(this).data('schoolyear');
                 var id = $(this).data('id');
+
 
                 $('#editID').val(id);
                 $('#editFullName').val(name);
                 $('#editEmail').val(email);
                 $('#editSection').val(section);
+                $('#editSemester').val(semester);
+                $('#editSchoolYear').val(schoolYear);
                 $('#editDropdownSectionBtn').text(section);
 
                 // Set department and trigger courses to load
