@@ -15,6 +15,41 @@ use Swift\Mailer;
 use Swift\Message;
 use Swift\SmtpTransport;
 
+/**
+ * Attempts to create a working SwiftMailer instance by trying ports 587, 465, and 25.
+ */
+function createWorkingMailer($host, $username, $password) {
+    $ports = [
+        ['port' => 587, 'encryption' => 'tls'],
+        ['port' => 465, 'encryption' => 'ssl'],
+        ['port' => 25, 'encryption' => null]
+    ];
+
+    foreach ($ports as $config) {
+        try {
+            $transport = (new Swift_SmtpTransport($host, $config['port'], $config['encryption']))
+                ->setUsername($username)
+                ->setPassword($password)
+                ->setStreamOptions([
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    ]
+                ]);
+
+            $mailer = new Swift_Mailer($transport);
+            $mailer->getTransport()->start(); // Test connection
+            return $mailer;
+        } catch (Exception $e) {
+            error_log("SMTP failed on port {$config['port']}: " . $e->getMessage());
+            continue;
+        }
+    }
+
+    throw new Exception("All SMTP ports failed. Check your credentials or network.");
+}
+
 try {
     if (isset($_POST['send'])) {
         $email = isset($_GET['email']) ? $_GET['email'] : '';
@@ -46,19 +81,8 @@ try {
         $smtpEmail = 'cipa@plmun.edu.ph'; // App email
         $smtpPassword = 'iqwrimadvoliiaoc'; // App password
 
-        // Create transport
-        $transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
-            ->setUsername($smtpEmail)
-            ->setPassword($smtpPassword)
-            ->setStreamOptions([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ]
-            ]);
-
-        $mailer = new Swift_Mailer($transport);
+        // Use port-rotating mailer
+        $mailer = createWorkingMailer('smtp.gmail.com', $smtpEmail, $smtpPassword);
 
         // Create email message
         $message = (new Swift_Message('OTP Verification Code'))
@@ -97,7 +121,7 @@ try {
                     Send OTP successfully. Please check your Gmail.
                 </div>
             </div>
-        </div>';        
+        </div>';
     }
 } catch (Exception $e) {
     echo '<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>';
