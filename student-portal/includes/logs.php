@@ -34,11 +34,15 @@ class updatelogs
 
                 $company_details_query = mysqli_query($connect, "SELECT * FROM company_info WHERE companyCode='$student_Company'");
                 $rowCompany = mysqli_fetch_array($company_details_query);
-                $companyName = $rowCompany['companyName'];
-                $companyAdd = $rowCompany['companyAddress'];
-                $companyNum = $rowCompany['trainerContact'];
-                $companyEmail = $rowCompany['trainerEmail'];
-                $workType = $rowCompany['workType'];
+                $companyName = $companyAdd = $companyNum = $companyEmail = $workType = 'N/A'; // default values
+
+                if ($rowCompany !== null) {
+                    $companyName = $rowCompany['companyName'];
+                    $companyAdd = $rowCompany['companyAddress'];
+                    $companyNum = $rowCompany['trainerContact'];
+                    $companyEmail = $rowCompany['trainerEmail'];
+                    $workType = $rowCompany['workType'];
+                }
 
                 if (mysqli_num_rows($adviser_details_query) > 0) {
                     $adviserNames = [];
