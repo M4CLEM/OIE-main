@@ -6,9 +6,41 @@ use Swift\Mailer;
 use Swift\Message;
 use Swift\Transport\SmtpTransport;
 
-require '../includes/connection.php'; // Ensure connection to the database
+require '../includes/connection.php';
 
 $response = array();
+
+function createWorkingMailer($host, $username, $password) {
+    $ports = [
+        ['port' => 587, 'encryption' => 'tls'],
+        ['port' => 465, 'encryption' => 'ssl'],
+        ['port' => 25, 'encryption' => null]
+    ];
+
+    foreach ($ports as $config) {
+        try {
+            $transport = (new Swift_SmtpTransport($host, $config['port'], $config['encryption']))
+                ->setUsername($username)
+                ->setPassword($password)
+                ->setStreamOptions([
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    ]
+                ]);
+
+            $mailer = new Swift_Mailer($transport);
+            $mailer->getTransport()->start(); // test connection
+            return $mailer;
+        } catch (Exception $e) {
+            error_log("SMTP failed on port {$config['port']}: " . $e->getMessage());
+            continue;
+        }
+    }
+
+    throw new Exception("All SMTP ports failed. Check your credentials or network.");
+}
 
 try {
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -18,20 +50,8 @@ try {
         $senderEmail = $_POST['sender-email'];
         $subject = $_POST['email-subject'];
 
-        // Create the Transport
-        $transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
-            ->setUsername('cipa@plmun.edu.ph')
-            ->setPassword('iqwrimadvoliiaoc')
-            ->setStreamOptions([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ]
-            ]);
-
-        // Create the Mailer using your created Transport
-        $mailer = new Swift_Mailer($transport);
+        // Create the Mailer (tries 587, 465, then 25)
+        $mailer = createWorkingMailer('smtp.gmail.com', 'cipa@plmun.edu.ph', 'iqwrimadvoliiaoc');
 
         foreach ($recipient_emails as $recipient_email) {
             $recipient_email = trim($recipient_email);
@@ -61,10 +81,8 @@ try {
                     $last_name = $row['lastname'];
                     $first_name = $row['firstname'];
 
-                    // Construct the link with student ID as a query parameter
                     $link = 'http://localhost/OIE-main/grading_page.php?student_id=' . urlencode($student_id);
 
-                    // Create the link in the body
                     $body .= '<p><a href="' . $link . '">' . $last_name . ' ' . $first_name . '</a></p><br>';
                 }
             } else {
@@ -72,20 +90,18 @@ try {
             }
 
             $body .= '<p>Kindly click the provided link(s) to proceed to the grading page.</p>
-                                <p>For inquiries email me at: ' . $senderEmail . '</p>
-                                <p>Best Regards,</p>
-                                <p>' . $sender . '<br>OJT Adviser</p>
+                      <p>For inquiries email me at: ' . $senderEmail . '</p>
+                      <p>Best Regards,</p>
+                      <p>' . $sender . '<br>OJT Adviser</p>
                 </div>
             </body>
             </html>';
 
-            // Create email message
             $message = (new Swift_Message($subject))
                 ->setFrom(['agl.systems.info@gmail.com' => 'PLMUN CIPA'])
                 ->setTo($recipient_email)
                 ->setBody($body, 'text/html');
 
-            // Send the message
             $result = $mailer->send($message);
 
             if (!$result) {
@@ -99,8 +115,7 @@ try {
 } catch (Exception $e) {
     $response['status'] = 'error';
     $response['message'] = $e->getMessage();
-    error_log($e->getMessage()); // Log the error
+    error_log($e->getMessage());
 }
 
 echo json_encode($response);
-
