@@ -26,7 +26,7 @@ if (!$result) {
         </aside>
         <div class="main">
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
-                <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Grading Rubics</h4>
+                <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Grading Rubrics</h4>
                 <ul class="navbar-nav ml-auto">
                     <div class="topbar-divider d-none d-sm-block"></div>
                     <li class="nav-item dropdown no-arrow">
@@ -53,7 +53,7 @@ if (!$result) {
                 <div class="col-lg-13 m-3">
                     <div class="card shadow mb-4">
                         <div class="card-header py-2">
-                            <a href="modal.php" class="btn btn-primary addBtn" data-toggle="modal" data-target="#addModal">+Add Grading Rubic</a>
+                            <a href="modal.php" class="btn btn-primary addBtn" data-toggle="modal" data-target="#addModal">+Add Grading Rubric</a>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -150,11 +150,11 @@ if (!$result) {
                                     <div class="form-group">
                                         <div class="row">
                                             <label for="semester">Semester</label>
-                                            <input type="text" id="semester" name="semester" class="form-control">
+                                            <input type="text" id="semester" name="semester" class="form-control" required>
                                         </div>
                                         <div class="row">
                                             <label for="schoolYear">School Year</label>
-                                            <input type="text" name="schoolYear" id="schoolYear" class="form-control">
+                                            <input type="text" name="schoolYear" id="schoolYear" class="form-control" required>
                                         </div>
                                     </div>
                                 </div>
