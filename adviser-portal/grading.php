@@ -6,7 +6,7 @@
     $activeSemester = $_SESSION['semester'];
     $activeSchoolYear = $_SESSION['schoolYear'];
     
-    $query = "SELECT * FROM listadviser WHERE email ='$email'";
+    $query = "SELECT * FROM listadviser WHERE email ='$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
     $result = mysqli_query($connect, $query);
 ?>
 <!DOCTYPE html>

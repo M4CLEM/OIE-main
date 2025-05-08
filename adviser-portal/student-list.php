@@ -137,7 +137,7 @@ if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
                                         $email = $_SESSION['adviser'];
 
                                         // Fetch the comma-separated section string
-                                        $getsections = "SELECT section FROM listadviser WHERE email = '$email'";
+                                        $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$semester' AND schoolYear = '$schoolYear'";
                                         $sectionsResult = mysqli_query($connect, $getsections);
 
                                         // Check if query was successful

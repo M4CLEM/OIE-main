@@ -103,7 +103,7 @@ $result = mysqli_query($connect, $query);
                                     <div class="col-md-9">
                                     <?php
                                         $email = $_SESSION['adviser'];
-                                        $getsections = "SELECT section FROM listadviser WHERE email = '$email'";
+                                        $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$semester' AND schoolYear = '$schoolYear'";
                                         $sections = mysqli_query($connect, $getsections);
 
                                         if ($sections) {

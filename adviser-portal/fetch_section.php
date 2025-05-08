@@ -12,7 +12,7 @@ if (isset($_POST['section'])) {
 
     if ($section === "All") {
         // Get all sections assigned to the adviser
-        $getSections = "SELECT section FROM listadviser WHERE email = '$adviserEmail'";
+        $getSections = "SELECT section FROM listadviser WHERE email = '$adviserEmail' AND semester = '$semester' AND schoolYear = '$schoolYear'";
         $sectionsResult = mysqli_query($connect, $getSections);
 
         $sectionArray = [];

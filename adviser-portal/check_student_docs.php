@@ -2,7 +2,9 @@
 session_start();
 include_once("../includes/connection.php");
 $email = $_SESSION['adviser'];
-$query = "SELECT * FROM listadviser WHERE email ='$email'";
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+$query = "SELECT * FROM listadviser WHERE email ='$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
 $result = mysqli_query($connect, $query);
 ?>
 <!DOCTYPE html>

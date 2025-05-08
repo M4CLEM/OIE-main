@@ -113,7 +113,7 @@
                                         <div class="col">
                                             <?php
                                                 // Assuming $connect is your mysqli connection object
-                                                $getsections = "SELECT section FROM listadviser WHERE email = '$email'";
+                                                $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                                 $sections = mysqli_query($connect, $getsections);
 
                                                 // Check if query was successful
