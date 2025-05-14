@@ -127,7 +127,7 @@ if (isset($_POST['login'])) {
                     $row = $result->fetch_assoc();
                     $_SESSION['department'] = $row['department'];
                 }
-                header("Location: coordinator-portal/masterlist.php");
+                header("Location: coordinator-portal/dashboard.php");
             } else if ($role == "Adviser") {
                 $stmt = $connect->prepare("SELECT * FROM listadviser WHERE email = ?");
                 $stmt->bind_param("s", $uname);

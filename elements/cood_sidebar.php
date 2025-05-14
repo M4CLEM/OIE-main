@@ -7,6 +7,14 @@
     </div>
 </div>
 <ul class="sidebar-nav">
+
+    <li class="sidebar-item">
+        <a href="dashboard.php" class="sidebar-link">
+            <i class="fas fa-chart-bar fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
+
     <li class="sidebar-item">
         <a href="masterlist.php" class="sidebar-link">
             <i class="fa fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
