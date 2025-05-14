@@ -85,6 +85,7 @@ while ($row = mysqli_fetch_assoc($adviserResult)) {
     <?php include("../elements/meta.php"); ?>
     <title>OJT COORDINATOR PORTAL</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
     <style>
         .card-custom {
             border-radius: 10px;

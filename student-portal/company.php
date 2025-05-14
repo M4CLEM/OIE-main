@@ -50,6 +50,7 @@ function get_drive_image_url($image) {
     <?php include("../elements/meta.php"); ?>
     <title>Adviser Portal</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 </head>
 
 <body id="page-top">

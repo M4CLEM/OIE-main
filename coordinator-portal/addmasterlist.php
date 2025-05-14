@@ -11,7 +11,7 @@ $result=mysqli_query($connect,"SELECT * FROM studentinfo WHERE status = 'ENROLLE
     <?php include("../elements/meta.php"); ?>
     <title>OJT COORDINATOR PORTAL</title>
     <?php include("embed.php"); ?>
-
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 </head>
 
 <body id="page-top">

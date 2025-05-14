@@ -19,6 +19,7 @@ $result = mysqli_query($connect, $query);
     <?php include("../elements/meta.php"); ?>
     <title>CIPA ADMIN</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 </head>
 
 

@@ -1,0 +1,16 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.main {
+    height: 100vh;        /* Viewport height */
+    overflow-y: auto;     /* Scroll if needed */
+}
+
+#content-wrapper {
+  height: 100vh;       /* Takes full viewport height */
+  overflow-y: auto;    /* Enables vertical scrolling if needed */
+  display: flex;
+  flex-direction: column;
+}

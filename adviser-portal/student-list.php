@@ -48,6 +48,7 @@ if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
     <?php include("../elements/meta.php"); ?>
     <title>Adviser Portal</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 
 </head>
 

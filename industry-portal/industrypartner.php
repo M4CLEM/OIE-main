@@ -19,6 +19,7 @@ $result = mysqli_stmt_get_result($stmtDept);
     <?php include("../elements/meta.php"); ?>
     <title>Industry Partner Portal</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 
 </head>
 

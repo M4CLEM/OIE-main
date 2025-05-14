@@ -20,6 +20,7 @@ $documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM docume
     <?php include("../elements/meta.php"); ?>
     <title>OJT COORDINATOR PORTAL</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 
     <style>
         .addBtn {

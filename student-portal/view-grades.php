@@ -28,6 +28,7 @@ $enrollments = $enrollmentsResult->fetch_all(MYSQLI_ASSOC);
         <?php include("../elements/meta.php"); ?>
         <title>Student Portal</title>
         <?php include("embed.php"); ?>
+        <link rel="stylesheet" href="../assets/css/new-style.css">
     </head>
     <body id="page-top">
         <div class="wrapper">

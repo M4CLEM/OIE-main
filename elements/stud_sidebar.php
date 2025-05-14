@@ -24,57 +24,57 @@
 
     <?php 
     
-    $studentEmail = $_SESSION['student'] ?? null;
+        $studentEmail = $_SESSION['student'] ?? null;
 
-if (!$studentEmail) {
-    echo "Student email is not set.";
-    exit;
-}
-
-$studentStatus = null;
-$studentID = null;
-$hasStudentInfo = false;
-$showCompanyLink = false;
-
-// Step 1: Get studentID from studentinfo
-$query = "SELECT studentID, status FROM studentinfo WHERE email = ? AND semester = ? AND school_year = ?";
-$stmt = $connect->prepare($query);
-$stmt->bind_param("sss", $studentEmail, $semester, $schoolYear);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($row = $result->fetch_assoc()) {
-    $hasStudentInfo = true;
-    $studentID = $row['studentID'];
-    $studentStatus = $row['status'];
-
-    // Condition 1: Status is Undeployed
-    if ($studentStatus === 'Undeployed') {
-        $showCompanyLink = true;
-    }
-} else {
-    // Step 2: If no record in studentinfo, get studentID from any record in studentinfo (no semester filtering here)
-    $getIDQuery = "SELECT studentID FROM studentinfo WHERE email = ? LIMIT 1";
-    $stmtID = $connect->prepare($getIDQuery);
-    $stmtID->bind_param("s", $studentEmail);
-    $stmtID->execute();
-    $idResult = $stmtID->get_result();
-
-    if ($idRow = $idResult->fetch_assoc()) {
-        $studentID = $idRow['studentID'];
-
-        // Check if student is enrolled in current semester/year
-        $enrollQuery = "SELECT 1 FROM student_masterlist WHERE studentID = ? AND semester = ? AND schoolYear = ? LIMIT 1";
-        $enrollStmt = $connect->prepare($enrollQuery);
-        $enrollStmt->bind_param("sss", $studentID, $semester, $schoolYear);
-        $enrollStmt->execute();
-        $enrollResult = $enrollStmt->get_result();
-
-        if ($enrollResult->num_rows > 0) {
-            $showCompanyLink = true;
+        if (!$studentEmail) {
+            echo "Student email is not set.";
+            exit;
         }
-    }
-}
+
+        $studentStatus = null;
+        $studentID = null;
+        $hasStudentInfo = false;
+        $showCompanyLink = false;
+
+        // Step 1: Get studentID from studentinfo
+        $query = "SELECT studentID, status FROM studentinfo WHERE email = ? AND semester = ? AND school_year = ?";
+        $stmt = $connect->prepare($query);
+        $stmt->bind_param("sss", $studentEmail, $semester, $schoolYear);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            $hasStudentInfo = true;
+            $studentID = $row['studentID'];
+            $studentStatus = $row['status'];
+
+            // Condition 1: Status is Undeployed
+            if ($studentStatus === 'Undeployed') {
+                $showCompanyLink = true;
+            }
+        } else {
+            // Step 2: If no record in studentinfo, get studentID from any record in studentinfo (no semester filtering here)
+            $getIDQuery = "SELECT studentID FROM studentinfo WHERE email = ? LIMIT 1";
+            $stmtID = $connect->prepare($getIDQuery);
+            $stmtID->bind_param("s", $studentEmail);
+            $stmtID->execute();
+            $idResult = $stmtID->get_result();
+
+            if ($idRow = $idResult->fetch_assoc()) {
+                $studentID = $idRow['studentID'];
+
+                // Check if student is enrolled in current semester/year
+                $enrollQuery = "SELECT 1 FROM student_masterlist WHERE studentID = ? AND semester = ? AND schoolYear = ? LIMIT 1";
+                $enrollStmt = $connect->prepare($enrollQuery);
+                $enrollStmt->bind_param("sss", $studentID, $semester, $schoolYear);
+                $enrollStmt->execute();
+                $enrollResult = $enrollStmt->get_result();
+
+                if ($enrollResult->num_rows > 0) {
+                    $showCompanyLink = true;
+                }
+            }
+        }
     
     ?>
 

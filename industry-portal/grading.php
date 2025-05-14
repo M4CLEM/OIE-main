@@ -25,6 +25,7 @@
         <title>INDUSTRY PARTNER PORTAL</title>
         <?php include("embed.php"); ?>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="../assets/css/new-style.css">
     </head>
     <body id="page-top">
         <div id="wrapper">

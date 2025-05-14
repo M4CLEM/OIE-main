@@ -11,6 +11,7 @@ $result = mysqli_query($connect, $query);
     <?php include("../elements/meta.php"); ?>
     <title>OJT Coordinator</title>
     <?php include("embed.php"); ?>
+    <link rel="stylesheet" href="../assets/css/new-style.css">
 </head>
 
 
