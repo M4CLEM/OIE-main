@@ -28,6 +28,14 @@
             <span>Grading</span>
         </a>
     </li>
+
+    <li class="sidebar-item">
+        <a href="" class="sidebar-link">
+            <i class="fa fa-file-export fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Generate Report</span>
+        </a>
+    </li>
+
     <li class="sidebar-item">
         <a href="company.php" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#comp" aria-expanded="false" aria-controls="comp">
             <i class="lni lni-briefcase-alt"></i>
