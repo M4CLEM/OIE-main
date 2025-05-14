@@ -208,48 +208,69 @@
                     <hr>
 
                     <div class="row m-1 align-items-center">
-    <div class="col-md-4">
-        <h4>Analytics</h4>
-    </div>
+                        <div class="col-md-10">
+                            <h4>Analytics</h4>
+                        </div>
 
-    <div class="col-md-4">
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="chartTypeSwitch">
-            <label class="form-check-label" for="chartTypeSwitch">Switch to Pie Chart</label>
-        </div>
-    </div>
+                        <div class="col-md-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="chartTypeSwitch">
+                                <label class="form-check-label ms-3" for="chartTypeSwitch">Switch to Pie Chart</label>
+                            </div>
+                        </div>
 
-    <div class="row">
-        <!-- Total Chart -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title">Overall Analytics</h5>
-                    <canvas id="totalChart" class="fixed-chart"></canvas>
-                </div>
-            </div>
-        </div>
+                        <div class="row">
+                            <!-- Total Bar Chart (Grouped for BSCS) -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Overall Analytics</h5>
+                                        <canvas id="totalChart" class="fixed-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
 
-        <!-- Per-Course Charts -->
-        <?php foreach ($allCourses as $index => $course): ?>
-            <?php
-                $courseName = $course['course'];
-                $enrolled = $enrolledCounts[$courseName] ?? 0;
-                $deployed = $deployedCounts[$courseName] ?? 0;
-                $notDeployed = $enrolled - $deployed;
-                $chartId = 'chart_' . $index;
-            ?>
-            <div class="col-md-6 mb-4">
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h5 class="card-title"><?= htmlspecialchars($courseName) ?></h5>
-                        <canvas id="<?= $chartId ?>" class="fixed-chart"></canvas>
+                            <!-- Pie Charts: Enrolled, Deployed, Undeployed -->
+                            <?php
+                                $courseLabels = [];
+                                $enrolledData = [];
+                                $deployedData = [];
+                                $notDeployedData = [];
+
+                                foreach ($allCourses as $course) {
+                                    $courseName = $course['course'];
+                                    $courseLabels[] = $courseName;
+                                    $enrolled = $enrolledCounts[$courseName] ?? 0;
+                                    $deployed = $deployedCounts[$courseName] ?? 0;
+                                    $notDeployed = $enrolled - $deployed;
+                                    $enrolledData[] = $enrolled;
+                                    $deployedData[] = $deployed;
+                                    $notDeployedData[] = $notDeployed;
+                                }
+                            ?>
+
+                            <?php
+                                $pieCharts = [
+                                    ['id' => 'enrolledChart', 'label' => 'Total Enrolled', 'data' => $enrolledData],
+                                    ['id' => 'deployedChart', 'label' => 'Total Deployed', 'data' => $deployedData],
+                                    ['id' => 'notDeployedChart', 'label' => 'Total Undeployed', 'data' => $notDeployedData],
+                                ];
+                                foreach ($pieCharts as $chart):
+                            ?>
+                                <div class="col-md-6 mb-4">
+                                    <div class="card shadow">
+                                        <div class="card-body">
+                                            <h5 class="card-title"><?= $chart['label'] ?></h5>
+                                            <!-- Chart container for JS to append percentages -->
+                                            <div class="chart-container">
+                                                <canvas id="<?= $chart['id'] ?>" class="fixed-chart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div>
                 </div>
             </div>
 
@@ -267,105 +288,174 @@
         }
     </style>
 
+    <?php
+        $courseLabels = array_column($allCourses, 'course');
+        $enrolledData = array_map(function($c) use ($enrolledCounts) {
+            return $enrolledCounts[$c] ?? 0;
+        }, $courseLabels);
+
+        $deployedData = array_map(function($c) use ($deployedCounts) {
+            return $deployedCounts[$c] ?? 0;
+        }, $courseLabels);
+
+        $notDeployedData = [];
+        foreach ($courseLabels as $c) {
+            $e = $enrolledCounts[$c] ?? 0;
+            $d = $deployedCounts[$c] ?? 0;
+            $notDeployedData[] = $e - $d;
+        }
+    ?>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
-<script>
-    const chartInstances = [];
+    <script>
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            return '#' + Array.from({ length: 6 }, () => letters[Math.floor(Math.random() * 16)]).join('');
+        }
 
-    function getPercentageData(data) {
-        const total = data.reduce((sum, value) => sum + value, 0);
-        return data.map(value => total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%');
-    }
+        function createChart(ctx, type, label, labels, data) {
+            const isPie = type === 'pie';
+            const isBar = type === 'bar';
 
-    function createChart(ctx, type, label, data) {
-        const isPie = type === 'pie';
-        return new Chart(ctx, {
-            type: type,
-            data: {
-                labels: ['Enrolled', 'Deployed', 'Not Deployed'],
-                datasets: [{
-                    label: label,
-                    data: data,
-                    backgroundColor: ['#007bff', '#28a745', '#dc3545'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    datalabels: {
-                        display: isPie,
-                        color: '#000',
-                        font: {
-                            size: 10,
-                            weight: 'bold'
+            const chart = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: isPie ? labels.map(() => getRandomColor()) : ['#007bff', '#28a745', '#dc3545'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        datalabels: {
+                            display: false
                         },
-                        formatter: (value, context) => {
-                            const total = context.chart._metasets[0].total;
-                            return total ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                        legend: {
+                            display: isPie,
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 10 } }
+                        },
+                        title: {
+                            display: true,
+                            text: label
                         }
                     },
-                    legend: {
-                        display: isPie,
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 12,
-                            font: { size: 10 }
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: label + ' Analytics'
+                    scales: isPie ? {} : {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
                     }
                 },
-                scales: isPie ? {} : {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { precision: 0 }
-                    }
+                plugins: [ChartDataLabels]
+            });
+
+            // Add percentage info below chart
+            if (isPie || isBar) {
+                const total = data.reduce((sum, val) => sum + val, 0);
+                const container = ctx.canvas.parentNode;
+
+                let percentDiv = container.querySelector('.percentage-info');
+                if (!percentDiv) {
+                    percentDiv = document.createElement('div');
+                    percentDiv.className = 'percentage-info';
+                    percentDiv.style.fontSize = '12px';
+                    percentDiv.style.marginTop = '8px';
+                    percentDiv.style.lineHeight = '1.4';
+                    container.appendChild(percentDiv);
+                } else {
+                    percentDiv.innerHTML = '';
                 }
+
+                labels.forEach((lbl, i) => {
+                    const percent = total ? ((data[i] / total) * 100).toFixed(1) : '0.0';
+                    const entry = document.createElement('div');
+                    entry.innerText = `${lbl}: ${percent}%`;
+                    percentDiv.appendChild(entry);
+                });
+            }
+
+            return chart;
+        }
+
+        // Overall Bar Chart
+        const totalChartCtx = document.getElementById('totalChart').getContext('2d');
+        const totalEnrolled = <?= $totalEnrolled ?>;
+        const totalDeployed = <?= $totalDeployed ?>;
+        const totalNotDeployed = <?= $totalNotDeployed ?>;
+        createChart(totalChartCtx, 'bar', 'Overall', ['Deployed', 'Not Deployed'], [totalDeployed, totalNotDeployed]);
+
+        // Course data
+        const courseLabels = <?= json_encode($courseLabels) ?>;
+        const enrolledData = <?= json_encode($enrolledData) ?>;
+        const deployedData = <?= json_encode($deployedData) ?>;
+        const notDeployedData = <?= json_encode($notDeployedData) ?>;
+
+        // Chart switch preference
+        const chartTypeSwitch = document.getElementById('chartTypeSwitch');
+        let savedType = localStorage.getItem('chartType');
+
+        if (!savedType) {
+            savedType = 'bar'; // default to bar
+            localStorage.setItem('chartType', 'bar');
+        }
+
+        chartTypeSwitch.checked = savedType === 'pie';
+        chartTypeSwitch.nextElementSibling.innerText = savedType === 'pie' ? 'Switch to Bar Graph' : 'Switch to Pie Chart';
+
+        const toggleableCharts = [
+            {
+                ctx: document.getElementById('enrolledChart').getContext('2d'),
+                label: 'Total Enrolled by Course',
+                labels: courseLabels,
+                data: enrolledData,
+                instance: null
             },
-            plugins: [ChartDataLabels]
+            {
+                ctx: document.getElementById('deployedChart').getContext('2d'),
+                label: 'Total Deployed by Course',
+                labels: courseLabels,
+                data: deployedData,
+                instance: null
+            },
+            {
+                ctx: document.getElementById('notDeployedChart').getContext('2d'),
+                label: 'Total Undeployed by Course',
+                labels: courseLabels,
+                data: notDeployedData,
+                instance: null
+            }
+        ];
+
+        // Create charts with savedType
+        toggleableCharts.forEach(chart => {
+            chart.instance = createChart(chart.ctx, savedType, chart.label, chart.labels, chart.data);
         });
-    }
 
-    // Initial chart render
-    const totalChartCtx = document.getElementById('totalChart').getContext('2d');
-    chartInstances.push({
-        ctx: totalChartCtx,
-        label: 'Overall',
-        data: [<?= $totalEnrolled ?>, <?= $totalDeployed ?>, <?= $totalNotDeployed ?>],
-        instance: createChart(totalChartCtx, 'bar', 'Overall', [<?= $totalEnrolled ?>, <?= $totalDeployed ?>, <?= $totalNotDeployed ?>])
-    });
+        // Toggle chart type and save preference
+        chartTypeSwitch.addEventListener('change', function () {
+            const newType = this.checked ? 'pie' : 'bar';
+            localStorage.setItem('chartType', newType);
+            this.nextElementSibling.innerText = newType === 'pie' ? 'Switch to Bar Graph' : 'Switch to Pie Chart';
 
-    <?php foreach ($allCourses as $index => $course): ?>
-        <?php
-            $courseName = $course['course'];
-            $enrolled = $enrolledCounts[$courseName] ?? 0;
-            $deployed = $deployedCounts[$courseName] ?? 0;
-            $notDeployed = $enrolled - $deployed;
-            $chartId = 'chart_' . $index;
-        ?>
-        const ctx<?= $index ?> = document.getElementById('<?= $chartId ?>').getContext('2d');
-        chartInstances.push({
-            ctx: ctx<?= $index ?>,
-            label: "<?= addslashes($courseName) ?>",
-            data: [<?= $enrolled ?>, <?= $deployed ?>, <?= $notDeployed ?>],
-            instance: createChart(ctx<?= $index ?>, 'bar', "<?= addslashes($courseName) ?>", [<?= $enrolled ?>, <?= $deployed ?>, <?= $notDeployed ?>])
+            toggleableCharts.forEach(chart => {
+                chart.instance.destroy();
+                chart.instance = createChart(chart.ctx, newType, chart.label, chart.labels, chart.data);
+            });
         });
-    <?php endforeach; ?>
 
-    // Chart type toggle
-    document.getElementById('chartTypeSwitch').addEventListener('change', function () {
-        const newType = this.checked ? 'pie' : 'bar';
-        this.nextElementSibling.innerText = this.checked ? 'Switch to Bar Graph' : 'Switch to Pie Chart';
-
-        chartInstances.forEach(chartObj => {
-            chartObj.instance.destroy();
-            chartObj.instance = createChart(chartObj.ctx, newType, chartObj.label, chartObj.data);
-        });
-    });
-</script>
+        // Individual bar charts per course
+        <?php foreach ($allCourses as $index => $course): ?>
+            const ctx<?= $index ?> = document.getElementById('chart_<?= $index ?>').getContext('2d');
+            createChart(ctx<?= $index ?>, 'bar', "<?= addslashes($course['course']) ?> Breakdown", ['Enrolled', 'Deployed', 'Not Deployed'], [
+                <?= $enrolledCounts[$course['course']] ?? 0 ?>,
+                <?= $deployedCounts[$course['course']] ?? 0 ?>,
+                <?= ($enrolledCounts[$course['course']] ?? 0) - ($deployedCounts[$course['course']] ?? 0) ?>
+            ]);
+        <?php endforeach; ?>
+    </script>
 </html>
