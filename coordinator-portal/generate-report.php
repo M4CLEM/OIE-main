@@ -2,9 +2,31 @@
 session_start();
 include("../includes/connection.php");
 
-$email = $_SESSION['adviser'];
+$department = $_SESSION['department'];
 $activeSemester = $_SESSION['semester'];
 $activeSchoolYear = $_SESSION['schoolYear'];
+
+$getCourses = "
+    SELECT DISTINCT course 
+    FROM listadviser 
+    WHERE dept = '$department' 
+      AND semester = '$activeSemester' 
+      AND schoolYear = '$activeSchoolYear'
+    ORDER BY course ASC
+";
+
+$courses = mysqli_query($connect, $getCourses);
+
+$getSections = "
+    SELECT DISTINCT section 
+    FROM listadviser 
+    WHERE dept = '$department' 
+      AND semester = '$activeSemester' 
+      AND schoolYear = '$activeSchoolYear'
+    ORDER BY section ASC
+";
+
+$sections = mysqli_query($connect, $getSections);
 
 // Check if dept_sec is set and is an array
 if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
@@ -72,16 +94,21 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                 <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Generate Grades</h4>
                 <!-- Topbar Navbar -->
                 <ul class="navbar-nav ml-auto">
+
                     <div class="topbar-divider d-none d-sm-block"></div>
+
                     <!-- Nav Item - User Information -->
                     <li class="nav-item dropdown no-arrow">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                <?php (isset($_SESSION['adviser'])) ?> <?php echo $_SESSION['adviser']; ?></span>
-                            <img class="img-profile rounded-circle" src="../img/undraw_profile.svg">
+                                <?php (isset($_SESSION['coordinator'])) ?> <?php echo $_SESSION['coordinator']; ?></span>
+                            <img class="img-profile rounded-circle"
+                                src="../img/undraw_profile.svg">
                         </a>
                         <!-- Dropdown - User Information -->
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            aria-labelledby="userDropdown">
                             <a class="dropdown-item" href="#">
                                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Profile
@@ -95,12 +122,13 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                 Activity Log
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="../logout.php" data-toggle="modal" data-target="#logoutModal">
+                            <a class="dropdown-item" href="../logout.php" data-toggle="logout" data-target="logout">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Logout
                             </a>
                         </div>
                     </li>
+
                 </ul>
             </nav>
 
@@ -117,7 +145,7 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                         <div class="input-group input-group-sm mb-2">
                                             <?php
                                             // Assuming $connect is your mysqli connection object
-                                            $getCourses = "SELECT course FROM listadviser WHERE email = '$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
+                                            $getCourses = "SELECT course FROM listadviser WHERE dept = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                             $courses = mysqli_query($connect, $getCourses);
 
                                             // Check if query was successful
@@ -134,7 +162,7 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                             }
 
                                             // SECTION DROPDOWN
-                                            $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
+                                            $getsections = "SELECT section FROM listadviser WHERE dept = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                             $sections = mysqli_query($connect, $getsections);
 
                                             if ($sections) {
@@ -304,11 +332,6 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                                 echo "<td align=\"center\">" . $finalizedGrade . "</td>";
 
                                                 // Edit button and modal (no changes here)
-                                                echo "<td>
-                                                            <a href=\"#\" class=\"btn btn-primary btn-sm editBtn\" data-toggle=\"modal\" data-target=\"#editModal\" data-adviser='" . json_encode($adviserCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "' data-company='" . json_encode($companyCriteriaGrouped, JSON_HEX_APOS | JSON_HEX_QUOT) . "' data-advisergrade=\"" . htmlspecialchars($adviserGrade) . "\" data-companygrade=\"" . htmlspecialchars($companyGrade) . "\" data-finalgrade=\"" . htmlspecialchars($finalizedGrade) . "\" data-studentID=\"" . htmlspecialchars($row['studentID']) . "\">
-                                                                <i class=\"fa fa-edit fw-fa\"></i> Edit
-                                                            </a>
-                                                        </td>";
 
                                                 echo "</tr>";
                                             }
@@ -317,42 +340,6 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <form action="functions/update_final_grade.php" method="POST">
-                                <input type="hidden" name="studentID" id="studentID" value="<?php $row['studentID']; ?>">
-                                <div class="modal-header">
-                                    <h5>Edit Grades</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        <!-- Adviser Evaluation -->
-                                        <div class="col-md-6">
-                                            <h6>Adviser Evaluation</h6>
-                                            <div id="adviserCriteriaContainer"></div>
-                                        </div>
-                                        <!-- Company Evaluation -->
-                                        <div class="col-md-6">
-                                            <h6>Company Evaluation</h6>
-                                            <div id="companyCriteriaContainer"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button class="btn btn-primary btn-sm" type="submit" id="submitBtn">
-                                        <span class="fa fa-save fw-fa"></span> Save
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -379,281 +366,41 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
             </div>
         </div>
 
-        <script>
-            $(document).on('click', '.editBtn', function() {
-                const adviserData = JSON.parse($(this).attr('data-adviser'));
-                const companyData = JSON.parse($(this).attr('data-company'));
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const table = $('#studentTable').DataTable();
 
-                // Clear previous content in the containers
-                $('#adviserCriteriaContainer').empty();
-                $('#companyCriteriaContainer').empty();
+    const courseFilter = document.getElementById('course');
+    const sectionFilter = document.getElementById('sections');
 
-                // Function to initialize event listeners for input elements in both containers
-                function initializeInputs(containerId) {
-                    const criteriaInputs = document.querySelectorAll(`#${containerId} .custom-number-input`);
-                    criteriaInputs.forEach(function(input) {
-                        input.addEventListener('input', function() {
-                            enforceMaxLimit(input, input.id.replace('displayValue', ''));
-                            updateTotal(containerId);
-                        });
-                    });
-                }
+    function customFilterFunction(settings, data, dataIndex) {
+        const row = table.row(dataIndex).node();
+        const courseValue = courseFilter.value;
+        const sectionValue = sectionFilter.value;
 
-                // Function to update the total grade dynamically
-                function updateTotal(containerId) {
-                    const criteriaInputs = document.querySelectorAll(`#${containerId} .custom-number-input`);
-                    let total = 0;
-                    criteriaInputs.forEach(function(input) {
-                        const value = parseInt(input.value);
-                        if (!isNaN(value)) {
-                            total += value;
-                        }
-                    });
+        const rowCourse = row.getAttribute('data-course');
+        const rowSection = row.getAttribute('data-section');
 
-                    const totalGradeInput = document.querySelector(`#${containerId} .totalGrade`);
-                    if (totalGradeInput) {
-                        totalGradeInput.value = total;
-                    }
-                }
+        const courseMatch = (courseValue === 'All Courses' || courseValue === rowCourse);
+        const sectionMatch = (sectionValue === 'All Sections' || sectionValue === rowSection);
 
-                // Function to ensure input values stay within the allowed range
-                function enforceMaxLimit(input, criteriaId) {
-                    const maxValue = parseInt(input.max);
-                    let value = parseInt(input.value);
-                    if (value < 0) {
-                        input.value = 0;
-                    } else if (value > maxValue) {
-                        input.value = maxValue;
-                    }
-                    // Update the hidden value if necessary
-                    updateValue(value, criteriaId);
-                }
+        return courseMatch && sectionMatch;
+    }
 
-                // Function to update the hidden input value when criteria changes
-                function updateValue(value, criteriaId) {
-                    const hiddenInput = document.getElementById(`hiddenInputForCriteria${criteriaId}`);
-                    if (hiddenInput) {
-                        hiddenInput.value = value;
-                    }
-                }
+    // Register the filter
+    $.fn.dataTable.ext.search.push(customFilterFunction);
 
-                // Append Adviser data to the adviser container
-                adviserData.forEach(item => {
-                    $('#adviserCriteriaContainer').append(`
-                        <div class="form-group">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong>${item.adviserCriteria}</strong>
-                                <div class="input-group input-group-sm mb-2 mr-sm-2" style="max-width: 200px;">
-                                    <input type="number" required class="form-control custom-number-input" min="0" max="${item.adviserPercentage}" value="${item.score}" name="adviserScore[${item.adviserCriteria}]" id="displayValue${item.id}" data-percentage="${item.adviserPercentage}">
-                                    <div class="input-group-append">
-                                        <div class="input-group-text">${item.adviserPercentage}%</div>
-                                    </div>
-                                </div>
-                            </div>
+    // Apply filtering when dropdowns change
+    courseFilter.addEventListener('change', function () {
+        table.draw();
+    });
 
-                            <input type="hidden" name="adviserCriteria[${item.adviserCriteria}][criteria]" value="${item.adviserCriteria}">
-                            <input type="hidden" name="adviserCriteria[${item.adviserCriteria}][description]" value="${item.adviserDescription}">
-                            <input type="hidden" name="adviserCriteria[${item.adviserCriteria}][percentage]" value="${item.adviserPercentage}">
+    sectionFilter.addEventListener('change', function () {
+        table.draw();
+    });
+});
+</script>
 
-                            <div class="description-row">
-                                <small>${item.adviserDescription}</small>
-                            </div>
-                        </div>
-                    `);
-                });
-
-                // Append Company data to the company container
-                companyData.forEach(item => {
-                    $('#companyCriteriaContainer').append(`
-                        <div class="form-group">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong>${item.companyCriteria}</strong>
-                                <div class="input-group input-group-sm mb-2 mr-sm-2" style="max-width: 200px;">
-                                    <input type="number" required class="form-control custom-number-input" min="0" max="${item.companyPercentage}" value="${item.score}" name="companyScore[${item.companyCriteria}]" id="displayValue${item.id}" data-percentage="${item.companyPercentage}">
-                                    <div class="input-group-append">
-                                        <div class="input-group-text">${item.companyPercentage}%</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <input type="hidden" name="companyCriteria[${item.companyCriteria}][criteria]" value="${item.companyCriteria}">
-                            <input type="hidden" name="companyCriteria[${item.companyCriteria}][description]" value="${item.companyDescription}">
-                            <input type="hidden" name="companyCriteria[${item.companyCriteria}][percentage]" value="${item.companyPercentage}">
-
-                            <div class="description-row">
-                                <small>${item.companyDescription}</small>
-                            </div>
-                        </div>
-                    `);
-                });
-
-                // Append Final Grade input for Adviser
-                $('#adviserCriteriaContainer').append(`
-                    <hr>
-                    <div class="form-group d-flex align-items-center">
-                        <label for="adviserGrade" class="mb-0 mr-2" style="min-width: 160px;"><strong>Adviser Final Grade:</strong></label>
-                        <div class="input-group" style="max-width: 120px;">
-                            <input type="number" 
-                                step="0.01" min="0" max="100" 
-                                class="form-control totalGrade" 
-                                oninput="distributeTotalGrade(); updateFinalGrade();" 
-                                id="adviserGrade" 
-                                name="adviserGrade" 
-                                value="<?= $adviserGrade ?>" 
-                                data-weight="<?= $adviserWeight ?>">
-                            <div class="input-group-append">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>
-                    </div>
-                `);
-
-                // Append Final Grade input for Company
-                $('#companyCriteriaContainer').append(`
-                    <hr>
-                    <div class="form-group d-flex align-items-center">
-                        <label for="companyGrade" class="mb-0 mr-2" style="min-width: 160px;"><strong>Company Final Grade:</strong></label>
-                        <div class="input-group" style="max-width: 120px;">
-                            <input type="number" 
-                                step="0.01" min="0" max="100" 
-                                class="form-control totalGrade" 
-                                oninput="distributeTotalGrade(); updateFinalGrade();" 
-                                id="companyGrade" 
-                                name="companyGrade"
-                                value="<?= $companyGrade ?>" 
-                                data-weight="<?= $companyWeight ?>">
-                            <div class="input-group-append">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>
-                    </div>
-                `);
-
-                // Set existing grade values
-                $('#adviserGrade').val($(this).data('advisergrade'));
-                $('#companyGrade').val($(this).data('companygrade'));
-                $('#finalGrade').text($(this).data('finalgrade') + '%');
-                $('#studentID').val($(this).data('studentid'));
-
-                // Initialize inputs for both Adviser and Company containers
-                initializeInputs('adviserCriteriaContainer');
-                initializeInputs('companyCriteriaContainer');
-
-                // Handle distributeTotalGrade
-                function distributeTotalGrade(event) {
-                    // Get the total grade input field (either adviserGrade or companyGrade)
-                    const totalGradeInput = event.target; // This is the input that triggered the event
-                    const containerId = $(totalGradeInput).closest('.form-group').parent().attr('id'); // Get the parent container ID (either adviserCriteriaContainer or companyCriteriaContainer)
-
-                    // Get the total grade value from the input field
-                    let totalGradeValue = $(totalGradeInput).val().trim();
-                    if (totalGradeValue === "") {
-                        totalGradeValue = "0";
-                        $(totalGradeInput).val(totalGradeValue);
-                        $(this).siblings('.custom-number-input').val("0");
-                        return;
-                    }
-
-                    let totalGrade = parseFloat(totalGradeValue);
-                    totalGrade = Math.max(0, Math.min(100, totalGrade)); // Ensure the grade is between 0 and 100
-                    $(totalGradeInput).val(totalGrade);
-
-                    // Logic to distribute points across criteria
-                    let remainingPoints = totalGrade;
-                    const criteriaInputs = $(`#${containerId} .custom-number-input`);
-                    const criteriaPoints = [];
-
-                    // First pass: Calculate points for each criterion based on its percentage
-                    criteriaInputs.each(function() {
-                        const maxValue = parseInt($(this).data('percentage')); // Get the max percentage from data-attribute
-                        let pointsForThisCriterion = Math.floor((maxValue / 100) * totalGrade); // Calculate based on percentage
-                        pointsForThisCriterion = Math.min(pointsForThisCriterion, maxValue); // Ensure it doesn't exceed max value
-                        criteriaPoints.push(pointsForThisCriterion);
-                        remainingPoints -= pointsForThisCriterion;
-                    });
-
-                    // Second pass: Distribute any remaining points
-                    if (remainingPoints > 0) {
-                        criteriaInputs.each(function(index) {
-                            if (remainingPoints > 0) {
-                                let points = criteriaPoints[index];
-                                const maxValue = parseInt($(this).data('percentage'));
-
-                                // Add remaining points without exceeding the max value
-                                if (points < maxValue) {
-                                    let additionalPoints = Math.min(remainingPoints, maxValue - points);
-                                    points += additionalPoints;
-                                    criteriaPoints[index] = points; // Update points for this criterion
-                                    remainingPoints -= additionalPoints; // Subtract from remaining points
-                                }
-                            }
-                        });
-                    }
-
-                    // Update the input fields and hidden values with the calculated points
-                    criteriaInputs.each(function(index) {
-                        const points = criteriaPoints[index];
-                        $(this).val(points);
-                        $(this).siblings('input[type="hidden"]').val(points); // Update the hidden input with the calculated points
-                    });
-                }
-
-                // Bind the event listeners for the total grade inputs (Adviser and Company)
-                $(document).ready(function() {
-                    // Bind the event listener for the adviser final grade
-                    $('#adviserCriteriaContainer .totalGrade').on('input', function(event) {
-                        distributeTotalGrade(event);
-                    });
-
-                    // Bind the event listener for the company final grade
-                    $('#companyCriteriaContainer .totalGrade').on('input', function(event) {
-                        distributeTotalGrade(event);
-                    });
-                });
-            });
-        </script>
-
-        <script>
-            document.getElementById('sections').addEventListener('change', function() {
-                var selectedSection = this.value;
-                filterTable(selectedSection);
-            });
-
-            function filterTable(section) {
-                var table = document.getElementById('studentTable');
-                var tr = table.getElementsByTagName('tr');
-
-                for (var i = 0; i < tr.length; i++) {
-                    var td = tr[i].getElementsByTagName('td')[3]; // Column index for course-section
-                    if (td) {
-                        var txtValue = td.textContent || td.innerText;
-                        if (section === "All Sections" || txtValue.indexOf(section) > -1) {
-                            tr[i].style.display = "";
-                        } else {
-                            tr[i].style.display = "none";
-                        }
-                    }
-                }
-            }
-
-            // Function to filter table based on search input
-            $('#searchInput').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#studentTable tbody tr').filter(function() {
-                    var rowText = $(this).text().toLowerCase();
-                    var isVisible = rowText.indexOf(value) > -1;
-                    $(this).toggle(isVisible);
-                });
-
-                // Check if any rows are visible after filtering
-                var visibleRows = $('#studentTable tbody tr:visible').length;
-                if (visibleRows === 0) {
-                    $('#noResult').show(); // Display "No Results" message
-                } else {
-                    $('#noResult').hide(); // Hide "No Results" message if there are visible rows
-                }
-            });
-        </script>
 
         <script>
             // Update hidden input when section changes
