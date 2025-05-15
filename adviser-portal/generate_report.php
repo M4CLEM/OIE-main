@@ -104,14 +104,15 @@
 
                 <div class="col-lg-12 mb-4">
                     <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <div class="row justify-content-between align-items-center">
-                                <div class="col-md-3">
-                                    <h6 class="m-0 font-weight-bold text-dark">STUDENT INFORMATION</h6>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="row">
-                                        <div class="col">
+                    <div class="card-header py-3">
+                        <div class="row justify-content-between align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="m-0 font-weight-bold text-dark">STUDENT INFORMATION</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <div class="input-group input-group-sm mb-2">
                                             <?php
                                                 // Assuming $connect is your mysqli connection object
                                                 $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
@@ -119,12 +120,9 @@
 
                                                 // Check if query was successful
                                                 if ($sections) {
-                                                    echo '<div class="input-group input-group-sm">';
-
-                                                    // Dropdown
-                                                    echo '<select name="sections" id="sections" class="form-control form-control-sm">';
+                                                    echo '<label class="input-group-text ms-2" for="sections">Section</label>';
+                                                    echo '<select name="sections" id="sections" class="form-select">';
                                                     echo '<option value="All Sections">All Sections</option>';
-
                                                     $sectionSet = [];
 
                                                     // Collect and split sections
