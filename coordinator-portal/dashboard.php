@@ -32,8 +32,7 @@
     $enrolledQuery = "SELECT course, COUNT(DISTINCT studentID) AS total 
                       FROM student_masterlist 
                       WHERE course IN (
-                          SELECT course FROM course_list WHERE department = ? AND semester = ? AND schoolYear = ?
-                      ) 
+                          SELECT course FROM course_list WHERE department = ? AND semester = ? AND schoolYear = ?) 
                       GROUP BY course";
     $enrolledStmt = $connect->prepare($enrolledQuery);
     if ($enrolledStmt) {
@@ -52,12 +51,11 @@
     $deployedQuery = "SELECT course, COUNT(DISTINCT studentID) AS total 
                       FROM studentinfo 
                       WHERE status = 'Deployed' AND course IN (
-                          SELECT course FROM course_list WHERE department = ?
-                      ) 
+                          SELECT course FROM course_list WHERE department = ? AND semester = ? AND school_year = ?) 
                       GROUP BY course";
     $deployedStmt = $connect->prepare($deployedQuery);
     if ($deployedStmt) {
-        $deployedStmt->bind_param("s", $department);
+        $deployedStmt->bind_param("sss", $department, $activeSemester, $activeSchoolYear);
         $deployedStmt->execute();
         $result = $deployedStmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -149,12 +147,12 @@
                                         // Count deployed students per course
                                         $deployedCountQuery = "SELECT COUNT(DISTINCT studentID) AS total 
                                             FROM studentinfo 
-                                            WHERE course = ? AND status = 'Deployed'";
+                                            WHERE course = ? AND status = 'Deployed' AND semester = ? AND school_year = ?";
                                         $deployedCountStmt = $connect->prepare($deployedCountQuery);
                                         $deployedCount = 0;
 
                                         if ($deployedCountStmt) {
-                                            $deployedCountStmt->bind_param("s", $course['course']);
+                                            $deployedCountStmt->bind_param("sss", $course['course'], $activeSemester, $activeSchoolYear);
                                             $deployedCountStmt->execute();
                                             $deployedCountResult = $deployedCountStmt->get_result();
                                             if ($row = $deployedCountResult->fetch_assoc()) {

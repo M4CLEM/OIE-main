@@ -23,7 +23,6 @@
     </li>
 
     <?php 
-    
         $studentEmail = $_SESSION['student'] ?? null;
 
         if (!$studentEmail) {
@@ -75,10 +74,16 @@
                 }
             }
         }
-    
     ?>
 
     <?php if ($showCompanyLink): ?>
+        <li class="sidebar-item">
+            <a href="applications.php" class="sidebar-link">
+                <i class="fas fa-user-tie" aria-hidden="true"></i>
+                <span>Applications</span>
+            </a>
+        </li>
+
         <li class="sidebar-item">
             <a href="company.php" class="sidebar-link">
                 <i class="fa fa-building fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -86,6 +91,7 @@
             </a>
         </li>
     <?php endif; ?>
+
     <?php if ($studentStatus == 'Deployed'): ?>
         <li class="sidebar-item">
             <a href="dtr.php" class="sidebar-link">
@@ -94,7 +100,6 @@
             </a>
         </li>
     <?php endif; ?>
-
 
     <li class="sidebar-item">
         <a href="deploy.php" class="sidebar-link">

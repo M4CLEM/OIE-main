@@ -179,6 +179,7 @@ if (isset($_POST['ApproveChange'])) {
                                         <th scope="col">Contact Number</th>
                                         <th scope="col" width=15%;>Trainer Email</th>
                                         <th scope="col">Work Type</th>
+                                        <th scope="col">Remark</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
@@ -202,6 +203,7 @@ if (isset($_POST['ApproveChange'])) {
                                             echo "<td>" . $row['trainerContact'] . "</td>";
                                             echo "<td>" . $row['trainerEmail'] . "</td>";
                                             echo "<td>" . $row['workType'] . "</td>";
+                                            echo "<td>" . $row['remarks'] . "</td>";
                                             if ($row['status'] == 'Change Request') {
                                                 echo "<td><form action='delete_company_change.php' method='post'>";
                                                 echo "<input type='hidden' name='companyCode' value='{$row['companyCode']}'>";

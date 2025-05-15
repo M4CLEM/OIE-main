@@ -13,12 +13,21 @@
             <span>List of Student Interns</span></a>
         </a>
     </li>
+
+    <li class="sidebar-item">
+        <a href="" class="sidebar-link">
+            <i class="fas fa-user-tie fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Applicants</span>
+        </a>
+    </li>
+
     <li class="sidebar-item">
         <a href="student_search.php" class="sidebar-link">
             <i class="fa fa-list-alt fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Search Interns</span></a>
         </a>
     </li>
+
     <li class="sidebar-item">
         <a href="grading.php" class="sidebar-link">
             <i class="fa fa-list-alt fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -32,5 +41,4 @@
             <span>Student Documents</span></a>
         </a>
     </li>
-
 </ul>
