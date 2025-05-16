@@ -1,21 +1,36 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-$IP = $_SESSION['IndustryPartner'];
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
+    $companyName = $_SESSION['companyName'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+    $status = 'Deployed';
 
-$query = "SELECT * FROM studentinfo WHERE trainerEmail = '$IP' AND semester = '$activeSemester' AND school_year = '$activeSchoolYear'";
-$result = mysqli_query($connect, $query);
+    $studentIDs = [];
 
-$studentIDs = array();
+    $query = "
+        SELECT DISTINCT si.studentID
+        FROM studentinfo si
+        INNER JOIN company_info ci ON si.studentID = ci.studentID
+        WHERE ci.companyName = ? 
+          AND si.status = ? 
+          AND ci.semester = ? 
+          AND ci.schoolYear = ?
+    ";
 
-while ($row = mysqli_fetch_assoc($result)) {
-    $studentIDs[] = $row['studentID'];
-}
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param('ssss', $companyName, $status, $activeSemester, $activeSchoolYear);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
+    while ($row = $result->fetch_assoc()) {
+        $studentIDs[] = $row['studentID'];
+    }
+
+    $stmt->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -101,28 +116,50 @@ while ($row = mysqli_fetch_assoc($result)) {
                                     </thead>
                                     <tbody>
                                         <?php
-                                        if (!empty($studentIDs)) {
-                                            $studentIDsString = implode(',', $studentIDs);
+                                            if (!empty($studentIDs)) {
+                                                // Dynamically create placeholders for the IN clause
+                                                $placeholders = implode(',', array_fill(0, count($studentIDs), '?'));
+    
+                                                $studentQuery = "
+                                                    SELECT * FROM student_masterlist 
+                                                    WHERE studentID IN ($placeholders) 
+                                                        AND semester = ? 
+                                                        AND schoolYear = ?
+                                                    ORDER BY lastName ASC
+                                                ";
 
-                                            $studentQuery = "SELECT * FROM student_masterlist WHERE studentID IN ($studentIDsString) AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear' ORDER BY lastName ASC";
-                                            $studentResult = mysqli_query($connect, $studentQuery);
-                                            
-                                            while ($studentRow = mysqli_fetch_assoc($studentResult)) {
+                                                $stmt = $connect->prepare($studentQuery);
+
+                                                // Create type string: one 's' per studentID, plus 2 for semester and schoolYear
+                                                $types = str_repeat('s', count($studentIDs)) . 'ss';
+                                                $params = array_merge($studentIDs, [$activeSemester, $activeSchoolYear]);
+
+                                                // Use call_user_func_array for dynamic bind
+                                                $stmt->bind_param($types, ...$params);
+                                                $stmt->execute();
+                                                $result = $stmt->get_result();
+
+                                                while ($studentRow = $result->fetch_assoc()) {
+                                                    ?>
+                                                        <tr>
+                                                            <td class="small">
+                                                                <a href="" class="info-link" data-section="<?php echo htmlspecialchars($studentRow['studentID']); ?>">
+                                                                    <?php echo htmlspecialchars($studentRow['studentID']); ?>
+                                                                </a>
+                                                            </td>
+                                                            <td class="small"><?php echo htmlspecialchars($studentRow['lastName'] . ', ' . $studentRow['firstName']); ?></td>
+                                                            <td class="small"><?php echo htmlspecialchars($studentRow['year']); ?></td>
+                                                        </tr>
+                                                    <?php
+                                                }
+                                                $stmt->close();
+                                            } else {
                                         ?>
-                                                <tr>
-                                                    <td class="small"><a href="" class="info-link" data-section="<?php echo $studentRow['studentID']; ?>"><?php echo $studentRow['studentID']; ?></a></td>
-                                                    <td class="small"><?php echo $studentRow['lastName'] . ', ' . $studentRow['firstName']; ?></td>
-                                                    <td class="small"><?php echo $studentRow['year']; ?></td>
-                                                </tr>
-                                            <?php
-                                            }
-                                        } else {
-                                            ?>
                                             <tr>
                                                 <td colspan="4" class="text-center small">No associated students</td>
                                             </tr>
                                         <?php
-                                        }
+                                            }
                                         ?>
                                     </tbody>
                                 </table>

@@ -15,7 +15,7 @@
     </li>
 
     <li class="sidebar-item">
-        <a href="" class="sidebar-link">
+        <a href="applicants.php" class="sidebar-link">
             <i class="fas fa-user-tie fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Applicants</span>
         </a>

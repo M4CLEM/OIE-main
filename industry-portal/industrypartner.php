@@ -4,12 +4,48 @@ session_start();
 
 $activeSemester = $_SESSION['semester'];
 $activeSchoolYear = $_SESSION['schoolYear'];
+$companyName = $_SESSION['companyName'];
 
-$queryDept = "SELECT * FROM studentinfo WHERE trainerEmail = ?";
-$stmtDept = $connect->prepare($queryDept);
-$stmtDept->bind_param("s", $_SESSION['IndustryPartner']);
-$stmtDept->execute();
-$result = mysqli_stmt_get_result($stmtDept);
+// Get all studentIDs associated with the company
+$studNumQuery = "SELECT studentID FROM company_info WHERE companyName = ? AND semester = ? AND schoolYear = ?";
+$studNumStmt = $connect->prepare($studNumQuery);
+$studNumStmt->bind_param("sss", $companyName, $activeSemester, $activeSchoolYear);
+$studNumStmt->execute();
+$resultStudNum = $studNumStmt->get_result();
+
+$studentIDs = array(); // Array to hold student IDs
+while ($row = $resultStudNum->fetch_assoc()) {
+    $studentIDs[] = $row['studentID'];
+}
+$studNumStmt->close();
+
+$studentsInfo = [];
+
+if (!empty($studentIDs)) {
+    // Dynamically create placeholders
+    $placeholders = implode(',', array_fill(0, count($studentIDs), '?'));
+    $queryDept = "SELECT * FROM studentinfo WHERE studentID IN ($placeholders) AND status = ? AND semester = ? AND school_year = ?";
+    
+    $stmtDept = $connect->prepare($queryDept);
+    
+    // Bind parameters dynamically
+    $types = str_repeat('s', count($studentIDs) + 3); // one 's' for each studentID + 3 for status, semester, school_year
+    $params = array_merge($studentIDs, ['Deployed', $activeSemester, $activeSchoolYear]);
+    
+    $stmtDept->bind_param($types, ...$params);
+    
+    $stmtDept->execute();
+    $result = $stmtDept->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $studentsInfo[] = $row;
+    }
+
+    $stmtDept->close();
+} else {
+    // No student IDs found
+    $result = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,18 +71,13 @@ $result = mysqli_stmt_get_result($stmtDept);
         </aside>
 
         <div class="main">
-
             <!-- Topbar -->
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
-
                 <!-- Title -->
                 <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Student Interns</h4>
-
                 <!-- Topbar Navbar -->
                 <ul class="navbar-nav ml-auto">
-
                     <div class="topbar-divider d-none d-sm-block"></div>
-
                     <!-- Nav Item - User Information -->
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -75,9 +106,7 @@ $result = mysqli_stmt_get_result($stmtDept);
                             </a>
                         </div>
                     </li>
-
                 </ul>
-
             </nav>
             <!-- End of Topbar -->
 
@@ -106,25 +135,35 @@ $result = mysqli_stmt_get_result($stmtDept);
                                 </thead>
                                 <tbody>
                                     <?php
-                                    while ($rows = mysqli_fetch_assoc($result)) {
-                                        // Fetch the grades for the current student
-                                        $studentID = $rows['studentID'];
-                                        $gradeQuery = "SELECT finalGrade AS totalGrade FROM student_grade WHERE studentID = $studentID AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
-                                        $gradeResult = mysqli_query($connect, $gradeQuery);
-                                        $gradeRow = mysqli_fetch_assoc($gradeResult);
-                                        $totalGrade = ($gradeRow && $gradeRow['totalGrade'] !== null) ? $gradeRow['totalGrade'] : 0;
+                                        if (!empty($studentsInfo)) {
+                                            foreach ($studentsInfo as $rows) {
+                                                $studentID = $connect->real_escape_string($rows['studentID']);
+                                                $activeSemesterEscaped = $connect->real_escape_string($activeSemester);
+                                                $activeSchoolYearEscaped = $connect->real_escape_string($activeSchoolYear);
 
-                                        // Display student information and total grade
-                                    ?>
-                                        <tr>
-                                            <td><?php echo $rows['studentID']; ?></td>
-                                            <td><?php echo $rows['firstname'] . ' ' . $rows['lastname']; ?></td>
-                                            <td><?php echo $rows['course']; ?></td>
-                                            <td><?php echo $rows['section']; ?></td>
-                                            <td><?php echo ($totalGrade !== null) ? $totalGrade : "No grades recorded"; ?></td>
-                                        </tr>
-                                    <?php
-                                    }
+                                                $gradeQuery = "SELECT finalGrade AS totalGrade FROM student_grade WHERE studentID = '$studentID' AND semester = '$activeSemesterEscaped' AND schoolYear = '$activeSchoolYearEscaped'";
+                                                $gradeResult = mysqli_query($connect, $gradeQuery);
+
+                                                if (!$gradeResult) {
+                                                    echo "<tr><td colspan='5'>Grade query failed: " . $connect->error . "</td></tr>";
+                                                    break;
+                                                }
+
+                                                $gradeRow = mysqli_fetch_assoc($gradeResult);
+                                                $totalGrade = ($gradeRow && $gradeRow['totalGrade'] !== null) ? $gradeRow['totalGrade'] : "No grades recorded";
+                                                ?>
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($rows['studentID']); ?></td>
+                                                        <td><?php echo htmlspecialchars($rows['firstname'] . ' ' . $rows['lastname']); ?></td>
+                                                        <td><?php echo htmlspecialchars($rows['course']); ?></td>
+                                                        <td><?php echo htmlspecialchars($rows['section']); ?></td>
+                                                        <td><?php echo htmlspecialchars($totalGrade); ?></td>
+                                                    </tr>
+                                                <?php
+                                            }
+                                        } else {
+                                            echo '<tr><td colspan="5">No student records found for the selected filters.</td></tr>';
+                                        }
                                     ?>
                                 </tbody>
                             </table>

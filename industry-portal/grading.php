@@ -6,18 +6,33 @@
     $companyName = $_SESSION['companyName'];
     $activeSemester = $_SESSION['semester'];
     $activeSchoolYear = $_SESSION['schoolYear'];
+    $status = 'Deployed';  // Adjust as needed
 
-    // Query to fetch data from both tables based on studentID
     $studentQuery = "
         SELECT DISTINCT ci.studentID, 
-               ci.jobrole,
-               CONCAT(si.firstname, ' ', si.lastname) AS fullStudentName
+            ci.jobrole, 
+            CONCAT(si.firstname, ' ', si.lastname) AS fullStudentName
         FROM company_info ci
         LEFT JOIN studentinfo si ON ci.studentID = si.studentID
-        WHERE ci.trainerEmail = '$trainerEmail' AND ci.semester = '$activeSemester' AND ci.schoolYear = '$activeSchoolYear'
+        WHERE ci.companyName = ? 
+          AND si.status = ? 
+          AND ci.semester = ? 
+          AND ci.schoolYear = ?
     ";
-    $studentResult = mysqli_query($connect, $studentQuery);
+
+    $stmt = $connect->prepare($studentQuery);
+    $stmt->bind_param('ssss', $companyName, $status, $activeSemester, $activeSchoolYear);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $studentsInfo = [];
+    while ($row = $result->fetch_assoc()) {
+        $studentsInfo[] = $row;
+    }
+
+    $stmt->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -87,22 +102,21 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                                while ($row = mysqli_fetch_assoc($studentResult)){ ?>
-                                                    <tr>
-                                                        <td>
-                                                            <a href="#" class="studentNumber-link" data-studentnumber="<?php echo $row['studentID'];?>"><?php echo $row['studentID'];?></a>
-                                                        </td>
-                                                        <td>
-                                                            <p><?php echo $row['fullStudentName']?></p>
-                                                        </td>
-                                                        <td>
-                                                            <p><?php echo $row['jobrole']?></p>
-                                                        </td>
-                                                    </tr>
-                                            <?php
-                                                }
-                                            ?>
+                                            <?php foreach ($studentsInfo as $row): ?>
+                                                <tr>
+                                                    <td>
+                                                        <a href="#" class="studentNumber-link" data-studentnumber="<?php echo htmlspecialchars($row['studentID']); ?>">
+                                                            <?php echo htmlspecialchars($row['studentID']); ?>
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <p><?php echo htmlspecialchars($row['fullStudentName']); ?></p>
+                                                    </td>
+                                                    <td>
+                                                        <p><?php echo htmlspecialchars($row['jobrole']); ?></p>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
