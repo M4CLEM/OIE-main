@@ -7,6 +7,8 @@ $result = mysqli_query($connect, $query);
 $activeSemester = $_SESSION['semester'];
 $activeSchoolYear = $_SESSION['schoolYear'];
 
+$departmentQuery = "SELECT * FROM department_list";
+$departmentResult = mysqli_query($connect, $departmentQuery);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -177,6 +179,18 @@ $activeSchoolYear = $_SESSION['schoolYear'];
 
                         <div class="form-group">
                             <div class="col-md-10">
+                                <label for="workType">Work Type:</label>
+                                <select name="workType" id="workType" class="form-control my-2">
+                                    <option hidden disable value="select">Select</option>
+                                    <option value="Onsite">On-Site</option>
+                                    <option value="WFH">Work from Home</option>
+                                    <option value="PB">Project-Based</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-10">
                                 <label for="jobdescription">Job Description:</label>
                                 <textarea class="form-control" id="jobdescription" name="jobdescription" type="text" value="" autocomplete="none"></textarea>
                             </div>
@@ -193,13 +207,12 @@ $activeSchoolYear = $_SESSION['schoolYear'];
                             <div class="col-md-10">
                                 <label for="dept">Department:</label>
                                 <select name="dept" class="form-control my-2">
-                                    <option hidden disable value="select ">Select</option>
-                                    <option value="CBA">CBA</option>
-                                    <option value="CAS">CAS</option>
-                                    <option value="CTE">CTE</option>
-                                    <option value="CCJ">CCJ</option>
-                                    <option value="CITCS">CITCS</option>
-                                    <option value="COM">COM</option>
+                                    <option hidden disabled selected value="">Select</option>
+                                    <?php while ($row = mysqli_fetch_assoc($departmentResult)): ?>
+                                        <option value="<?= htmlspecialchars($row['department']) ?>">
+                                            <?= htmlspecialchars($row['department']) ?>
+                                        </option>
+                                    <?php endwhile; ?>
                                 </select>
                             </div>
                         </div>

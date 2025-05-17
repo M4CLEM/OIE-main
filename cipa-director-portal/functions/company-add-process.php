@@ -15,13 +15,14 @@ if(isset($_POST['save']))
 	$companyaddress = $_POST['companyaddress'];
 	$contact = $_POST['contact'];
 	$jobrole = $_POST['jobrole'];
+	$workType = $_POST['workType'];
 	$jobdescription = $_POST['jobdescription'];
 	$jobreq = $_POST['jobreq'];
 	$link = $_POST['link'];
 	$dept = $_POST['dept'];
 
-	$stmt = $connect->prepare("INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, jobdescription, jobreq, link, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-	$stmt->bind_param("ssssssssss", $companyName, $companyaddress, $contact, $jobrole, $jobdescription, $jobreq, $link, $dept, $activeSemester, $activeSchoolYear);
+	$stmt = $connect->prepare("INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, workType, jobdescription, jobreq, link, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$stmt->bind_param("sssssssssss", $companyName, $companyaddress, $contact, $jobrole, $workType, $jobdescription, $jobreq, $link, $dept, $activeSemester, $activeSchoolYear);
 	
 	if ($stmt->execute()) {
 

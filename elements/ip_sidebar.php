@@ -29,6 +29,20 @@
     </li>
 
     <li class="sidebar-item">
+        <a href="" class="sidebar-link">
+            <i class="fa fa-briefcase fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Job Postings</span>
+        </a>
+    </li>
+
+    <li class="sidebar-item">
+        <a href="" class="sidebar-link">
+            <i class="fa fa-chart-line fa-sm fa-fw mr-2 text-gray-400"></i>
+            <span>Intern Tracker</span>
+        </a>
+    </li>
+
+    <li class="sidebar-item">
         <a href="grading.php" class="sidebar-link">
             <i class="fa fa-list-alt fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Grading</span></a>

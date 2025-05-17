@@ -55,7 +55,7 @@ if (isset($_POST['Approve'])) {
 
     echo $studentEmail;
 
-    $updateCompanyInfo = $connect->prepare("UPDATE company_info SET status = 'Approved' WHERE companyCode = ?");
+    $updateCompanyInfo = $connect->prepare("UPDATE company_info SET status = 'Approved', dateStarted = NOW() WHERE companyCode = ?");
     $updateCompanyInfo->bind_param("s", $companyCode);
     $updateCompanyInfo->execute();
 
@@ -179,7 +179,7 @@ if (isset($_POST['ApproveChange'])) {
                                         <th scope="col">Contact Number</th>
                                         <th scope="col" width=15%;>Trainer Email</th>
                                         <th scope="col">Work Type</th>
-                                        <th scope="col">Remark</th>
+                                        <th scope="col">Company Remark</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
@@ -200,8 +200,8 @@ if (isset($_POST['ApproveChange'])) {
                                             echo "<td>" . $row['companyCode'] . "</td>";
                                             echo "<td>" . $row['companyName'] . "</td>";
                                             echo "<td>" . $row['companyAddress'] . "</td>";
-                                            echo "<td>" . $row['trainerContact'] . "</td>";
-                                            echo "<td>" . $row['trainerEmail'] . "</td>";
+                                            echo "<td>" . ($row['trainerContact'] ?? 'To be Assigned') . "</td>";
+                                            echo "<td>" . ($row['trainerEmail'] ?? 'To be Assigned') . "</td>";
                                             echo "<td>" . $row['workType'] . "</td>";
                                             echo "<td>" . $row['remarks'] . "</td>";
                                             if ($row['status'] == 'Change Request') {

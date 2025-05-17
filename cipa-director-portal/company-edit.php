@@ -156,7 +156,19 @@
                                                         <label for= "contact">Contact Person:</label>  
                                                         <input class="form-control input-sm mb-4" id="contact" name="contact" type="text" value="<?php echo $contactPerson;?>" autocomplete="none">
                                                     </div>
-                                                </div>   
+                                                </div>
+                                                
+                                                <div class="form-group col-lg-5">
+                                                    <div class="col-md-10">
+                                                        <label for="workType">workType:</label>
+                                                        <select name="workType" id="workType" class="form-control my-2">
+                                                            <option hidden disable value="select">Select</option>
+                                                            <option value="Onsite">On-Site</option>
+                                                            <option value="WFH">Work from Home</option>
+                                                            <option value="PB">Project-Based</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
 
                                             </div>
 

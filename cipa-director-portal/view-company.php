@@ -51,7 +51,9 @@
                                 </div>
 
                                 <div class="mb-5">
-                                    <h4 class="mb-3">Description</h4>
+                                    <h4 class="mb-3">Work Type</h4>
+                                    <p><?php echo $rows['workType'];?></p>
+                                    <br><h4 class="mb-3">Description</h4>
                                     <p><?php echo nl2br($rows['jobdescription']);?></p>
                                     <br><h4 class="mb-3 mt-3">Qualifications</h4>
                                     <p><?php echo nl2br($rows['jobreq']);?></p>   

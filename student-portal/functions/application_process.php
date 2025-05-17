@@ -29,16 +29,17 @@ if ($studInfoResult && $studInfoResult->num_rows > 0) {
 
     // Prepare and execute application insert
     $applicationQuery = "INSERT INTO applications 
-        (studentID, email, companyName, jobrole, section, course, department, status, applicationDate, semester, SchoolYear) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)";
+        (studentID, email, companyCode, companyName, jobrole, section, course, department, status, applicationDate, semester, SchoolYear) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)";
 
     $applicationStmt = $connect->prepare($applicationQuery);
 
     if ($applicationStmt) {
         $applicationStmt->bind_param(
-            "isssssssss",
+            "isissssssss",
             $studentID,
             $email,
+            $companyNumber,
             $companyName,
             $jobrole,
             $section,

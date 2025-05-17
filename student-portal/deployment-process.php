@@ -84,11 +84,11 @@ if (isset($_POST['submit'])) {
         }
 
         // Insert into company_info
-        $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, jobrole, status, studentID, student_email, section, semester, schoolYear) 
-                  VALUES (?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO company_info (companyName, companyAddress, trainerContact, trainerEmail, workType, jobrole, status, studentID, student_email, department, course, section, semester, schoolYear) 
+                  VALUES (?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $connect->prepare($query);
-        $stmt->bind_param("ssssssissss", $companyName, $companyAddress, $trainerContact, $trainerEmail, $workType, $jobrole, $studentID, $_SESSION['student'], $section, $activeSemester, $activeSchoolYear);
+        $stmt->bind_param("ssssssissssss", $companyName, $companyAddress, $trainerContact, $trainerEmail, $workType, $jobrole, $studentID, $_SESSION['student'], $department, $course, $section, $activeSemester, $activeSchoolYear);
         $stmt->execute();
         $stmt->close();
 
