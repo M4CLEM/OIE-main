@@ -227,6 +227,9 @@
                             </div>
                             <hr>
                             <div class="row">
+                                <div>
+                                    <span>Activity Log</span>
+                                </div>
                                 <div id="activityLogSection">
                                     <!-- Activity log will be loaded here -->
                                 </div>
@@ -780,6 +783,11 @@
 
         // Initial render
         renderChart();
+
+        // Reload page every hour (3600000 ms)
+        setInterval(() => {
+            location.reload();
+        }, 3600000);
     </script>
 
     <script>
