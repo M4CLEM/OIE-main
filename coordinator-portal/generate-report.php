@@ -6,28 +6,6 @@ $department = $_SESSION['department'];
 $activeSemester = $_SESSION['semester'];
 $activeSchoolYear = $_SESSION['schoolYear'];
 
-$getCourses = "
-    SELECT DISTINCT course 
-    FROM listadviser 
-    WHERE dept = '$department' 
-      AND semester = '$activeSemester' 
-      AND schoolYear = '$activeSchoolYear'
-    ORDER BY course ASC
-";
-
-$courses = mysqli_query($connect, $getCourses);
-
-$getSections = "
-    SELECT DISTINCT section 
-    FROM listadviser 
-    WHERE dept = '$department' 
-      AND semester = '$activeSemester' 
-      AND schoolYear = '$activeSchoolYear'
-    ORDER BY section ASC
-";
-
-$sections = mysqli_query($connect, $getSections);
-
 // Check if dept_sec is set and is an array
 if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
     // Create an array to hold exploded section values
@@ -78,7 +56,7 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
 
 <head>
     <?php include("../elements/meta.php"); ?>
-    <title>OJT COORDINATOR Portal</title>
+    <title>OJT COOORDINATOR PORTAL</title>
     <?php include("embed.php"); ?>
     <link rel="stylesheet" href="../assets/css/new-style.css">
 </head>
@@ -94,21 +72,16 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                 <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Generate Grades</h4>
                 <!-- Topbar Navbar -->
                 <ul class="navbar-nav ml-auto">
-
                     <div class="topbar-divider d-none d-sm-block"></div>
-
                     <!-- Nav Item - User Information -->
                     <li class="nav-item dropdown no-arrow">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                 <?php (isset($_SESSION['coordinator'])) ?> <?php echo $_SESSION['coordinator']; ?></span>
-                            <img class="img-profile rounded-circle"
-                                src="../img/undraw_profile.svg">
+                            <img class="img-profile rounded-circle" src="../img/undraw_profile.svg">
                         </a>
                         <!-- Dropdown - User Information -->
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                            aria-labelledby="userDropdown">
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                             <a class="dropdown-item" href="#">
                                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Profile
@@ -122,13 +95,12 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                 Activity Log
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="../logout.php" data-toggle="logout" data-target="logout">
+                            <a class="dropdown-item" href="../logout.php" data-toggle="modal" data-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Logout
                             </a>
                         </div>
                     </li>
-
                 </ul>
             </nav>
 
@@ -144,7 +116,6 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                     <div class="col">
                                         <div class="input-group input-group-sm mb-2">
                                             <?php
-                                            // Assuming $connect is your mysqli connection object
                                             $getCourses = "SELECT course FROM listadviser WHERE dept = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                             $courses = mysqli_query($connect, $getCourses);
 
@@ -161,16 +132,18 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                                 echo "Error: " . mysqli_error($connect);
                                             }
 
-                                            // SECTION DROPDOWN
+                                            // Assuming $connect is your mysqli connection object
                                             $getsections = "SELECT section FROM listadviser WHERE dept = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
                                             $sections = mysqli_query($connect, $getsections);
 
+                                            // Check if query was successful
                                             if ($sections) {
                                                 echo '<label class="input-group-text ms-2" for="sections">Section</label>';
                                                 echo '<select name="sections" id="sections" class="form-select">';
                                                 echo '<option value="All Sections">All Sections</option>';
-
                                                 $sectionSet = [];
+
+                                                // Collect and split sections
                                                 while ($sect = mysqli_fetch_assoc($sections)) {
                                                     $individualSections = array_map('trim', explode(',', $sect['section']));
                                                     foreach ($individualSections as $s) {
@@ -180,33 +153,29 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                                     }
                                                 }
 
+                                                // Sort the sections before displaying
                                                 sort($sectionSet);
                                                 foreach ($sectionSet as $s) {
                                                     echo '<option value="' . $s . '">' . $s . '</option>';
                                                 }
 
-                                                echo '</select>';
+                                                echo '</select>
+                                                        <form method="POST" action="export_pdf.php" target="_blank" style="display:inline-block; margin-left: 10px;">
+                                                            <input type="hidden" name="selected_course" id="selected_course_input">
+                                                            <input type="hidden" name="selected_section" id="selected_section_input">
+                                                            <button type="submit" class="btn btn-primary"><i class="fa fa-file-pdf-o"></i> Export PDF</button>
+                                                        </form>';
+
+                                                echo '</div>'; // Close input-group
                                             } else {
                                                 echo "Error: " . mysqli_error($connect);
                                             }
                                             ?>
                                         </div>
                                     </div>
-
-                                    <div class="col-auto">
-                                        <form method="POST" action="export_pdf.php" target="_blank">
-                                            <input type="hidden" name="selected_section" id="selected_section_input">
-                                            <input type="hidden" name="selected_course" id="selected_course_input">
-                                            <button type="submit" class="btn btn-primary btn-sm">
-                                                <i class="fa fa-file-pdf-o"></i> Export PDF
-                                            </button>
-                                        </form>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-
-
 
                         <div class="card-body">
                             <div class="table-responsive">
@@ -224,7 +193,6 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
                                             <th scope="col" class="small" width="10%">Adviser Grade</th>
                                             <th scope="col" class="small" width="12%">Company Grade</th>
                                             <th scope="col" class="small" width="10%">Final Grade</th>
-                                            <th scope="col" class="small">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -333,7 +301,8 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
 
                                                 // Edit button and modal (no changes here)
 
-                                                echo "</tr>";
+                                                echo "<tr data-course=\"" . $row['course'] . "\" data-section=\"" . $row['section'] . "\">";
+
                                             }
                                         }
                                         ?>
@@ -366,41 +335,40 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
             </div>
         </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const table = $('#studentTable').DataTable();
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const table = $('#studentTable').DataTable();
 
-    const courseFilter = document.getElementById('course');
-    const sectionFilter = document.getElementById('sections');
+                const courseFilter = document.getElementById('courses');
+                const sectionFilter = document.getElementById('sections');
 
-    function customFilterFunction(settings, data, dataIndex) {
-        const row = table.row(dataIndex).node();
-        const courseValue = courseFilter.value;
-        const sectionValue = sectionFilter.value;
+                function customFilterFunction(settings, data, dataIndex) {
+                    const row = table.row(dataIndex).node();
+                    const courseValue = courseFilter.value;
+                    const sectionValue = sectionFilter.value;
 
-        const rowCourse = row.getAttribute('data-course');
-        const rowSection = row.getAttribute('data-section');
+                    const rowCourse = row.getAttribute('data-course');
+                    const rowSection = row.getAttribute('data-section');
 
-        const courseMatch = (courseValue === 'All Courses' || courseValue === rowCourse);
-        const sectionMatch = (sectionValue === 'All Sections' || sectionValue === rowSection);
+                    const courseMatch = (courseValue === 'All Courses' || courseValue === rowCourse);
+                    const sectionMatch = (sectionValue === 'All Sections' || sectionValue === rowSection);
 
-        return courseMatch && sectionMatch;
-    }
+                    return courseMatch && sectionMatch;
+                }
 
-    // Register the filter
-    $.fn.dataTable.ext.search.push(customFilterFunction);
+                // Register the filter
+                $.fn.dataTable.ext.search.push(customFilterFunction);
 
-    // Apply filtering when dropdowns change
-    courseFilter.addEventListener('change', function () {
-        table.draw();
-    });
+                // Apply filtering when dropdowns change
+                courseFilter.addEventListener('change', function() {
+                    table.draw();
+                });
 
-    sectionFilter.addEventListener('change', function () {
-        table.draw();
-    });
-});
-</script>
-
+                sectionFilter.addEventListener('change', function() {
+                    table.draw();
+                });
+            });
+        </script>
 
         <script>
             // Update hidden input when section changes
