@@ -15,7 +15,7 @@
         $title = mysqli_real_escape_string($connect, $_POST['title']);
         $description = mysqli_real_escape_string($connect, $_POST['description']);
         $endDate = $_POST['endDate'];
-        $datePosted = date('Y-m-d'); // current date
+        $datePosted = $_POST['postDate'];
 
         $insertQuery = "INSERT INTO event_reminder (title, description, department, datePosted, endDate)
                     VALUES ('$title', '$description', '$department', '$datePosted', '$endDate')";
@@ -60,7 +60,6 @@
             flex-grow: 1;
             text-align: center;
             font-weight: bold;
-            min-width: 140px;
             font-size: 16px;
         }
         table {
@@ -69,51 +68,46 @@
         }
         th, td {
             width: 14.28%;
-            padding: 6px 4px;
-            text-align: center;
+            padding: 4px;
+            text-align: left;
             border: 1px solid #ddd;
             vertical-align: top;
             position: relative;
+            height: 45px;
             font-size: 13px;
-            height: 55px;
+            overflow: visible;
         }
         td:hover {
             background-color: #f0f0f0;
             cursor: pointer;
         }
-        .today {
-            background-color: #007bff;
-            color: #fff;
-            font-weight: bold;
-            border-radius: 0;
+
+        .event-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 1px;
+            margin-top: 10px;
         }
-        .event-title {
-            display: block;
-            margin-top: 3px;
-            font-size: 0.75rem;
-            background: #ffc107;
-            border-radius: 4px;
-            padding: 1.5px 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: pointer;
-        }
-        .event-title.more {
-            background-color: #6c757d;
-            cursor: default;
-        }
-        .event-span {
-            background-color: #fff3cd;
-            border-radius: 4px;
-            margin-top: 3px;
-            padding: 2px 3px;
+        .event-info {
             font-size: 11px;
-            color: #856404;
-            overflow: hidden;
+            margin-top: 5px;
             white-space: nowrap;
+            overflow: visible; /* allow overflow to show outside */
             text-overflow: ellipsis;
-            cursor: default;
+            display: inline-block;
+            max-width: none;
+            position: absolute;
+            top: 16px;
+            left: 5px;
+            z-index: 2;
+            background-color: transparent;
+            pointer-events: auto; /* optional: allows clicks to pass through */
+        }
+        .event-dot-container {
+            margin-bottom: 2px;
+            white-space: nowrap;
         }
         #addEventBtn {
             margin-top: 10px;
@@ -125,9 +119,7 @@
             cursor: pointer;
             font-size: 14px;
         }
-        #addEventBtn:hover {
-            background-color: #218838;
-        }
+
     </style>
 
     <div class="calendar-header">
@@ -135,177 +127,215 @@
         <span id="calendarTitle" aria-live="polite"></span>
         <button id="nextMonth" aria-label="Next month">&gt;</button>
     </div>
+
     <table role="grid" aria-label="Calendar">
         <thead>
             <tr>
-                <th scope="col">Sun</th><th scope="col">Mon</th><th scope="col">Tue</th><th scope="col">Wed</th>
-                <th scope="col">Thu</th><th scope="col">Fri</th><th scope="col">Sat</th>
+                <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+                <th>Thu</th><th>Fri</th><th>Sat</th>
             </tr>
         </thead>
         <tbody id="calendarBody"></tbody>
     </table>
     <button id="addEventBtn" data-bs-toggle="modal" data-bs-target="#addEventModal">Add Reminder</button>
+    
+
+
 
     <script>
         const events = <?php echo json_encode($events); ?>;
+        const colors = ["#e74c3c", "#3498db", "#2ecc71", "#9b59b6", "#f39c12", "#1abc9c"];
         let currentDate = new Date();
 
-        // Helper to parse YYYY-MM-DD to Date
-        function parseDate(dateStr) {
-            const parts = dateStr.split("-");
-            return new Date(parts[0], parts[1]-1, parts[2]);
+        function parseDate(str) {
+            const [y, m, d] = str.split("-");
+            return new Date(y, m - 1, d);
         }
 
-        // Helper to format Date to YYYY-MM-DD
         function formatDate(date) {
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            return `${date.getFullYear()}-${mm}-${dd}`;
+            return date.toISOString().split('T')[0];
         }
 
-        // Check if date1 <= date2
-        function dateLE(date1, date2) {
-            return date1.getTime() <= date2.getTime();
-        }
-
-        // Main calendar update
         function updateCalendar() {
             const month = currentDate.getMonth();
             const year = currentDate.getFullYear();
-
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July",
-                "August", "September", "October", "November", "December"];
-            document.getElementById('calendarTitle').innerText = `${monthNames[month]} ${year}`;
-
             const firstDay = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
+
+            document.getElementById('calendarTitle').innerText =
+                `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
 
             const calendarBody = document.getElementById('calendarBody');
             calendarBody.innerHTML = "";
 
+            const dateToEvents = {};
+
+            events.forEach((event, index) => {
+                const start = parseDate(event.datePosted);
+                const end = parseDate(event.endDate);
+                let d = new Date(start);
+                while (d <= end) {
+                    const key = formatDate(d);
+                    if (!dateToEvents[key]) dateToEvents[key] = [];
+                    dateToEvents[key].push({ ...event, color: colors[index % colors.length], startDate: formatDate(start) });
+                    d.setDate(d.getDate() + 1);
+                }
+            });
+
             let row = document.createElement("tr");
-            let today = new Date();
+            const today = new Date();
 
-            // Track event spans so we only show "+N title1, title2" once per event span
-            // We'll create a Map: key = event id, value = boolean shown or not
-            // If your events do not have unique ids, use index as id here.
-            // Assume events have "id" property; if not, add index as id:
-            events.forEach((e,i) => { if(!e.id) e.id = i; });
+            // Collect all unique start dates of all events (sorted) - used for title logic
+            const allStartDatesSet = new Set();
+            Object.keys(dateToEvents).forEach(key => {
+                dateToEvents[key].forEach(ev => allStartDatesSet.add(ev.startDate));
+            });
+            const allStartDates = [...allStartDatesSet].sort();
 
-            let eventShownInSpan = new Set();
+            function parseYMD(d) {
+                const [y,m,day] = d.split("-").map(Number);
+                return new Date(y,m-1,day);
+            }
 
-            // Empty cells before first day
             for (let i = 0; i < firstDay; i++) {
                 row.appendChild(document.createElement("td"));
             }
 
             for (let day = 1; day <= totalDays; day++) {
-                const cell = document.createElement("td");
-                const cellDate = new Date(year, month, day);
-                const formatted = formatDate(cellDate);
+                const dateObj = new Date(year, month, day);
+                const dateStr = formatDate(dateObj);
 
-                if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) {
-                    cell.classList.add("today");
+                const td = document.createElement("td");
+                td.dataset.date = dateStr;
+                td.innerHTML = `<div class="day-number">${day}</div>`;
+                td.style.position = "relative";
+
+                if (
+                    today.getDate() === day &&
+                    today.getMonth() === month &&
+                    today.getFullYear() === year
+                ) {
+                    td.classList.add("today");
                 }
 
-                // Find all events active this date
-                const activeEvents = events.filter(e => {
-                    const start = parseDate(e.datePosted);
-                    const end = parseDate(e.endDate);
-                    return dateLE(start, cellDate) && dateLE(cellDate, end);
-                });
+                if (dateToEvents[dateStr]) {
+                    const eventsToday = dateToEvents[dateStr];
 
-                cell.innerHTML = `<div class="day-number">${day}</div>`;
+                    // Append dots for all events today
+                    eventsToday.forEach(ev => {
+                        const dot = document.createElement("span");
+                        dot.className = "event-dot";
+                        dot.style.backgroundColor = ev.color;
+                        td.appendChild(dot);
+                    });
 
-                // For each active event, decide if this is the *start* cell of event span in this month
-                // If yes, display "+N title1, title2" (or event titles)
-                // Otherwise just mark cell as ongoing (small dot or subtle highlight)
+                    // Index of this cell's date in allStartDates array
+                    const currentIndex = allStartDates.indexOf(dateStr);
 
-                activeEvents.forEach(event => {
-                    const start = parseDate(event.datePosted);
-                    const end = parseDate(event.endDate);
+                    // Events starting today
+                    const eventsStartingToday = eventsToday.filter(ev => ev.startDate === dateStr);
+                    const countStartingToday = eventsStartingToday.length;
 
-                    // Only show summary on first visible date of event in calendar
-                    if (eventShownInSpan.has(event.id)) {
-                        // Already shown, so just mark with a subtle dot
-                        // Create a small dot or subtle background
-                        const dot = document.createElement('span');
-                        dot.style.display = 'inline-block';
-                        dot.style.width = '6px';
-                        dot.style.height = '6px';
-                        dot.style.borderRadius = '50%';
-                        dot.style.backgroundColor = '#ffc107';
-                        dot.style.marginRight = '2px';
-                        dot.title = event.title;
-                        cell.appendChild(dot);
-                    } else {
-                        // Check if this cellDate is the earliest cell in current calendar month that is in the event duration
-                        // If event started before this month, the first visible date is the 1st of month or later
-                        let visibleStart = new Date(year, month, 1);
-                        if (dateLE(start, visibleStart)) visibleStart = visibleStart;
-                        else visibleStart = start;
+                    const eventInfo = document.createElement("div");
+                    eventInfo.className = "event-info";
 
-                        if (cellDate.getTime() === visibleStart.getTime()) {
-                            // Show the summary text "+N title1, title2"
-                            // But what if multiple events on same start day? We'll handle after
+                    // Show logic:
+                    // If this is the earliest start date (lowest index), show only +count
+                    // If this is the next start date, show full combined titles of all ongoing events on this date (unique)
+                    // Else, show no title (just dots)
+                    // Clear previous event-info span only (not date number or dots)
+                    const existingEventInfo = td.querySelector(".event-info");
+                    if (existingEventInfo) {
+                        existingEventInfo.remove();
+                    }
 
-                            // For simplicity, just mark eventShownInSpan so we don't show multiple summaries for same event
-                            eventShownInSpan.add(event.id);
-                        } else {
-                            // Not first visible day, so just dot
-                            const dot = document.createElement('span');
-                            dot.style.display = 'inline-block';
-                            dot.style.width = '6px';
-                            dot.style.height = '6px';
-                            dot.style.borderRadius = '50%';
-                            dot.style.backgroundColor = '#ffc107';
-                            dot.style.marginRight = '2px';
-                            dot.title = event.title;
-                            cell.appendChild(dot);
+                    const uniqueTitlesSet = new Set(eventsToday.map(ev => ev.title));
+                    const allTitles = [...uniqueTitlesSet];
+                    const displayLimit = 3;
+                    const maxTitleLength = 15;
+
+                    if (allTitles.length > 0) {
+                        eventInfo.classList.add("event-info");
+
+                        if (currentIndex === 0 && allTitles.length > 1) {
+                            // Multi-event start: just show count
+                            eventInfo.innerText = `+${allTitles.length}`;
+                            eventInfo.title = allTitles.join(", ");
+                            td.appendChild(eventInfo);
+                        } else if (currentIndex === 1 && allTitles.length > 1) {
+                            // Multi-event middle date
+                            const hasLongTitle = allTitles.some(title => title.length > maxTitleLength);
+                            const fullText = `+${allTitles.length} ` + allTitles.join(", ");
+                            eventInfo.title = fullText;
+
+                            if (allTitles.length >= 3 && !hasLongTitle) {
+                                const displayTitles = allTitles.slice(0, displayLimit).join(", ");
+                                eventInfo.innerText = `+${allTitles.length} ${displayTitles}, ...`;
+                            } else {
+                                eventInfo.innerText = `+${allTitles.length}`;
+                            }
+
+                            td.appendChild(eventInfo);
+                        } else if (allTitles.length === 1) {
+                            // Isolated single event: show title directly ONLY if this date is the event's start date
+                            if (dateStr === eventsToday[0].startDate) {
+                                const title = allTitles[0];
+                                eventInfo.innerText = title.length > maxTitleLength ? title.slice(0, maxTitleLength) + "..." : title;
+                                eventInfo.title = title; // full title on hover
+                                td.appendChild(eventInfo);
+                            }
+                            // Else: no eventInfo appended (only dots) on subsequent days
                         }
                     }
-                });
+                    // else no eventInfo appended (only dots)
 
-                // Now after loop, check if any active events start today in this calendar, and if so show summary label for all those events on this cell.
+                    // Highlight background for event days
+                    td.style.backgroundColor = eventsToday[0].color + '22';
 
-                const startingEvents = activeEvents.filter(e => {
-                    const start = parseDate(e.datePosted);
-                    let visibleStart = new Date(year, month, 1);
-                    if (dateLE(start, visibleStart)) visibleStart = visibleStart;
-                    else visibleStart = start;
-                    return cellDate.getTime() === visibleStart.getTime();
-                });
+                    // Modal on click
+                    td.addEventListener("click", () => {
+                        const modalBody = document.getElementById("eventDescription");
+                        modalBody.innerHTML = ""; // Clear previous content
 
-                if (startingEvents.length > 0) {
-                    // Show summary text with +N and titles comma separated
-                    // The "+N" is count of events starting today in calendar
-                    const count = startingEvents.length;
-                    const titles = startingEvents.map(e => e.title).join(', ');
+                        eventsToday.forEach(ev => {
+                            // Create a card div for each event
+                            const card = document.createElement("div");
+                            card.style.borderLeft = `6px solid ${ev.color}`;
+                            card.style.backgroundColor = `${ev.color}22`; // light transparent bg
+                            card.style.padding = "10px";
+                            card.style.marginBottom = "10px";
+                            card.style.borderRadius = "4px";
+                            card.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
 
-                    const summary = document.createElement('span');
-                    summary.className = 'event-span';
-                    summary.innerText = `+${count} ${titles}`;
-                    summary.style.cursor = 'default';
-                    cell.appendChild(summary);
+                            // Title
+                            const title = document.createElement("h6");
+                            title.innerText = ev.title;
+                            title.style.margin = "0 0 5px 0";
 
-                    // Clicking summary or cell shows modal with descriptions of all events on that date
-                    cell.addEventListener('click', () => {
-                        const descriptions = startingEvents.map(e => `${e.title}:\n${e.description}`).join("\n\n");
-                        document.getElementById("eventDescription").innerText = descriptions;
-                        const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-                        modal.show();
-                    });
-                } else if (activeEvents.length > 0 && startingEvents.length === 0) {
-                    // If active but no event starting today, clicking cell shows modal with all events descriptions
-                    cell.addEventListener('click', () => {
-                        const descriptions = activeEvents.map(e => `${e.title}:\n${e.description}`).join("\n\n");
-                        document.getElementById("eventDescription").innerText = descriptions;
+                            // Description
+                            const desc = document.createElement("p");
+                            desc.innerText = ev.description;
+                            desc.style.margin = "0 0 8px 0";
+                            desc.style.whiteSpace = "pre-wrap";
+
+                            // Dates posted and end date
+                            const dates = document.createElement("small");
+                            dates.innerText = `Posted: ${ev.datePosted} | Ends: ${ev.endDate}`;
+                            dates.style.color = "#555";
+
+                            card.appendChild(title);
+                            card.appendChild(desc);
+                            card.appendChild(dates);
+
+                            modalBody.appendChild(card);
+                        });
+
                         const modal = new bootstrap.Modal(document.getElementById('eventModal'));
                         modal.show();
                     });
                 }
 
-                row.appendChild(cell);
+                row.appendChild(td);
 
                 if ((firstDay + day) % 7 === 0) {
                     calendarBody.appendChild(row);
@@ -364,10 +394,20 @@
 
                             <div class="form-group md-5">
                                 <div class="col-md">
-                                    <div>
+                                    <div class="row"  style="display: flex; justify-content: center; align-items: center;">
                                         <span>Event/Reminder Duration</span>
                                     </div>
-                                    <input class="form-control" type="date" name="endDate" id="endDate" required>
+                                    <br>
+                                    <div class="row">
+                                        <div class="col">
+                                            <span>Starting Date</span>
+                                            <input class="form-control" type="date" name="postDate" id="postDate" required>
+                                        </div>
+                                        <div class="col">
+                                            <span>Ending Date</span>
+                                            <input class="form-control" type="date" name="endDate" id="endDate" required>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </form>
@@ -382,18 +422,23 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+<!-- Modal for Event Details -->
+<div class="modal fade" id="eventModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 id="eventModalLabel" class="modal-title">Event Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Event Details</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"> 
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
-            <div class="modal-body" id="eventDescription"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-body">
+                <pre id="eventDescription" style="white-space: pre-wrap;"></pre>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center;">
+                <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
+
