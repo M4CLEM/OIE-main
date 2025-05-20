@@ -391,5 +391,4 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
         </script>
 
 </body>
-
 </html>
