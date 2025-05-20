@@ -16,23 +16,27 @@
     $activeSemester = "N/A";
     $activeSchoolYear = "N/A";
 
-    // Loop to find the active semester
-    while ($rows = mysqli_fetch_assoc($result)) {
-        $id = $rows['id'];
-        $startDate = $rows['start_date'];
-        $endDate = $rows['end_date'];
-        $semester = $rows['semester'];
-        $schoolYear = $rows['schoolYear'];
+// Loop to find the active semester
+while ($rows = mysqli_fetch_assoc($result)) {
+    $id = $rows['id'];
+    $startDate = $rows['start_date'];
+    $endDate = $rows['end_date'];
+    $semester = $rows['semester'];
+    $schoolYear = $rows['schoolYear'];
 
-        // Check if current date falls within this academic period
-        if ($currentDate >= $startDate && $currentDate <= $endDate) {
-            $activeSemester = $semester;
-            $activeSchoolYear = $schoolYear;
-        }
+    // Check if current date falls within this academic period
+    if ($currentDate >= $startDate && $currentDate <= $endDate) {
+        $activeSemester = $semester;
+        $activeSchoolYear = $schoolYear;
 
-        // Store all records for table display
-        $data[] = $rows;
+        // ✅ Save to session so other pages can access it
+        $_SESSION['semester'] = $activeSemester;
+        $_SESSION['schoolYear'] = $activeSchoolYear;
     }
+
+    // Store all records for table display
+    $data[] = $rows;
+}
 ?>
 
 <!DOCTYPE html>
