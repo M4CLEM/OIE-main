@@ -50,6 +50,14 @@ if (isset($_SESSION['dept_sec']) && is_array($_SESSION['dept_sec']) && count($_S
 } else {
     echo "No sections found for the adviser.";
 }
+
+echo "<pre>";
+echo "Active Semester: " . $activeSemester . "\n";
+echo "Active School Year: " . $activeSchoolYear . "\n";
+echo "Department: " . $_SESSION['dept_adv'] . "\n";
+echo "Course: " . $_SESSION['dept_crs'] . "\n";
+print_r($explodedSections);
+echo "</pre>";
 ?>
 <!DOCTYPE html>
 <html>
