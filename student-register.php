@@ -8,9 +8,20 @@ if (isset($_POST['register'])) {
 
 
 	$studentID = $_POST['studentID'];
+	$fullName = $_POST['fullName'];
 	$email = $_POST['email'];
 	$password = $_POST['password'];
 	$c_pass = $_POST['c_pass'];
+
+	// Split by comma first
+	$parts = explode(',', $fullName);
+
+	// Trim whitespace from each part
+	$parts = array_map('trim', $parts);
+
+	// Assign parts to variables safely
+	$lastName = $parts[0] ?? '';
+	$firstName = $parts[1] ?? '';
 
 	$error = array();
 
@@ -38,7 +49,7 @@ if (isset($_POST['register'])) {
 
 	if (count($error) < 1) {
 
-		$find = "SELECT * FROM student_masterlist WHERE studentID = '$studentID'";
+		$find = "SELECT * FROM student_masterlist WHERE studentID = '$studentID' AND lastName = '$lastName' AND firstName = '$firstName'";
 
 		$courseQuery = "SELECT course FROM student_masterlist WHERE studentID = '$studentID'";
 		$courseResult = mysqli_query($connect, $courseQuery);
@@ -116,6 +127,21 @@ if (isset($_POST['register'])) {
 					<input type="text" name="studentID" class="form-control form-control-lg bg-light fs-6" placeholder="Enter Student ID" autocomplete="off" required>
 				</div>
 
+				<div class="input-group mb-3 position-relative">
+  					<input type="text" name="fullName"
+         				class="form-control form-control-lg bg-light fs-6"
+         				placeholder="Enter Full Name"
+         				autocomplete="off"
+         				onfocus="showSubtext(this)"
+         				onblur="hideSubtext(this)"
+         			required>
+  					<div class="form-text text-muted position-absolute subtext">
+    					Format: Last Name, First Name
+  					</div>
+				</div>
+
+
+
 				<div class="input-group mb-3">
 					<input type="email" name="email" class="form-control form-control-lg bg-light fs-6" placeholder="Enter Institutional Email" autocomplete="off" required pattern=".+@plmun\.edu\.ph">
 				</div>
@@ -148,5 +174,38 @@ if (isset($_POST['register'])) {
 	</div>
 	</div>
 
+	<style>
+  		.input-group {
+    		position: relative;
+  		}
+  		.subtext {
+    		position: absolute;
+    		top: 100%;
+    		left: 0;
+    		display: none;
+    		font-size: 0.875rem;
+    		color: #6c757d;
+    		margin-top: 4px;
+    		z-index: 10;
+  		}
+  		.input-group.show-subtext .subtext {
+    		display: block;
+  		}
+  		.input-group.show-subtext {
+    		margin-bottom: 3rem !important;
+  		}
+	</style>
+
+	<script>
+  		function showSubtext(input) {
+    		const group = input.closest('.input-group');
+    		group.classList.add('show-subtext');
+  		}
+
+  		function hideSubtext(input) {
+    		const group = input.closest('.input-group');
+    		group.classList.remove('show-subtext');
+  		}
+	</script>
 </body>
 </html>

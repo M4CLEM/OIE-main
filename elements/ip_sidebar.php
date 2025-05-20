@@ -29,14 +29,14 @@
     </li>
 
     <li class="sidebar-item">
-        <a href="" class="sidebar-link">
+        <a href="job-post.php" class="sidebar-link">
             <i class="fa fa-briefcase fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Job Postings</span>
         </a>
     </li>
 
     <li class="sidebar-item">
-        <a href="" class="sidebar-link">
+        <a href="intern-tracker.php" class="sidebar-link">
             <i class="fa fa-chart-line fa-sm fa-fw mr-2 text-gray-400"></i>
             <span>Intern Tracker</span>
         </a>
