@@ -69,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'jobDescription' => $row['jobdescription'],
             'jobRequirement' => $row['jobreq'],
             'link' => $row['link'],
+            'department' => $row['dept'],
             'students' => $students
         ]);
     } else {
