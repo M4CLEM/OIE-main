@@ -73,6 +73,7 @@ if (isset($_POST['submit'])) {
     $semester = $_POST['Semester'];
     $section = $_POST['section'];
     $dept = $_POST['dept'];
+    $hourRequirement = $_POST['hourRequirement'];
 
     $check_query = "SELECT * FROM sections_list WHERE course = '$course' AND section = '$section'";
     $check_result = mysqli_query($connect, $check_query);
@@ -125,8 +126,8 @@ if (isset($_POST['submit'])) {
             $checkResult = mysqli_query($connect, $checkQuery);
             
             if (mysqli_num_rows($checkResult) == 0) {
-                $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, year, section, semester, schoolYear) 
-                        VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$year', '$section', '$semester' , '$SY')";
+                $sql = "INSERT INTO student_masterlist(studentID, lastName, firstName, course, hoursRequirement, year, section, semester, schoolYear) 
+                        VALUES('$studentid', '$lastName', '$firstName','$excelCourse', '$hourRequirement', '$year', '$section', '$semester' , '$SY')";
             
                 if (mysqli_query($connect, $sql)) {
                     $messages[] = "$lastName $firstName added to database with semester $semester and school year $SY, folder created.";

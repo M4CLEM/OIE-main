@@ -111,6 +111,13 @@ $result=mysqli_query($connect,"SELECT * FROM studentinfo WHERE status = 'ENROLLE
                             </div>
 
                             <div class="row mb-3">
+                                <label for="hourRequirement" class="col-sm-2 col-form-label">Hours Required</label>
+                                <div class="col-sm-9">
+                                    <input type="number" class="form-control" id="colFormLabel" placeholder="Hours Required" name="hourRequirement">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
                                 <div class="col-sm-11">
                                     <div class="input-group">
                                         <label class="input-group-text" for="inputGroupSelect02">Semester</label>

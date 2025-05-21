@@ -264,6 +264,12 @@ $department = $_SESSION['department'];
 
                         <div class="form-group md-5">
                             <div class="col-md-10">
+                                <input class="form-control input-sm" type="number" name="hourRequirement" id="hourRequirement" autocomplete="none" placeholder="Hours Required" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
                                 <input class="form-control input-sm" id="SY" name="SY" type="text" value="" autocomplete="none" placeholder="School Year" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off">
                             </div>
                         </div>

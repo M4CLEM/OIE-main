@@ -49,6 +49,7 @@ if(isset($_POST['save'])) {
     $section = trim($_POST['section']);
     $year = trim($_POST['year']);
     $semester = trim($_POST['semester']);
+    $hourRequirement = trim($_POST['hourRequirement']);
     $SY = trim($_POST['SY']);
 
     // Ensure "documents" folder exists
@@ -69,11 +70,11 @@ if(isset($_POST['save'])) {
 
     if ($checkResult->num_rows == 0) {
         // Insert student into database
-        $query = "INSERT INTO student_masterlist (studentID, lastName, firstName, course, section, year, semester, schoolYear) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO student_masterlist (studentID, lastName, firstName, course, section, hoursRequirement, year, semester, schoolYear) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $connect->prepare($query);
-        $stmt->bind_param("ssssssss", $studentID, $lastName, $firstName, $course, $section, $year, $semester, $SY);
+        $stmt->bind_param("sssssssss", $studentID, $lastName, $firstName, $course, $section, $hourRequirement, $year, $semester, $SY);
         
         if ($stmt->execute()) {
             echo "<div style='padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; 

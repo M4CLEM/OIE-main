@@ -5,6 +5,22 @@
     $activeSemester = $_SESSION['semester'];
     $activeSchoolYear = $_SESSION['schoolYear'];
     $companyName = $_SESSION['companyName'];
+
+    $studQuery = "SELECT si.*, ci.*, si.trainerEmail AS si_trainerEmail, ci.trainerEmail AS ci_trainerEmail, ci.trainerContact AS ci_trainerContact
+    FROM studentinfo si
+    INNER JOIN company_info ci ON si.studentID = ci.studentID
+    WHERE ci.companyName = ?
+        AND ci.semester = ?
+        AND ci.schoolYear = ?
+        AND si.semester = ?
+        AND si.school_year = ?
+    ";
+
+    $studStmt = $connect->prepare($studQuery);
+    $studStmt->bind_param("sssss", $companyName, $activeSemester, $activeSchoolYear, $activeSemester, $activeSchoolYear);
+    $studStmt->execute();
+    $studResult = $studStmt->get_result();
+
 ?>
 
 <!DOCTYPE html>
@@ -59,6 +75,91 @@
                     </ul>
                 </nav>
 
+                <div class="row m-1">
+                    <div class="col-md-5 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-dark">STUDENT INTERNS</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+
+                                            </tr>
+                                            <tr>
+                                                <th class="small text-center" scope="col">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="selectAll" style='transform: scale(1.5); margin-top: 6px'>
+                                                    </div>
+                                                </th>
+                                                <th class="small" scope="col">STUDENT NO.</th>
+                                                <th class="small" scope="col">NAME</th>
+                                                <th class="small" scope="col">COURSE-SECTION</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if ($studResult->num_rows > 0): ?>
+                                                <?php while ($row = $studResult->fetch_assoc()): ?>
+                                                    <?php
+                                                        // Check if any of the required fields are empty or null
+                                                        $isIncomplete = empty($row['si_trainerEmail']) || empty($row['ci_trainerEmail']) || empty($row['ci_trainerContact']);
+
+                                                        // Assign row class based on condition
+                                                        $rowClass = $isIncomplete ? 'table-danger' : '';
+                                                    ?>
+                                                    <tr class="<?php echo $rowClass; ?>">
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input student-checkbox" type="checkbox" name="selected_students[]" value="<?php echo htmlspecialchars($row['studentID']); ?>" style='transform: scale(1.5); margin-top: 6px'>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <a href="#" class="student-link" data-studentnumber="<?php echo htmlspecialchars($row['studentID']); ?>">
+                                                                <?php echo htmlspecialchars($row['studentID']); ?>
+                                                            </a>
+                                                        </td>
+                                                        <td><?php echo htmlspecialchars($row['firstname'] . ' ' . $row['lastname']); ?></td>
+                                                        <td><?php echo htmlspecialchars($row['course'] . '-' . $row['section']); ?></td>
+                                                    </tr>
+                                                <?php endwhile; ?>
+                                            <?php else: ?>
+                                                <tr>
+                                                    <td colspan="9" class="text-center">No students found.</td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7 mb-4 p-lg-0">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Logout Modal-->
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <a class="btn btn-primary" href="../logout.php">Logout</a>
+                    </div>
+                </div>
             </div>
         </div>
     </body>
