@@ -7,8 +7,7 @@ $department = $_SESSION['department'];
 $activeSemester = $_SESSION['semester'];
 $activeSchoolYear = $_SESSION['schoolYear'];
 
-// Assuming these are passed from dropdown filters or preset:
-$course = $_POST['course'] ?? 'All'; // or get from GET if using links
+$course = $_POST['course'] ?? 'All'; 
 $sectionFilter = $_POST['section'] ?? 'All';
 
 $query = "SELECT * FROM studentinfo WHERE department = ? AND semester = ? AND school_year = ?";
@@ -52,7 +51,7 @@ if ($stmt->execute()) {
 
 <head>
     <?php include("../elements/meta.php"); ?>
-    <title>OJT COOORDINATOR PORTAL</title>
+    <title>OJT COORDINATOR PORTAL</title>
     <?php include("embed.php"); ?>
     <link rel="stylesheet" href="../assets/css/new-style.css">
 </head>
@@ -136,11 +135,11 @@ if ($stmt->execute()) {
 
                                             // Export Form
                                             echo '
-                    <form method="POST" action="export_pdf.php" target="_blank" style="display:inline-block; margin-left: 10px;">
-                        <input type="hidden" name="selected_course" id="selected_course_input">
-                        <input type="hidden" name="selected_section" id="selected_section_input">
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-file-pdf-o"></i> Export PDF</button>
-                    </form>';
+                                                <form method="POST" action="export_pdf.php" target="_blank" style="display:inline-block; margin-left: 10px;">
+                                                    <input type="hidden" name="selected_course" id="selected_course_input">
+                                                    <input type="hidden" name="selected_section" id="selected_section_input">
+                                                    <button type="submit" class="btn btn-primary"><i class="fa fa-file-pdf-o"></i> Export PDF</button>
+                                                </form>';
                                             ?>
                                         </div>
                                     </div>
