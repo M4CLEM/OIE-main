@@ -97,7 +97,7 @@
                                                 ?>
                                                     <tr>
                                                         <td>
-                                                            <a href="#" class="jobrole-link" data-jobrole="<?php echo htmlspecialchars($jobRole);?>">
+                                                            <a href="#" class="jobrole-link" data-jobrole="<?php echo htmlspecialchars($jobRole);?>" data-company="<?php echo htmlspecialchars(trim($row['companyName'])); ?>">
                                                                 <?php echo htmlspecialchars($jobRole);?>
                                                             </a>
                                                         </td>
@@ -125,29 +125,39 @@
                                 <div class="row m-1">
                                     <div class="row">
                                         <div class="col">
-                                            <label for="">Company Number:</label>
-                                            <p></p>
+                                            <label for="companyNumber" class="small">Company Number:</label>
+                                            <p class="small font-weight-bold" id="companyNumber"></p>
                                         </div>
                                         <div class="col">
-                                            <label for="">Jobrole</label>
-                                            <p></p>
+                                            <label for="jobrole" class="small">Jobrole:</label>
+                                            <p class="small font-weight-bold" id="jobrole"></p>
                                         </div>
                                         <div class="col">
-                                            <label for="">Work Type</label>
-                                            <p></p>
+                                            <label for="workType" class="small">Work Type:</label>
+                                            <p class="small font-weight-bold" id="workType"></p>
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <label for="">Job Description:</label>
-                                        <p></p>
+                                        <div class="col">
+                                            <label for="address" class="small">Address:</label>
+                                            <p class="small font-weight-bold" id="address"></p>
+                                        </div>
+                                        <div class="col">
+                                            <label for="contactPerson" class="small">Contact Person:</label>
+                                            <p class="small font-weight-bold" id="contactPerson"></p>
+                                        </div>
                                     </div>
                                     <div class="row">
-                                        <label for="">Job Requirements:</label>
-                                        <p></p>
+                                        <label for="jobdescription" class="small">Job Description:</label>
+                                        <p class="small font-weight-bold" id="jobDescription"></p>
                                     </div>
                                     <div class="row">
-                                        <label for="">Link:</label>
-                                        <p></p>
+                                        <label for="jobRequirement">Job Requirements:</label>
+                                        <p class="small font-weight-bold" id="jobRequirement"></p>
+                                    </div>
+                                    <div class="row">
+                                        <label for="link" class="small">Link:</label>
+                                        <p class="small font-weight-bold" id="link"></p>
                                     </div>
                                 </div>
 
@@ -176,6 +186,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -199,4 +210,59 @@
             </div>
         </div>
     </body>
+
+    <script>
+    $(document).ready(function () {
+        $('.jobrole-link').on('click', function (e) {
+    e.preventDefault();
+    const jobrole = $(this).data('jobrole');
+    const companyName = '<?php echo $_SESSION["companyName"]; ?>';
+
+    $.ajax({
+        type: 'POST',
+        url: 'functions/get_job_info.php', // update to correct path
+        data: { jobrole, companyName },
+        dataType: 'json',
+        success: function (data) {
+            if (data.success) {
+                $('#companyNumber').text(data.companyNumber);
+                $('#jobrole').text(data.jobrole);
+                $('#workType').text(data.workType);
+                $('#address').text(data.address);
+                $('#contactPerson').text(data.contactPerson);
+                $('#jobDescription').text(data.jobDescription);
+                $('#jobRequirement').text(data.jobRequirement);
+                $('#link').text(data.link);
+
+                // Populate student table
+                const studentTableBody = $('table tbody').last(); // adjust selector if needed
+                studentTableBody.empty();
+
+                if (data.students.length > 0) {
+                    data.students.forEach(student => {
+                        studentTableBody.append(`
+                            <tr>
+                                <td>${student.studentID}</td>
+                                <td>${student.fullName}</td>
+                                <td>${student.department}</td>
+                                <td>${student.courseSection}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    studentTableBody.append('<tr><td colspan="4">No students deployed for this job role.</td></tr>');
+                }
+            } else {
+                alert('No job information found.');
+            }
+        },
+        error: function () {
+            alert('Something went wrong.');
+        }
+    });
+});
+
+});
+</script>
+
 </html>
