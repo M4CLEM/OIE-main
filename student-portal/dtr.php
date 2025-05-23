@@ -50,9 +50,9 @@ $logState = "";
 $data_query =  mysqli_query($connect, "SELECT status FROM logdata WHERE student_num='$studentNumber' 
                                     ORDER BY date DESC, time_in DESC LIMIT 1");
 
-if(!$data_query) {
+if (!$data_query) {
     die('SQL Error: ' . mysqli_error($connect));
-}                                    
+}
 
 $row = mysqli_fetch_array($data_query);
 
@@ -67,6 +67,7 @@ if ($row !== null) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
     <?php include("../elements/meta.php"); ?>
@@ -75,14 +76,15 @@ if ($row !== null) {
     <link rel="stylesheet" href="../assets/css/new-style.css">
 
 </head>
+
 <body id="page-top">
 
     <!-- Page Wrapper -->
-   <div id="wrapper">
+    <div id="wrapper">
 
         <!--Sidebar Wrapper-->
         <aside id="sidebar" class="expand">
-            <?php include('../elements/stud_sidebar.php')?>
+            <?php include('../elements/stud_sidebar.php') ?>
         </aside>
 
         <div class="main">
@@ -101,25 +103,26 @@ if ($row !== null) {
                     <!-- Nav Item - User Information -->
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                 <?php (isset($_SESSION['student'])) ?> <?php echo $_SESSION['student']; ?></span>
-                                <?php
-                                function get_drive_image_url($studentImage) {
-                                    // Check if the image is a Google Drive URL
-                                    if (strpos($studentImage, 'drive.google.com') !== false) {
-                                        // Extract the File ID from different Drive URL formats
-                                        preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $studentImage, $matches);
-                                        $studentImage = $matches[1] ?? null; // Get the File ID if found
-                                    }
-
-                                    // If a valid Google Drive File ID is found, return the direct image link
-                                    if ($studentImage && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $studentImage)) {
-                                        return "https://lh3.googleusercontent.com/d/{$studentImage}=w1000";
-                                    }
-                                    // If it's not a Google Drive image, return it as is
-                                        return $studentImage;
+                            <?php
+                            function get_drive_image_url($studentImage)
+                            {
+                                // Check if the image is a Google Drive URL
+                                if (strpos($studentImage, 'drive.google.com') !== false) {
+                                    // Extract the File ID from different Drive URL formats
+                                    preg_match('/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/', $studentImage, $matches);
+                                    $studentImage = $matches[1] ?? null; // Get the File ID if found
                                 }
+
+                                // If a valid Google Drive File ID is found, return the direct image link
+                                if ($studentImage && preg_match('/^[a-zA-Z0-9_-]{25,}$/', $studentImage)) {
+                                    return "https://lh3.googleusercontent.com/d/{$studentImage}=w1000";
+                                }
+                                // If it's not a Google Drive image, return it as is
+                                return $studentImage;
+                            }
                             ?>
                             <img class="img-profile rounded-circle" src="<?php echo $studentImage ? get_drive_image_url($studentImage) : '../img/undraw_profile.svg'; ?>">
                         </a>
@@ -156,29 +159,64 @@ if ($row !== null) {
                     <div class="container mt-6">
                         <div class="row">
 
-                        
+
                             <div class='card-body col-md-9 border mt-2 rounded p-4'>
-                                <h2 class='card-title'>On the Job Training: <?php echo $schoolYear?></h5><br>
-                                <?php $post->loadInfo($connect, $dept, $course, $studentNumber, $section, $semester, $schoolYear); ?>
+                                <h2 class='card-title'>On the Job Training: <?php echo $schoolYear ?></h5><br>
+                                    <?php $post->loadInfo($connect, $dept, $course, $studentNumber, $section, $semester, $schoolYear); ?>
                             </div>
 
                             <div class="col-md-3 border mt-2 p-5 text-center rounded">
-    <br>
-    <button id="toggleButton" class="btn btn-lg btn-block 
-        <?php echo $logState === 'In' ? 'btn-success' : 'btn-danger'; ?>" 
-        onclick="executePHPFunction()">
-        <br><?php echo $logState ?><br><br>
-    </button>
+                                <br>
+                                <button id="toggleButton" class="btn btn-lg btn-block 
+        <?php echo $logState === 'In' ? 'btn-success' : 'btn-danger'; ?>"
+                                    onclick="executePHPFunction()">
+                                    <br><?php echo $logState ?><br><br>
+                                </button>
 
-    <p id="timeLabel" class="mt-3"></p> 
+                                <p id="timeLabel" class="mt-3"></p>
 
-    <!-- Adjusted Total Rendered Hours section with spacing -->
-    <div class="total-hours mt-4 p-2">
-        <strong>Total Rendered Hours:</strong>  
-        <br> <!-- Adds line break for better spacing -->
-        <span id="renderedHours" class="fw-bold fs-5 d-block mt-2">Loading...</span>
-    </div>
-</div>
+                                <!-- Adjusted Total Rendered Hours section with spacing -->
+                                <div class="total-hours mt-4 p-2">
+                                    <strong>Total Rendered Hours:</strong>
+                                    <br> <!-- Adds line break for better spacing -->
+                                    <span id="renderedHours" class="fw-bold fs-5 d-block mt-2">Loading...</span>
+
+                                    <?php
+                                    $studCode = $_SESSION['stud_code'] ?? null;
+
+                                    // Store break time per student
+                                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setBreakTime'])) {
+                                        if (isset($_POST['breakDuration']) && $studCode) {
+                                            $selectedBreak = intval($_POST['breakDuration']);
+                                            $_SESSION['student_breaks'][$studCode] = $selectedBreak;
+                                        }
+                                    }
+                                    // Retrieve break time for the logged-in student
+                                    $breakMinutes = $_SESSION['student_breaks'][$studCode] ?? 60;
+                                    //Define break options
+                                    $breakOptions = [
+                                        30 => '30 minutes',
+                                        60 => '1 hour',
+                                        90 => '1 hour 30 minutes',
+                                    ];
+                                    ?>
+                                    <!--Break Duration Form -->
+                                    <form method="POST" class="mt-4">
+                                        <strong>Break Time:</strong>
+                                        <select name="breakDuration" class="form-select form-control mt-2" required>
+                                            <?php foreach ($breakOptions as $value => $label): ?>
+                                                <option value="<?= $value ?>" <?= ($breakMinutes == $value) ? 'selected' : '' ?>><?= $label ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <button type="submit" name="setBreakTime" class="btn btn-success btn-sm mt-2">Set Break Time</button>
+                                    </form>
+                                    <!--Display Current Setting -->
+                                    <p class="mt-2 text-muted small">Current Break: <?= $breakMinutes ?> minutes</p>
+
+
+
+                                </div>
+                            </div>
 
                         </div>
 
@@ -187,23 +225,24 @@ if ($row !== null) {
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                        <th>Date</th>
-                                        <th>Time in</th>
-                                        <th>Time out</th>
-                                        <th>Total hours</th>
+                                            <th>Date</th>
+                                            <th>Time in</th>
+                                            <th>Time out</th>
+                                            <th>Break</th>
+                                            <th>Total hours</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                            $dateFrom = null;
-                                            $dateTo = null;
-                                            if (isset($_POST['filter'])) {
-                                                $dateFrom = $_POST['dateFrom'];
-                                                $dateTo = $_POST['dateTo'];
-                                                $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo, $semester, $schoolYear);
-                                            } else {
-                                                $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo, $semester, $schoolYear);
-                                            }
+                                        $dateFrom = null;
+                                        $dateTo = null;
+                                        if (isset($_POST['filter'])) {
+                                            $dateFrom = $_POST['dateFrom'];
+                                            $dateTo = $_POST['dateTo'];
+                                            $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo, $semester, $schoolYear);
+                                        } else {
+                                            $post->loadLogs($connect, $studentNumber, $dateFrom, $dateTo, $semester, $schoolYear);
+                                        }
                                         ?>
                                     </tbody>
                                 </table>
@@ -232,71 +271,70 @@ if ($row !== null) {
         </div>
     </div>
 
-<script>
+    <script>
+        function updateTime() {
+            let currentTime = new Date();
+            let seconds = currentTime.getSeconds();
+            currentTime.setSeconds(seconds + 10); // Add 10 seconds to the current time
 
-    function updateTime() {
-        let currentTime = new Date();
-        let seconds = currentTime.getSeconds();
-        currentTime.setSeconds(seconds + 10); // Add 10 seconds to the current time
+            let formattedTime = currentTime.toLocaleString('en-US', {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: true
+            });
 
-        let formattedTime = currentTime.toLocaleString('en-US', {
-            hour: 'numeric',
-            minute: 'numeric',
-            second: 'numeric',
-            hour12: true
-        });
+            document.getElementById('timeLabel').textContent = 'Time: ' + formattedTime;
+        }
 
-        document.getElementById('timeLabel').textContent = 'Time: ' + formattedTime;
-    }
+        updateTime();
+        setInterval(updateTime, 500);
 
-    updateTime();
-    setInterval(updateTime, 500);
+        function executePHPFunction() {
 
-    function executePHPFunction() {
+            var logState = "<?php echo $logState; ?>";
+            var studentNum = "<?php echo $studentNumber; ?>";
+            var logDept = "<?php echo $dept; ?>"
+            var logCourse = "<?php echo $course; ?>"
+            var logSection = "<?php echo $section; ?>"
+            var logCompany = "<?php echo $companyCode; ?>"
 
-        var logState = "<?php echo $logState; ?>";
-        var studentNum = "<?php echo $studentNumber; ?>";
-        var logDept = "<?php echo $dept; ?>"
-        var logCourse = "<?php echo $course; ?>"
-        var logSection = "<?php echo $section; ?>"
-        var logCompany = "<?php echo $companyCode; ?>"
-
-        var xhr = new XMLHttpRequest();
-        xhr.timeout = 2000;
-        xhr.open("POST", "includes/logs.php", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                console.log(xhr.responseText);
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 2000;
+            xhr.open("POST", "includes/logs.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(xhr.responseText);
+                }
             }
+            xhr.send("logState=" + logState +
+                "&studentNum=" + studentNum +
+                "&log_dept=" + logDept +
+                "&log_course=" + logCourse +
+                "&log_section=" + logSection +
+                "&log_company=" + logCompany);
+
+            setTimeout(function() {
+                location.reload();
+            }, 1000);
         }
-        xhr.send("logState=" + logState 
-                + "&studentNum=" + studentNum 
-                + "&log_dept=" + logDept 
-                + "&log_course=" + logCourse 
-                + "&log_section=" + logSection 
-                + "&log_company=" + logCompany);
 
-        setTimeout(function() {
-            location.reload();
-        }, 1000);
-    }
-
-    function fetchStudentHours() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "redered_hours.php", true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            document.getElementById("renderedHours").innerHTML = xhr.responseText;
+        function fetchStudentHours() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "redered_hours.php", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById("renderedHours").innerHTML = xhr.responseText;
+                }
+            };
+            xhr.send();
         }
-    };
-    xhr.send();
-}
 
-// Fetch total hours for the logged-in student every 10 seconds and on page load
-setInterval(fetchStudentHours, 10000);
-fetchStudentHours();
-
-</script>
+        // Fetch total hours for the logged-in student every 10 seconds and on page load
+        setInterval(fetchStudentHours, 10000);
+        fetchStudentHours();
+    </script>
 </body>
+
 </html>
