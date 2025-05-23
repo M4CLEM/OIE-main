@@ -106,7 +106,7 @@ $stmt->close();
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody style="max-height: 80vh; overflow-y: auto;">
                                         <?php if (!empty($applicants)): ?>
                                             <?php foreach ($applicants as $applicant): ?>
                                                 <tr>

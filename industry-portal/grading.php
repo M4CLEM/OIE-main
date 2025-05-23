@@ -101,7 +101,7 @@
                                                 <th scope="col" class="small">JOBROLE</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody style="max-height: 80vh; overflow-y: auto;">
                                             <?php foreach ($studentsInfo as $row): ?>
                                                 <tr>
                                                     <td>
@@ -128,7 +128,7 @@
                             <div class="card-header py-3">
                                 <h6 class="m-0 font-weight-bold text-dark">STUDENT INFORMATION</h6>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
                                 <div class="row">
                                     <div class="col">
                                         <div>

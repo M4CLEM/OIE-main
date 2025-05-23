@@ -96,7 +96,7 @@
                                                 <th scope="col" width="23%">ACTION</th>
                                             </tr>
                                         </thead>
-                                       <tbody>
+                                       <tbody style="max-height: 80vh; overflow-y: auto;">
                                             <?php
                                                 if ($jobResult->num_rows === 0): ?>
                                                     <tr><td colspan="2">No job roles found.</td></tr>
@@ -134,7 +134,7 @@
                             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                 <h5 class="m-0 font-weight-bold text-dark">Job Information</h5>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
                                 <div class="row m-1">
                                     <div class="row">
                                         <div class="col">
@@ -285,7 +285,7 @@
                                             <span>College</span>
                                         </div>
                                         <select name="department" id="department" class="form-control" required>
-                                            <option value="" disabled selected>Select Department</option>
+                                            <option value="" disabled selected>Select College</option>
                                             <?php
                                                 foreach ($departments as $row) {
                                                     echo '<option value="' . htmlspecialchars($row['department']) . '">' . htmlspecialchars($row['department']) . ' - ' . htmlspecialchars($row['department_title']) . '</option>';
@@ -394,7 +394,7 @@
                                             <span>College</span>
                                         </div>
                                         <select name="editDepartment" id="editDepartment" class="form-control" required>
-                                            <option value="" disabled selected>Select Department</option>
+                                            <option value="" disabled selected>Select College</option>
                                                 <?php
                                                     foreach ($departments as $row) {
                                                         echo '<option value="' . htmlspecialchars($row['department']) . '">' . htmlspecialchars($row['department']) . ' - ' . htmlspecialchars($row['department_title']) . '</option>';

@@ -1,7 +1,9 @@
 <?php
 include_once("../includes/connection.php");
 session_start();
-$queryDept = "SELECT * FROM studentinfo WHERE status = 'Undeployed'";
+$activeSemester = $_SESSION['semester'];
+$activeSchoolYear = $_SESSION['schoolYear'];
+$queryDept = "SELECT * FROM studentinfo WHERE status = 'Undeployed' AND semester = '$activeSemester' AND school_year = '$activeSchoolYear'";
 $stmtDept = $connect->prepare($queryDept);
 $stmtDept->execute();
 $result = mysqli_stmt_get_result($stmtDept);
@@ -101,7 +103,7 @@ $result = mysqli_stmt_get_result($stmtDept);
                                         <th scope="col" class="small">Resume</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody style="max-height: 80vh; overflow-y: auto;">
                                     <?php
                                     while ($rows = mysqli_fetch_assoc($result)) {
                                     ?>
@@ -117,9 +119,9 @@ $result = mysqli_stmt_get_result($stmtDept);
                                                 $studentID = $rows['studentID'];
 
                                                 // Query to check if a resume is available for the student
-                                                $query = "SELECT file_name FROM documents WHERE document = 'Resume' AND student_id = ?";
+                                                $query = "SELECT * FROM documents WHERE document = 'Resume' AND student_ID = ? AND semester = ? AND schoolYear = ?";
                                                 $stmt = $connect->prepare($query);
-                                                $stmt->bind_param("i", $studentID);
+                                                $stmt->bind_param("iss", $studentID, $activeSemester, $activeSchoolYear);
                                                 $stmt->execute();
                                                 $resumeResult = $stmt->get_result();
                                                 $resumeRow = $resumeResult->fetch_assoc();
@@ -128,7 +130,7 @@ $result = mysqli_stmt_get_result($stmtDept);
                                                 ?>
                                                 <div class="col-md-4">
                                                     <?php if ($resumeAvailable) : ?>
-                                                        <button class="btn btn-primary btn-sm ml-2" onclick="viewPDF('<?php echo $resumeRow['file_name']; ?>')"><i class="far fa-eye"></i></button>
+                                                        <button class="btn btn-primary btn-sm ml-2" onclick="viewPDF('<?php echo $resumeRow['file_link']; ?>')"><i class="far fa-eye"></i></button>
                                                     <?php else : ?>
                                                         <button class="btn btn-sm btn-primary export-btn ml-2" data-studentid="<?php echo $rows['studentID']; ?>"><i class="fas fa-file-export"></i></button>
                                                     <?php endif; ?>

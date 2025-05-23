@@ -133,7 +133,7 @@ if (!empty($studentIDs)) {
                                         <th scope="col">Grade</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody style="max-height: 80vh; overflow-y: auto;">
                                     <?php
                                         if (!empty($studentsInfo)) {
                                             foreach ($studentsInfo as $rows) {
