@@ -69,15 +69,30 @@ while ($log = $logResult->fetch_assoc()) {
     // Append to logs
     $logs[] = $log;
 
-    // Compute total time if both in and out exist
-    if (!empty($log['time_in']) && !empty($log['time_out'])) {
+    // Only compute total time for "Approved" logs
+    if (
+        $log['is_approved'] === 'Approved' &&
+        !empty($log['time_in']) &&
+        !empty($log['time_out'])
+    ) {
         $start = new DateTime($log['time_in']);
         $end = new DateTime($log['time_out']);
         $diff = $start->diff($end);
         $seconds = ($diff->d * 24 * 60 * 60) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
+
+        // Deduct break minutes if available
+        $breakMinutes = isset($log['break_minutes']) ? (int)$log['break_minutes'] : 0;
+        $seconds -= ($breakMinutes * 60);
+
+        // Avoid negative time if break_minutes exceeds duration
+        if ($seconds < 0) {
+            $seconds = 0;
+        }
+
         $totalSeconds += $seconds;
     }
 }
+
 
 $response['logs'] = $logs;
 

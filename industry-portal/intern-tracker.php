@@ -407,6 +407,7 @@
 
     </body>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).on('click', '.student-link', function (e) {
             e.preventDefault();
@@ -460,33 +461,41 @@
 
                             const start = new Date(log.time_in);
                             const end = new Date(log.time_out);
-                            const durationMs = end - start;
-                            const totalMinutes = Math.floor(durationMs / 60000);
-                            totalMinutesSum += totalMinutes; // add to total minutes
+                            let durationMs = end - start;
+                            let totalMinutes = Math.floor(durationMs / 60000);
+
+                            // Deduct break_minutes from totalMinutes
+                            const breakMinutes = log.break_minutes ? parseInt(log.break_minutes) : 0;
+                            totalMinutes -= breakMinutes;
+
+                            // Prevent negative durations
+                            if (totalMinutes < 0) totalMinutes = 0;
+
+                            totalMinutesSum += totalMinutes;
 
                             const hours = Math.floor(totalMinutes / 60);
                             const minutes = totalMinutes % 60;
                             const formattedDuration = `${hours} hrs ${minutes} mins`;
 
+
                             let actionButtons = '';
 
-if (log.is_approved === 'Approved') {
-    actionButtons = `
-        <button class="btn btn-success btn-sm approve-log" data-logid="${log.id}" disabled>Approved</button>
-        <button class="btn btn-danger btn-sm reject-log" data-logid="${log.id}" data-toggle="modal" data-target="#rejectModal">Reject</button>
-    `;
-} else if (log.is_approved === 'Rejected') {
-    actionButtons = `
-        <button class="btn btn-success btn-sm approve-log" data-logid="${log.id}" data-toggle="modal" data-target="#approveModal">Approve</button>
-        <button class="btn btn-danger btn-sm reject-log" data-logid="${log.id}" disabled>Rejected</button>
-    `;
-} else {
-    actionButtons = `
-        <button class="btn btn-success btn-sm approve-log" data-logid="${log.id}" data-toggle="modal" data-target="#approveModal">Approve</button>
-        <button class="btn btn-danger btn-sm reject-log" data-logid="${log.id}" data-toggle="modal" data-target="#rejectModal">Reject</button>
-    `;
-}
-
+                            if (log.is_approved === 'Approved') {
+                                actionButtons = `
+                                    <button class="btn btn-success btn-sm approve-log" data-logid="${log.id}" disabled>Approved</button>
+                                    <button class="btn btn-danger btn-sm reject-log" data-logid="${log.id}" data-toggle="modal" data-target="#rejectModal">Reject</button>
+                                `;
+                            } else if (log.is_approved === 'Rejected') {
+                                actionButtons = `
+                                    <button class="btn btn-success btn-sm approve-log" data-logid="${log.id}" data-toggle="modal" data-target="#approveModal">Approve</button>
+                                    <button class="btn btn-danger btn-sm reject-log" data-logid="${log.id}" disabled>Rejected</button>
+                                `;
+                            } else {
+                                actionButtons = `
+                                    <button class="btn btn-success btn-sm approve-log" data-logid="${log.id}" data-toggle="modal" data-target="#approveModal">Approve</button>
+                                    <button class="btn btn-danger btn-sm reject-log" data-logid="${log.id}" data-toggle="modal" data-target="#rejectModal">Reject</button>
+                                `;
+                            }
 
                             dtrBody += `
                                 <tr>
@@ -609,12 +618,14 @@ if (log.is_approved === 'Approved') {
             // Store logID in modals
             $(document).on('click', '.approve-log', function () {
                 const logID = $(this).data('logid');
+                const studentID = $(this).data('studentid');
                 $('#approveLogID').val(logID);
                 $('#approveModal').modal('show');
             });
 
             $(document).on('click', '.reject-log', function () {
                 const logID = $(this).data('logid');
+                const studentID = $(this).data('studentid');
                 $('#rejectLogID').val(logID);
                 $('#rejectModal').modal('show');
             });
