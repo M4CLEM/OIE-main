@@ -138,18 +138,35 @@ class updatelogs
             if (!empty($row['time_out'])) {
                 $time_out_12hour = date("g:i a", strtotime($row['time_out']));
                 $seconds = strtotime($row['time_out']) - strtotime($row['time_in']);
+                $breakSeconds = ($row['break_minutes'] ?? 60) * 60;
+
+                // Deduct break only if log is longer than 4 hours
+                if ($seconds >= 14400) {
+                    $seconds -= $breakSeconds;
+                }
+
                 $hours = floor($seconds / 3600);
-                $seconds %= 3600;
-                $minutes = floor($seconds / 60);
-                $total = $hours . "hrs " . $minutes . "mins";
+                $remainingSeconds = $seconds % 3600;
+                $minutes = floor($remainingSeconds / 60);
+
+
+                if ($seconds < 60) {
+                    $total = "Less than a minute";
+                } else {
+                    $total = "{$hours}hrs {$minutes}mins";
+                }
             }
 
+
+            $breakMins = $row['break_minutes'] ?? 60; // fallback if null
+
             echo "<tr>
-                    <td>{$row['date']}</td>
-                    <td>{$time_in_12hour}</td>
-                    <td>{$time_out_12hour}</td>
-                    <td>{$total}</td>
-                </tr>";
+                <td>{$row['date']}</td>
+                <td>{$time_in_12hour}</td>
+                <td>{$time_out_12hour}</td>
+                <td>{$breakMins} mins</td>
+                <td>{$total}</td>
+            </tr>";
         }
         $stmt->close();
     }
@@ -161,9 +178,6 @@ if (isset($_POST['logState'], $_POST['studentNum'], $_POST['log_course'], $_POST
 
     include_once("../../includes/connection.php");
 
-    $date = date("Y-m-d");
-    $time = date("H:i:s");
-
     $logState = $_POST['logState'];
     $studentNum = $_POST['studentNum'];
     $logDept = $_POST['log_dept'];
@@ -171,25 +185,65 @@ if (isset($_POST['logState'], $_POST['studentNum'], $_POST['log_course'], $_POST
     $logSection = $_POST['log_section'];
     $logCompany = $_POST['log_company'];
 
-    if ($logState == 'In') {
-
+    if ($logState === 'In') {
         $status = "Out";
-        $sql = "INSERT INTO logdata (date, time_in, status, student_num, log_dept, log_course, log_section, log_company, semester, schoolYear) 
-                VALUES ('$date', '$time', '$status', '$studentNum', '$logDept', '$logCourse', '$logSection', '$logCompany', '$semester', '$schoolYear')";
+        $breakMinutes = $_SESSION['student_breaks'][$studentNum] ?? 60;
+
+        $sql = "INSERT INTO logdata (
+                date, time_in, status, student_num, log_dept, log_course, log_section,
+                log_company, semester, schoolYear, break_minutes
+            ) VALUES (
+                CURDATE(), CURRENT_TIMESTAMP, '$status', '$studentNum', '$logDept', '$logCourse',
+                '$logSection', '$logCompany', '$semester', '$schoolYear', '$breakMinutes'
+            )";
 
         if (mysqli_query($connect, $sql)) {
-            echo "<script>alert('Logged In Successfully!');</script>";
+            echo "Logged In Successfully!";
         } else {
-            echo "ERROR: Could not able to execute $sql. " . mysqli_error($connect);
+            echo "ERROR: Could not execute $sql. " . mysqli_error($connect);
         }
-    } else if ($logState == 'Out') {
+    } elseif ($logState === 'Out') {
         $status = "In";
-        $sql = "UPDATE logdata SET time_out='$time', status='$status' WHERE student_num='$studentNum' AND time_in IS NOT NULL AND time_out IS NULL";
 
-        if (mysqli_query($connect, $sql)) {
-            echo "<script>alert('Logged Out.');</script>";
+        // Step 1: Fetch the most recent open log (time_out IS NULL)
+        $select = "SELECT id, time_in FROM logdata 
+               WHERE student_num = '$studentNum' AND time_out IS NULL 
+               ORDER BY time_in DESC LIMIT 1";
+
+        $res = mysqli_query($connect, $select);
+        if ($row = mysqli_fetch_assoc($res)) {
+            $logId = $row['id'];
+            $timeIn = strtotime($row['time_in']);
+            $now = time();
+
+            // Calculate duration between time_in and now
+            $duration = $now - $timeIn;
+
+            // Maximum session length (10 hours)
+            $maxDuration = 10 * 3600; // 36000 seconds
+
+            // If the session is too long, cap it
+            if ($duration > $maxDuration) {
+                $timeOutFinal = $timeIn + $maxDuration;
+            } else {
+                $timeOutFinal = $now;
+            }
+
+            // Format timestamp for SQL update
+            $timeOutFormatted = date("Y-m-d H:i:s", $timeOutFinal);
+
+            $update = "UPDATE logdata 
+                   SET time_out = '$timeOutFormatted', status = '$status' 
+                   WHERE id = $logId";
+
+            if (mysqli_query($connect, $update)) {
+                echo "Logged Out.";
+            } else {
+                echo "ERROR: Could not execute update. " . mysqli_error($connect);
+            }
         } else {
-            echo "ERROR: Could not able to execute $sql. " . mysqli_error($connect);
+            echo "No open log entry found for Time Out.";
         }
     }
 }
+?>
