@@ -7,6 +7,7 @@ header("Content-Type: application/json");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = trim($_POST['id']); // Staff ID
+    $employeeNumber = trim($_POST['editEmployeeNumber']);
     $name = trim($_POST['editStaffName']);
     $email = trim($_POST['editEmail']);
     $password = trim($_POST['editPassword']);
@@ -43,14 +44,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Update query based on role
     if ($role === "CIPA") {
-        $sql = "UPDATE staff_list SET name = ?, email = ?, role = ? WHERE id = ?";
+        $sql = "UPDATE staff_list SET employeeNumber = ?, name = ?, email = ?, role = ? WHERE id = ?";
         $stmt = $connect->prepare($sql);
-        $stmt->bind_param("sssi", $name, $email, $role, $id);
+        $stmt->bind_param("ssssi", $employeeNumber, $name, $email, $role, $id);
     } else {
         $department = trim($_POST['editDepartment']);
-        $sql = "UPDATE staff_list SET name = ?, email = ?, role = ?, department = ? WHERE id = ?";
+        $sql = "UPDATE staff_list SET employeeNumber = ?, name = ?, email = ?, role = ?, department = ? WHERE id = ?";
         $stmt = $connect->prepare($sql);
-        $stmt->bind_param("ssssi", $name, $email, $role, $department, $id);
+        $stmt->bind_param("sssssi", $employeeNumber, $name, $email, $role, $department, $id);
     }
 
     if ($stmt->execute()) {

@@ -10,6 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
     $confirmPassword = trim($_POST['confirmPassword']);
     $role = trim($_POST['role']);
+    $employeeNumber = trim($_POST['employeenumber']);
 
     // Check if passwords match
     if ($password !== $confirmPassword) {
@@ -32,14 +33,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Prepare insert query based on role
     if ($role === "CIPA") {
-        $sql = "INSERT INTO staff_list (name, email, password, role) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
         $stmt = $connect->prepare($sql);
-        $stmt->bind_param("ssss", $name, $email, $password, $role);
+        $stmt->bind_param("sssss", $employeeNumber, $name, $email, $password, $role);
     } else {
         $department = trim($_POST['department']);
-        $sql = "INSERT INTO staff_list (name, email, password, role, department) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role, department) VALUES (?, ?, ?, ?, ?)";
         $stmt = $connect->prepare($sql);
-        $stmt->bind_param("sssss", $name, $email, $password, $role, $department);
+        $stmt->bind_param("ssssss", $employeeNumber, $name, $email, $password, $role, $department);
     }
 
     // Execute insertion

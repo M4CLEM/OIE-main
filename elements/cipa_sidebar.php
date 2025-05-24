@@ -52,6 +52,14 @@
             <span>Company Accounts</span></a>
         </a>
     </li>
+
+    <li class="sidebar-item">
+        <a href="moa.php" class="sidebar-link">
+            <i class="fa fa-handshake" aria-hidden="true"></i>
+            <span>MOAs</span>
+        </a>
+    </li>
+
     <li class="sidebar-item">
         <a href="management-acc.php" class="sidebar-link">
             <i class="fa fa-school" aria-hidden="true"></i>

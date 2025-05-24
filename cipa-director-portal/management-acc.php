@@ -67,6 +67,7 @@ if (!$result) {
                     </li>
                 </ul>
             </nav>
+            
             <div id="content" class="py-2">
                 <div class="col-lg-12">
                     <div class="card shadow mb-4">
@@ -79,6 +80,7 @@ if (!$result) {
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
+                                            <th scope="col">Employee Number</th>
                                             <th scope="col">Name</th>
                                             <th scope="col" width="11%">Department</th>
                                             <th scope="col">Email</th>
@@ -92,6 +94,7 @@ if (!$result) {
                                         while ($rows = mysqli_fetch_assoc($result)) {
                                         ?>
                                             <tr>
+                                                <td><?php echo $rows['employeeNumber']?></td>
                                                 <td><?php echo $rows['name'] ?></td>
                                                 <td><?php echo $rows['department'] ?></td>
                                                 <td><?php echo $rows['email'] ?></td>
@@ -101,7 +104,7 @@ if (!$result) {
                                                     <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
                                                         data-target="#editModal" data-id="<?php echo $rows['id']; ?>"
                                                         data-name="<?php echo $rows['name']; ?>"
-                                                        data-department="<?php echo $rows['department']; ?>" data-email="<?php echo $rows['email']; ?>" data-role="<?php echo $rows['role'] ?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
+                                                        data-department="<?php echo $rows['department']; ?>" data-email="<?php echo $rows['email']; ?>" data-role="<?php echo $rows['role'] ?>" data-employeenumber="<?php echo $rows['employeeNumber']?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
                                                     <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
                                                         data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>">
                                                         <i class="fa fa-trash fw-fa"></i> Delete
@@ -131,6 +134,9 @@ if (!$result) {
                             </div>
                             <div class="modal-body">
                                 <div id="addMessage"></div> <!-- Success/Error messages -->
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="employeenumber" name="employeenumber" placeholder="Employee Number" required>
+                                </div>
                                 <div class="form-group">
                                     <input type="text" class="form-control" id="staffname" name="staffname" placeholder="Name" required>
                                 </div>
@@ -227,6 +233,9 @@ if (!$result) {
                                 <!-- Alert Message Placeholder -->
                                 <div id="editMessage"></div>
 
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="editEmployeeNumber" name="editEmployeeNumber">
+                                </div>
                                 <div class="form-group">
                                     <input type="text" class="form-control" id="editStaffName" name="editStaffName">
                                 </div>
@@ -355,12 +364,14 @@ if (!$result) {
                 var role = $(this).data('role');
                 var department = $(this).data('department');
                 var email = $(this).data('email');
+                var employeenumber = $(this).data('employeenumber');
 
                 $('#editID').val(id);
                 $('#editStaffName').val(name);
                 $('#editRole').val(role);
                 $('#editDepartment').val(department);
                 $('#editEmail').val(email);
+                $('#editEmployeeNumber').val(employeenumber)
             });
 
         // ============ DELETE SCRIPT =============
