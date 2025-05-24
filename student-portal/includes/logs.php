@@ -166,6 +166,7 @@ class updatelogs
                 <td>{$time_out_12hour}</td>
                 <td>{$breakMins} mins</td>
                 <td>{$total}</td>
+                <td>{$row['is_approved']}</td>
             </tr>";
         }
         $stmt->close();
@@ -187,14 +188,15 @@ if (isset($_POST['logState'], $_POST['studentNum'], $_POST['log_course'], $_POST
 
     if ($logState === 'In') {
         $status = "Out";
+        $approval = "Pending";
         $breakMinutes = $_SESSION['student_breaks'][$studentNum] ?? 60;
 
         $sql = "INSERT INTO logdata (
                 date, time_in, status, student_num, log_dept, log_course, log_section,
-                log_company, semester, schoolYear, break_minutes
+                log_company, semester, schoolYear, break_minutes, is_approved
             ) VALUES (
                 CURDATE(), CURRENT_TIMESTAMP, '$status', '$studentNum', '$logDept', '$logCourse',
-                '$logSection', '$logCompany', '$semester', '$schoolYear', '$breakMinutes'
+                '$logSection', '$logCompany', '$semester', '$schoolYear', '$breakMinutes', '$approval'
             )";
 
         if (mysqli_query($connect, $sql)) {

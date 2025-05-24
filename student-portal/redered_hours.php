@@ -10,6 +10,7 @@ if (!isset($_SESSION['stud_code'], $_SESSION['semester'], $_SESSION['schoolYear'
 $studentID = $_SESSION['stud_code'];
 $semester = $_SESSION['semester'];
 $schoolYear = $_SESSION['schoolYear'];
+$approval = 'Approved';
 
 $query = "SELECT 
             SUM(TIMESTAMPDIFF(SECOND, time_in, time_out)) AS total_seconds,
@@ -18,10 +19,11 @@ $query = "SELECT
           WHERE student_num = ? 
             AND semester = ? 
             AND schoolYear = ?
+            AND is_approved = ?
             AND time_out IS NOT NULL";
 
 $stmt = $connect->prepare($query);
-$stmt->bind_param("sss", $studentID, $semester, $schoolYear);
+$stmt->bind_param("ssss", $studentID, $semester, $schoolYear, $approval);
 $stmt->execute();
 $result = $stmt->get_result();
 

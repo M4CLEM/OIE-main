@@ -230,6 +230,7 @@ if ($row !== null) {
                                             <th>Time out</th>
                                             <th>Break</th>
                                             <th>Total hours</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
