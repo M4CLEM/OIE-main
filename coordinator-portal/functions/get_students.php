@@ -8,7 +8,7 @@ if (isset($_GET['department'], $_GET['course'], $_GET['section'])) {
 
     // Query ensures all students from `student_masterlist` appear
     $stmt = $connect->prepare("
-        SELECT sm.studentID, sm.firstName, sm.lastName, sm.schoolYear,
+        SELECT sm.studentID, sm.firstName, sm.lastName, sm.schoolYear, sm.semester,
                COALESCE(si.email, 'N/A') AS email, 
                COALESCE(si.status, 'N/A') AS status,
                COALESCE(SUM(sg.grade), 0) AS totalGrade
@@ -16,7 +16,7 @@ if (isset($_GET['department'], $_GET['course'], $_GET['section'])) {
         LEFT JOIN studentinfo si ON sm.studentID = si.studentID
         LEFT JOIN student_grade sg ON sm.studentID = sg.studentID
         WHERE sm.course = ? AND sm.section = ?
-        GROUP BY sm.studentID, sm.firstName, sm.lastName, si.email, si.status, sm.schoolYear
+        GROUP BY sm.studentID, sm.firstName, sm.lastName, si.email, si.status, sm.schoolYear, sm.semester
     ");
     
     $stmt->bind_param("ss", $course, $section);
@@ -29,6 +29,7 @@ if (isset($_GET['department'], $_GET['course'], $_GET['section'])) {
             <td>{$student['firstName']} {$student['lastName']}</td>
             <td>{$student['email']}</td>
             <td>{$student['status']}</td>
+            <td>{$student['semester']}</td>
             <td>{$student['schoolYear']}</td>
             <td><p>{$student['totalGrade']}</p></td>
             <td> 

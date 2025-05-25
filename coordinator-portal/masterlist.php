@@ -177,6 +177,7 @@ $department = $_SESSION['department'];
                                         <th width="25%" scope="col">Name</th>
                                         <th width="30%" scope="col">Email</th>
                                         <th scope="col">Status</th>
+                                        <th scope="col">Semester</th>
                                         <th scope="col">School Year</th>
                                         <th scope="col">Grade</th>
                                         <th width="12%" align="center">Action</th>

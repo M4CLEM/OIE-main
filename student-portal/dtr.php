@@ -94,7 +94,7 @@ if ($row !== null) {
                 <!-- Title -->
                 <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Attendance</h4>
                 <!-- Topbar Navbar -->
-                <?php include('includes/navbar_user_info.php'); ?>
+                <?php include('../elements/stud_navbar_user_info.php'); ?>
             </nav>
             <!-- End of Topbar -->
 

@@ -41,7 +41,7 @@ $enrollments = $enrollmentsResult->fetch_all(MYSQLI_ASSOC);
                     <!-- Title -->
                     <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Grades</h4>
                     <!-- Topbar Navbar -->
-                    <?php include('includes/navbar_user_info.php'); ?>
+                    <?php include('../elements/stud_navbar_user_info.php'); ?>
                 </nav>
 
                 <div class="card shadow mb-4">

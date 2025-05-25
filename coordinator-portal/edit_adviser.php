@@ -13,6 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $schoolYear = $_POST['editSchoolYear'];
     $password = $_POST['editPassword'];
     $confirmPassword = $_POST['confirmEdit'];
+    $employeeNumber = $_POST['editEmployeeNumber'];
 
     // Validate password confirmation
     if ($password !== $confirmPassword) {
@@ -34,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->close();
 
     // Update listadviser table
-    $updateAdviser = $connect->prepare("UPDATE listadviser SET fullName = ?, email = ?, section = ?, course = ?, dept = ?, semester = ?, schoolYear = ? WHERE id = ?");
-    $updateAdviser->bind_param("sssssssi", $fullName, $newEmail, $sectionString, $course, $dept, $semester, $schoolYear, $id);
+    $updateAdviser = $connect->prepare("UPDATE listadviser SET employeeNumber = ?, fullName = ?, email = ?, section = ?, course = ?, dept = ?, semester = ?, schoolYear = ? WHERE id = ?");
+    $updateAdviser->bind_param("ssssssssi", $employeeNumber, $fullName, $newEmail, $sectionString, $course, $dept, $semester, $schoolYear, $id);
     $updateAdviser->execute();
     $updateAdviser->close();
 

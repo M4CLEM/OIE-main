@@ -10,6 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $course = $_POST['course'];
     $semester = $_POST['semester'];
     $schoolYear = $_POST['schoolYear'];
+    $employeeNumber = $_POST['employeeNumber'];
 
     $role = "Adviser";
     $password = $_POST['password'];
@@ -32,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $checkUserExists->close();
 
         // Insert values into listadviser (only once)
-        $addToList = $connect->prepare('INSERT INTO listadviser (fullName, email, section, course, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        $addToList->bind_param('sssssss', $fullName, $email, $sectionString, $course, $dept, $semester, $schoolYear);
+        $addToList = $connect->prepare('INSERT INTO listadviser (employeeNumber, fullName, email, section, course, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $addToList->bind_param('ssssssss', $employeeNumber, $fullName, $email, $sectionString, $course, $dept, $semester, $schoolYear);
         $addToList->execute();
         $addToList->close();
 

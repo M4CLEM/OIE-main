@@ -244,6 +244,9 @@ if (isset($_POST['login'])) {
                                 <p>Please register the first CIPA account</p>
                             </div>
                             <div class="input-group mb-3">
+                                <input type="text" name="employeeNumber" class="form-control form-control-lg bg-light fs-6" placeholder="Employee Number" required>
+                            </div>
+                            <div class="input-group mb-3">
                                 <input type="text" name="reg_name" class="form-control form-control-lg bg-light fs-6" placeholder="Full Name" required>
                             </div>
                             <div class="input-group mb-3">

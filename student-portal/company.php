@@ -43,7 +43,7 @@ $companyResult = $stmt->get_result();
         <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
             <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Companies</h4>
             <!-- Topbar Navbar -->
-            <?php include('includes/navbar_user_info.php'); ?>
+            <?php include('../elements/stud_navbar_user_info.php'); ?>
         </nav>
         <!-- End of Topbar -->
 

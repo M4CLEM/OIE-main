@@ -6,6 +6,7 @@ header("Content-Type: application/json"); // Ensure JSON response
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Sanitize and trim inputs
+    $employeeNumber = trim($_POST['employeeNumber']);
     $name = trim($_POST['reg_name']);
     $email = trim($_POST['reg_uname']);
     $password = trim($_POST['reg_pass']);
@@ -34,9 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = "CIPA";
 
     // Prepare insert query for CIPA
-    $sql = "INSERT INTO staff_list (name, email, password, role) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role) VALUES (?, ?, ?, ?)";
     $stmt = $connect->prepare($sql);
-    $stmt->bind_param("ssss", $name, $email, $password, $role);
+    $stmt->bind_param("sssss", $employeeNumber, $name, $email, $password, $role);
 
     // Execute insertion
     if ($stmt->execute()) {

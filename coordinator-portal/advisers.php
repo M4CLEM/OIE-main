@@ -81,6 +81,7 @@ $result = mysqli_query($connect, $query);
                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
+                                    <th scope="col">Employee Number</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Email</th>
                                     <th scope="col">Section</th>
@@ -95,6 +96,7 @@ $result = mysqli_query($connect, $query);
                                 while ($rows = mysqli_fetch_assoc($result)) {
                                 ?>
                                     <tr>
+                                        <td><?php echo $rows['employeeNumber']; ?></td>
                                         <td><?php echo $rows['fullName']; ?></td>
                                         <td><?php echo $rows['email']; ?></td>
                                         <td><?php echo $rows['section']; ?></td>
@@ -102,7 +104,7 @@ $result = mysqli_query($connect, $query);
                                         <td><?php echo $rows['dept']; ?></td>
                                         <td><?php echo $rows['semester']; ?> - <?php echo $rows['schoolYear']; ?></td>
                                         <td>
-                                            <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $rows['id']; ?>" data-name="<?php echo $rows['fullName']; ?>" data-email="<?php echo $rows['email']; ?>" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course']; ?>" data-department="<?php echo $rows['dept']; ?>" data-semester="<?php echo $rows['semester']; ?>" data-schoolyear="<?php echo $rows['schoolYear']; ?>"><span class="fa fa-edit fw-fa"></span></a>
+                                            <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $rows['id']; ?>" data-name="<?php echo $rows['fullName']; ?>" data-email="<?php echo $rows['email']; ?>" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course']; ?>" data-department="<?php echo $rows['dept']; ?>" data-semester="<?php echo $rows['semester']; ?>" data-schoolyear="<?php echo $rows['schoolYear']; ?>" data-employeeid="<?php echo $rows['employeeNumber']; ?>"><span class="fa fa-edit fw-fa"></span></a>
 
                                             <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
                                             data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>" data-email="<?php echo $rows['email']; ?>"><span class="fa fa-trash fw-fa"></span></button>
@@ -130,6 +132,11 @@ $result = mysqli_query($connect, $query);
                         </button>
                     </div>
                     <div class="modal-body">
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input class="form-control" id="employeeNumber" name="employeeNumber" type="text" value="" autocomplete="none" placeholder="Employee Number" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                            </div>
+                        </div>
                         <div class="form-group md-5">
                             <div class="col-md-10">
                                 <input class="form-control" id="Fullname" name="fullName" type="text" value="" autocomplete="none" placeholder="Full Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
@@ -230,6 +237,11 @@ $result = mysqli_query($connect, $query);
                         </button>
                     </div>
                     <div class="modal-body">
+                        <div class="form-group md-5">
+                            <div class="col-md-10">
+                                <input class="form-control" id="editEmployeeNumber" name="editEmployeeNumber" type="text" value="" autocomplete="none" placeholder="Employee Number" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
+                            </div>
+                        </div>
                         <div class="form-group md-5">
                             <div class="col-md-10">
                                 <input class="form-control" id="editFullName" name="editFullName" type="text" value="" autocomplete="none" placeholder="Full Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
@@ -523,6 +535,7 @@ $result = mysqli_query($connect, $query);
                 var department = $(this).data('department');
                 var semester = $(this).data('semester');
                 var schoolYear = $(this).data('schoolyear');
+                var employeeNumber = $(this).data('employeeid');
                 var id = $(this).data('id');
 
 
@@ -533,6 +546,7 @@ $result = mysqli_query($connect, $query);
                 $('#editSemester').val(semester);
                 $('#editSchoolYear').val(schoolYear);
                 $('#editDropdownSectionBtn').text(section);
+                $('#editEmployeeNumber').val(employeeNumber);
 
                 // Set department and trigger courses to load
                 $('#editDropdowndept').val(department).change(); // this will call showCourses(department, 'edit')
