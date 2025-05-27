@@ -13,14 +13,27 @@ $schoolYear = $_SESSION['schoolYear'];
 $approval = 'Approved';
 
 $query = "SELECT 
-            SUM(TIMESTAMPDIFF(SECOND, time_in, time_out)) AS total_seconds,
-            SUM(break_minutes) * 60 AS total_break_seconds
-          FROM logdata 
-          WHERE student_num = ? 
-            AND semester = ? 
-            AND schoolYear = ?
-            AND is_approved = ?
-            AND time_out IS NOT NULL";
+    SUM(
+      CASE 
+        WHEN TIMESTAMPDIFF(SECOND, time_in, time_out) >= 60
+        THEN TIMESTAMPDIFF(SECOND, time_in, time_out)
+        ELSE 0
+      END
+    ) AS total_seconds,
+    SUM(
+      CASE 
+        WHEN TIMESTAMPDIFF(SECOND, time_in, time_out) >= 14400
+        THEN break_minutes * 60 
+        ELSE 0 
+      END
+    ) AS total_break_seconds
+FROM logdata 
+WHERE student_num = ? 
+  AND semester = ? 
+  AND schoolYear = ? 
+  AND is_approved = ? 
+  AND time_out IS NOT NULL 
+  AND time_out > time_in";
 
 $stmt = $connect->prepare($query);
 $stmt->bind_param("ssss", $studentID, $semester, $schoolYear, $approval);
