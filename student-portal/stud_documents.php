@@ -182,71 +182,136 @@ if (mysqli_num_rows($departmentResult) > 0) {
                                                     </tr>
                                                 
                                                     <?php
-                                                    // Now loop through the documents from the database for the active semester and school year
-                                                    while ($docListRow = mysqli_fetch_assoc($documentResult)) {
-                                                        $documentName = $docListRow['documentName'];
-                                                        $doc_template = $docListRow['file_template'];
-                                                
-                                                        // Extract file ID from Google Drive URL
-                                                        preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
-                                                        $file_id = $matches[1] ?? '';
-                                                
-                                                        // Construct Google Drive download link
-                                                        $drive_file_url = $file_id ? "https://drive.google.com/uc?export=download&id=" . urlencode($file_id) : "#";
-                                                
-                                                        // Look for the corresponding student document from the documents table
-                                                        $studentDocument = null;
-                                                        mysqli_data_seek($studDocumentResult, 0); // Reset the pointer to the beginning of the result set
+                                                        // Now loop through the documents from the database for the active semester and school year
+                                                        // Group student documents by documentName + semester + schoolYear
+                                                        $studentUploadsGrouped = [];
                                                         while ($docRow = mysqli_fetch_assoc($studDocumentResult)) {
-                                                            if ($docRow['document'] === $documentName && $docRow['semester'] === $semester && $docRow['schoolYear'] === $schoolYear) {
-                                                                $studentDocument = $docRow;
-                                                                break;
+                                                            $key = $docRow['document'] . '|' . $docRow['semester'] . '|' . $docRow['schoolYear'];
+                                                            $studentUploadsGrouped[$key][] = $docRow;
+                                                        }
+
+                                                        while ($docListRow = mysqli_fetch_assoc($documentResult)) {
+                                                            $documentName = $docListRow['documentName'];
+                                                            $doc_template = $docListRow['file_template'];
+                                                            $isMultiple = $docListRow['multiUpload']; // TINYINT(1), 1 = true
+
+                                                            // Extract file ID from Google Drive URL
+                                                            preg_match('/\/d\/([^\/]+)/', $doc_template, $matches);
+                                                            $file_id = $matches[1] ?? '';
+                                                            $drive_file_url = $file_id ? "https://drive.google.com/uc?export=download&id=" . urlencode($file_id) : "#";
+
+                                                            $groupKey = $documentName . '|' . $semester . '|' . $schoolYear;
+                                                            $uploads = $studentUploadsGrouped[$groupKey] ?? [];
+
+                                                            if (!$isMultiple) {
+                                                                // Non-multi upload: use original rendering logic
+                                                                $studentDocument = null;
+                                                                mysqli_data_seek($studDocumentResult, 0);
+                                                                while ($docRow = mysqli_fetch_assoc($studDocumentResult)) {
+                                                                    if ($docRow['document'] === $documentName && $docRow['semester'] === $semester && $docRow['schoolYear'] === $schoolYear) {
+                                                                        $studentDocument = $docRow;
+                                                                        break;
+                                                                    }
+                                                                }
+
+                                                                $fileName = $studentDocument['file_name'] ?? '';
+                                                                $status = $studentDocument['status'] ?? '';
+                                                                $date = $studentDocument['date'] ?? '';
+                                                                $fileLink = $studentDocument['file_link'] ?? '';
+                                                    ?>
+                                                                <tr>
+                                                                    <td><?php echo htmlspecialchars($documentName); ?></td>
+                                                                    <td><?php echo htmlspecialchars($fileName); ?></td>
+                                                                    <td>
+                                                                        <?php if (!empty($status)): ?>
+                                                                            <div class="text-center p-1 status-<?php echo strtolower($status); ?> bg-<?php echo strtolower($status) === 'pending' ? 'warning text-white' : (strtolower($status) === 'approved' ? 'success text-white' : 'danger text-white'); ?> rounded">
+                                                                                <?php echo htmlspecialchars($status); ?>
+                                                                            </div>
+                                                                        <?php endif; ?>
+                                                                    </td>
+                                                                    <td><?php echo htmlspecialchars($date); ?></td>
+                                                                    <td>
+                                                                        <?php if ($fileLink): ?>
+                                                                            <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
+                                                                                <i class="far fa-eye"></i> View
+                                                                            </button>
+                                                                        <?php endif; ?>
+
+                                                                        <?php if (empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
+                                                                            <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm" target="_blank">
+                                                                                <i class="fas fa-download"></i> Download Template
+                                                                            </a>
+                                                                            <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
+                                                                                <i class="fas fa-upload"></i> Upload
+                                                                            </button>
+                                                                        <?php endif; ?>
+
+                                                                        <?php if (!empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
+                                                                            <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $studentDocument['id']; ?>">
+                                                                                <i class="fa fa-trash"></i> Delete
+                                                                            </button>
+                                                                        <?php endif; ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php
+                                                            } else {
+                                                                // Multi-upload row
+                                                    ?>
+                                                                <!-- Inside the multiUpload row loop -->
+                                                                <tr>
+                                                                    <td><?php echo htmlspecialchars($documentName); ?></td>
+                                                                    <!-- File Name Column -->
+                                                                    <td>
+                                                                        <?php foreach ($uploads as $upload): ?>
+                                                                            <div class="py-1 mb-1"><?php echo htmlspecialchars($upload['file_name']); ?></div>
+                                                                        <?php endforeach; ?>
+                                                                    </td>
+                                                                    <!-- Status Column -->
+                                                                    <td>
+                                                                        <?php foreach ($uploads as $upload): ?>
+                                                                            <?php if (!empty($upload['status'])): ?>
+                                                                                <div class="text-center py-1 mb-1 status-<?php echo strtolower($upload['status']); ?> bg-<?php echo strtolower($upload['status']) === 'pending' ? 'warning text-white' : (strtolower($upload['status']) === 'approved' ? 'success text-white' : 'danger text-white'); ?> rounded">
+                                                                                    <?php echo htmlspecialchars($upload['status']); ?>
+                                                                                </div>
+                                                                            <?php endif; ?>
+                                                                        <?php endforeach; ?>
+                                                                    </td>
+                                                                    <!-- Date Column -->
+                                                                    <td>
+                                                                        <?php foreach ($uploads as $upload): ?>
+                                                                            <div class="py-1 mb-1"><?php echo htmlspecialchars($upload['date']); ?></div>
+                                                                        <?php endforeach; ?>
+                                                                    </td>
+                                                                    <!-- Action Column -->
+                                                                    <td>
+                                                                        <?php foreach ($uploads as $upload): ?>
+                                                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                                                <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $upload['file_link']; ?>')">
+                                                                                    <i class="far fa-eye"></i> View
+                                                                                </button>
+                                                                                <?php if ($semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
+                                                                                    <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $upload['id']; ?>">
+                                                                                        <i class="fa fa-trash"></i> Delete
+                                                                                    </button>
+                                                                                <?php endif; ?>
+                                                                            </div>
+                                                                        <?php endforeach; ?>
+
+                                                                        <!-- Only one set of Download/Upload buttons at the bottom -->
+                                                                        <?php if ($semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
+                                                                            <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm mt-1" target="_blank">
+                                                                                <i class="fas fa-download"></i> Download Template
+                                                                            </a>
+                                                                            <button class="btn btn-success btn-sm mt-1 uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
+                                                                                <i class="fas fa-upload"></i> Upload
+                                                                            </button>
+                                                                        <?php endif; ?>
+                                                                    </td>
+                                                                </tr>
+
+                                                    <?php
                                                             }
                                                         }
-                                                
-                                                        // If document is uploaded by the student, show its details, else leave them empty
-                                                        $fileName = $studentDocument ? $studentDocument['file_name'] : '';
-                                                        $status = $studentDocument ? $studentDocument['status'] : '';
-                                                        $date = $studentDocument ? $studentDocument['date'] : '';
-                                                        $fileLink = $studentDocument ? $studentDocument['file_link'] : '';
-                                                        ?>
-                                                        <!-- Dynamically generated row for other documents -->
-                                                        <tr>
-                                                            <td><?php echo htmlspecialchars($documentName); ?></td>
-                                                            <td><?php echo htmlspecialchars($fileName); ?></td>
-                                                            <td>
-                                                                <?php if (!empty($status)): ?>
-                                                                    <div class="text-center p-1 status-<?php echo strtolower($status); ?> bg-<?php echo strtolower($status) === 'pending' ? 'warning text-white' : (strtolower($status) === 'approved' ? 'success text-white' : 'danger text-white'); ?> rounded">
-                                                                        <?php echo htmlspecialchars($status); ?>
-                                                                    </div>
-                                                                <?php endif; ?>
-                                                            </td>
-                                                            <td><?php echo htmlspecialchars($date); ?></td>
-                                                            <td>
-                                                                <?php if ($fileLink): ?>
-                                                                    <button class="btn btn-primary btn-sm" onclick="viewPDF('<?php echo $fileLink; ?>')">
-                                                                        <i class="far fa-eye"></i> View
-                                                                    </button>
-                                                                <?php endif; ?>
-                                                
-                                                                <?php if (empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
-                                                                    <a href="<?php echo $drive_file_url; ?>" class="btn btn-success btn-sm" target="_blank">
-                                                                        <i class="fas fa-download"></i> Download Template
-                                                                    </a>
-                                                                    <button class="btn btn-success btn-sm uploadButton" data-toggle="modal" data-target="#uploadFileModal" data-document="<?php echo htmlspecialchars($documentName); ?>">
-                                                                        <i class="fas fa-upload"></i> Upload
-                                                                    </button>
-                                                                <?php endif; ?>
-                                                
-                                                                <?php if (!empty($fileLink) && $semester === $enrollment['semester'] && $schoolYear === $enrollment['schoolYear']): ?>
-                                                                    <button class="btn btn-danger btn-sm deleteBtn" data-toggle="modal" data-target="#deleteModal" data-id="<?php echo $studentDocument['id']; ?>">
-                                                                        <i class="fa fa-trash"></i> Delete
-                                                                    </button>
-                                                                <?php endif; ?>
-                                                            </td>
-                                                        </tr>
-                                                        <?php
-                                                    }
                                                 }
 
                                                 // Inactive semester and schoolYear - Display all documents from the documents table

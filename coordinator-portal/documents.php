@@ -234,6 +234,13 @@ $documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM docume
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
+                                                    <div class="form-check form-switch">
+                                                        <label class="form-check-label me-5" for="multipleUploads">Enable Multiple Uploads</label>
+                                                        <input class="form-check-input" type="checkbox" id="multipleUploads" name="multipleUploads" value="1" onchange="updateSwitchLabel()">
+                                                        <p id="uploadStatus" class="mt-2">Status: <strong>Disabled</strong></p>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
                                                     <label for="uploadTemplate">Upload Template</label>
                                                     <input type="file" class="form-control-file" id="newFile" name="newFile" accept=".docx,.pdf">
                                                 </div>
@@ -366,6 +373,12 @@ $documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM docume
     function viewPDF(pdfPath) {
         // Open the PDF in a new tab/window
         window.open(pdfPath, '_blank');
+    }
+
+    function updateSwitchLabel() {
+        const checkbox = document.getElementById('multipleUploads');
+        const status = document.getElementById('uploadStatus');
+        status.innerHTML = 'Status: <strong>' + (checkbox.checked ? 'Enabled' : 'Disabled') + '</strong>';
     }
 </script>
 

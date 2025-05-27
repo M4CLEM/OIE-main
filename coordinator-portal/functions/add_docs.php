@@ -91,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $department = $_SESSION['department'];
     $documentName = htmlspecialchars($_POST['addDocumentName'], ENT_QUOTES, 'UTF-8');
     $documentType = !empty($_POST['addDocumentType']) ? htmlspecialchars($_POST['addDocumentType'], ENT_QUOTES, 'UTF-8') : htmlspecialchars($_POST['documentTypeDropdown'], ENT_QUOTES, 'UTF-8');
+    $multipleUploadsEnabled = isset($_POST['multipleUploads']) ? true : false;
 
     // File upload handling
     $driveFileLink = null;
@@ -115,11 +116,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     }
 
     // Insert into database
-    $sql = "INSERT INTO documents_list (documentName, documentType, department, file_template, file_name) VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO documents_list (documentName, documentType, department, file_template, file_name, multiUpload) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $connect->prepare($sql);
 
     if ($stmt) {
-        $stmt->bind_param("sssss", $documentName, $documentType, $department, $driveFileLink, $fileName);
+        $stmt->bind_param("ssssss", $documentName, $documentType, $department, $driveFileLink, $fileName, $multipleUploadsEnabled);
         if ($stmt->execute()) {
             header("Location: ../documents.php?success=1");
             exit();
