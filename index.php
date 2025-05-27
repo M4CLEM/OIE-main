@@ -159,15 +159,27 @@ if (isset($_POST['login'])) {
                     $rowsStudent = $studentResult->fetch_assoc();
                     $_SESSION['department'] = $rowsStudent['department'];
                 }
-                $stmtCourse = $connect->prepare("SELECT course FROM studentinfo WHERE email = ?");
+                $stmtCourse = $connect->prepare("SELECT course, status FROM studentinfo WHERE email = ?");
                 $stmtCourse->bind_param("s", $uname);
                 $stmtCourse->execute();
                 $courseResult = $stmtCourse->get_result();
                 if ($courseResult->num_rows > 0) {
                     $rowsCourse = $courseResult->fetch_assoc();
-                    $_SESSION['course'] = $rowsCourse['course'];
-                    header("Location: student-portal/student.php");
-                    exit();
+
+                    if ($rowsCourse['status'] == "Deployed") {
+                        $_SESSION['course'] = $rowsCourse['course'];
+                        header("Location: student-portal/dtr.php");
+                        exit();
+                    } else if ($rowsCourse['status'] == "Undeployed") {
+                        $_SESSION['course'] = $rowsCourse['course'];
+                        header("Location: student-portal/applications.php");
+                        exit();
+                    } else {
+                        $_SESSION['course'] = $rowsCourse['course'];
+                        header("Location: student-portal/student.php");
+                        exit();
+                    }
+
                 } else {
                     header("Location: student-portal/fill-out-form.php");
                     exit();

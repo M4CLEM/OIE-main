@@ -9,20 +9,23 @@ $applicationStat = 'Pending';
 
 $query = "
     SELECT a.id AS applicationID, a.studentID, a.jobrole, a.companyCode, a.applicationDate,
-           s.firstName, s.lastName, s.course, s.section
+           s.firstName, s.lastName, s.course, s.section, d.document, d.file_name, d.file_link
     FROM applications a
-    JOIN student_masterlist s 
-      ON a.studentID = s.studentID
+    JOIN student_masterlist s ON a.studentID = s.studentID
+    JOIN documents d ON a.studentID = d.student_ID
     WHERE a.companyName = ? 
       AND a.semester = ? 
       AND a.schoolYear = ? 
       AND a.status = ?
       AND s.semester = ? 
       AND s.schoolYear = ?
+      AND d.semester = ?
+      AND d.schoolYear = ?
+      AND d.document = 'Resume'
 ";
 
 $stmt = $connect->prepare($query);
-$stmt->bind_param("ssssss", $companyName, $activeSemester, $activeSchoolYear, $applicationStat, $activeSemester, $activeSchoolYear);
+$stmt->bind_param("ssssssss", $companyName, $activeSemester, $activeSchoolYear, $applicationStat, $activeSemester, $activeSchoolYear, $activeSemester, $activeSchoolYear);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -103,6 +106,7 @@ $stmt->close();
                                             <th>Course-Section</th>
                                             <th>Jobrole</th>
                                             <th>Application Date</th>
+                                            <th>Resume</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -115,7 +119,9 @@ $stmt->close();
                                                     <td><?= htmlspecialchars($applicant['course'] . '-' . $applicant['section']) ?></td>
                                                     <td><?= htmlspecialchars($applicant['jobrole']) ?></td>
                                                     <td><?= htmlspecialchars($applicant['applicationDate']) ?></td>
+                                                    <td><?= htmlspecialchars($applicant['file_name']) ?></td>
                                                     <td>
+                                                        <a class="btn btn-primary btn-sm" href="<?= htmlspecialchars($applicant['file_link']) ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye">View</i></a>
                                                         <!-- Approve Form -->
                                                         <form action="functions/application_approval.php" method="POST" style="display:inline;">
                                                             <input type="hidden" name="studentID" value="<?= htmlspecialchars($applicant['studentID']) ?>">
