@@ -53,84 +53,113 @@
                         </a> 
                     </div>
                     <div class="card-body">   
-                    <?php
-                            $query = "SELECT * FROM companylist WHERE No =".$_GET['id'];
-                            $result = mysqli_query($connect, $query) or die(mysqli_error($connect));
-                            while($rows = mysqli_fetch_array($result))
-                            {   
-                                $No = $rows['No'];
-                                $companyName = $rows['companyName'];
-                                $jobrole = $rows['jobrole'];            
-                                $companyaddress = $rows['companyaddress'];
-                                $jobdescription = $rows['jobdescription'];
-                                $jobreq = $rows['jobreq'];
-                                $link = $rows['link'];
-                                            
-                            }
-                                            
+                        <?php
                             $No = $_GET['id'];
 
-                            // Check if the student already applied for this company
-                            $checkQuery = "SELECT * FROM applications 
-                                WHERE email = '$email' 
-                                AND companyName = '$companyName'
-                                AND jobrole = '$jobrole' 
-                                AND semester = '$semester' 
-                                AND schoolYear = '$schoolYear'";
-                            $checkResult = mysqli_query($connect, $checkQuery);
-                            $alreadyApplied = mysqli_num_rows($checkResult) > 0;
+                            // Get the company/job info
+                            $query = "SELECT * FROM companylist WHERE No = ?";
+                            $stmt = $connect->prepare($query);
+                            $stmt->bind_param("i", $No);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            $rows = $result->fetch_assoc();
+
+                            $companyName = $rows['companyName'];
+                            $jobrole = $rows['jobrole'];
+                            $companyaddress = $rows['companyaddress'];
+                            $jobdescription = $rows['jobdescription'];
+                            $jobreq = $rows['jobreq'];
+                            $link = $rows['link'];
+                            $slots = (int)$rows['slots'];
+                            $stmt->close();
+
+                            // Check if the student already applied
+                            $checkQuery = "
+                                SELECT * FROM applications 
+                                WHERE email = ? 
+                                    AND companyName = ? 
+                                    AND jobrole = ? 
+                                    AND semester = ? 
+                                    AND schoolYear = ?";
+                            $checkStmt = $connect->prepare($checkQuery);
+                            $checkStmt->bind_param("sssss", $email, $companyName, $jobrole, $semester, $schoolYear);
+                            $checkStmt->execute();
+                            $checkResult = $checkStmt->get_result();
+                            $alreadyApplied = $checkResult->num_rows > 0;
+                            $checkStmt->close();
+
+                            // Count how many have already been approved for this jobrole
+                            $countQuery = "
+                                SELECT COUNT(*) as approvedCount FROM applications 
+                                WHERE companyName = ? 
+                                    AND jobrole = ? 
+                                    AND semester = ? 
+                                    AND schoolYear = ? 
+                                    AND status = 'Approved'";
+                            $countStmt = $connect->prepare($countQuery);
+                            $countStmt->bind_param("ssss", $companyName, $jobrole, $semester, $schoolYear);
+                            $countStmt->execute();
+                            $countResult = $countStmt->get_result();
+                            $approvedCount = $countResult->fetch_assoc()['approvedCount'] ?? 0;
+                            $countStmt->close();
+
+                            // Calculate if slots are still available
+                            $slotsLeft = $slots - $approvedCount;
+                            $noMoreSlots = $slotsLeft <= 0;
                                         
-                    ?> 
-                    <form id="applicationForm" method="POST">
-                        <div class="col-md-10">                    
-                            <input type="hidden" name="No" value="<?php echo $No; ?>">
+                        ?> 
+                            <form id="applicationForm" method="POST">
+                                <div class="col-md-10">                    
+                                    <input type="hidden" name="No" value="<?php echo $No; ?>">
         
-                            <dl class="row">
-                                <dt class="col-sm-4">Company Name: </dt>
-                                <dd class="col-sm-8"><?php echo $companyName ?></dd>
-                                <input type="hidden" name="companyName" value="<?php echo $companyName; ?>">
-                            </dl>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Company Name: </dt>
+                                        <dd class="col-sm-8"><?php echo $companyName ?></dd>
+                                        <input type="hidden" name="companyName" value="<?php echo $companyName; ?>">
+                                    </dl>
 
-                            <dl class="row">
-                                <dt class="col-sm-4">Company Address: </dt>
-                                <dd class="col-sm-8"><?php echo $companyaddress ?></dd>
-                            </dl>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Company Address: </dt>
+                                        <dd class="col-sm-8"><?php echo $companyaddress ?></dd>
+                                    </dl>
 
-                            <dl class="row">
-                                <dt class="col-sm-4">Job Role: </dt>
-                                <dd class="col-sm-8"><?php echo $jobrole ?></dd>
-                                <input type="hidden" name="jobrole" value="<?php echo $jobrole; ?>">
-                            </dl>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Job Role: </dt>
+                                        <dd class="col-sm-8"><?php echo $jobrole ?></dd>
+                                        <input type="hidden" name="jobrole" value="<?php echo $jobrole; ?>">
+                                    </dl>
 
-                            <dl class="row">
-                                <dt class="col-sm-4">Job Description:  </dt>
-                                <dd class="col-sm-8"><?php echo $jobdescription; ?></dd>
-                            </dl>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Job Description:  </dt>
+                                        <dd class="col-sm-8"><?php echo $jobdescription; ?></dd>
+                                    </dl>
 
-                            <dl class="row">
-                                <dt class="col-sm-4">Requirements/Qualification: </dt>
-                                <dd class="col-sm-8"><?php echo $jobreq; ?></dd>
-                            </dl>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Requirements/Qualification: </dt>
+                                        <dd class="col-sm-8"><?php echo $jobreq; ?></dd>
+                                    </dl>
 
-                            <dl class="row">
-                                <dt class="col-sm-4">Link: </dt>
-                                <dd class="col-sm-8"><a href="<?php echo $link; ?>"><?php echo $link; ?></a></dd>
-                                <input type="hidden" name="link" value="<?php echo $link; ?>">
-                            </dl>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Link: </dt>
+                                        <dd class="col-sm-8"><a href="<?php echo $link; ?>"><?php echo $link; ?></a></dd>
+                                        <input type="hidden" name="link" value="<?php echo $link; ?>">
+                                    </dl>
 
-                            <div class="text-end mt-3">
-                                <?php if ($alreadyApplied): ?>
-                                    <button type="button" class="btn btn-secondary" disabled>You already applied</button>
-                                <?php else: ?>
-                                    <button type="submit" class="btn btn-success">Apply</button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </form>
+                                    <div class="text-end mt-3">
+                                        <?php if ($alreadyApplied): ?>
+                                            <button type="button" class="btn btn-secondary" disabled>You already applied</button>
+                                        <?php elseif ($noMoreSlots): ?>
+                                            <button type="button" class="btn btn-danger" disabled>No more slots available</button>
+                                        <?php else: ?>
+                                            <button type="submit" class="btn btn-success">Apply</button>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     <!-- End of Main Content -->
 
     <!-- Scroll to Top Button-->

@@ -14,6 +14,7 @@
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Sanitize input
+        $slots = trim($_POST['slots']);
         $jobrole = trim($_POST['jobrole']);
         $address = trim($_POST['address']);
         $contactPerson = trim($_POST['contactPerson']);
@@ -25,11 +26,11 @@
 
         // Prepare statement
         $stmt = $connect->prepare("INSERT INTO companylist 
-            (companyName, companyaddress, contactPerson, jobrole, workType, jobdescription, jobreq, link, dept, semester, schoolYear)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (companyName, companyaddress, contactPerson, jobrole, slots, workType, jobdescription, jobreq, link, dept, semester, schoolYear)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         if ($stmt) {
-            $stmt->bind_param("sssssssssss", $companyName, $address, $contactPerson, $jobrole, $workType, $jobDescription, $jobRequirements, $link, $department, $activeSemester, $activeSchoolYear);
+            $stmt->bind_param("ssssssssssss", $companyName, $address, $contactPerson, $jobrole, $slots, $workType, $jobDescription, $jobRequirements, $link, $department, $activeSemester, $activeSchoolYear);
         
             if ($stmt->execute()) {
                 echo json_encode(['success' => true]);

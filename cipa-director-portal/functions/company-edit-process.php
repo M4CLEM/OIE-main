@@ -9,12 +9,13 @@
 	$jobdescription = $_POST['jobdescription'];
 	$jobreq = $_POST['jobreq'];
 	$link = $_POST['link'];
+	$slots = $_POST['slots'];
 
 
 	include_once("../../includes/connection.php");
 
-    $stmt = $connect->prepare("UPDATE companylist SET companyName = ?, companyaddress = ?, contactPerson = ?, jobrole = ?, workType = ?, jobdescription = ?, jobreq = ?, link = ? WHERE No = ?");
-    $stmt->bind_param("ssssssssi", $companyName, $companyaddress, $contactPerson, $jobrole, $workType, $jobdescription, $jobreq, $link, $No);
+    $stmt = $connect->prepare("UPDATE companylist SET companyName = ?, companyaddress = ?, contactPerson = ?, jobrole = ?, slots = ?, workType = ?, jobdescription = ?, jobreq = ?, link = ? WHERE No = ?");
+    $stmt->bind_param("sssssssssi", $companyName, $companyaddress, $contactPerson, $jobrole, $slots, $workType, $jobdescription, $jobreq, $link, $No);
     $result = $stmt->execute();
 
     if ($result) {

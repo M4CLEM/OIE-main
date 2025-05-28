@@ -20,9 +20,10 @@ if(isset($_POST['save']))
 	$jobreq = $_POST['jobreq'];
 	$link = $_POST['link'];
 	$dept = $_POST['dept'];
+	$slots = $_POST['slots'];
 
-	$stmt = $connect->prepare("INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, workType, jobdescription, jobreq, link, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-	$stmt->bind_param("sssssssssss", $companyName, $companyaddress, $contact, $jobrole, $workType, $jobdescription, $jobreq, $link, $dept, $activeSemester, $activeSchoolYear);
+	$stmt = $connect->prepare("INSERT INTO companylist (companyName, companyaddress, contactPerson, jobrole, slots, workType, jobdescription, jobreq, link, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$stmt->bind_param("ssssssssssss", $companyName, $companyaddress, $contact, $jobrole, $slots, $workType, $jobdescription, $jobreq, $link, $dept, $activeSemester, $activeSchoolYear);
 	
 	if ($stmt->execute()) {
 

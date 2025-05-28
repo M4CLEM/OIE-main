@@ -1,42 +1,115 @@
 <?php
-include_once("../includes/connection.php");
-session_start();
+    include_once("../includes/connection.php");
+    session_start();
 
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
-$companyName = $_SESSION['companyName'];
-$applicationStat = 'Pending';
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+    $companyName = $_SESSION['companyName'];
+    $applicationStat = 'Pending';
 
-$query = "
-    SELECT a.id AS applicationID, a.studentID, a.jobrole, a.companyCode, a.applicationDate,
-           s.firstName, s.lastName, s.course, s.section, d.document, d.file_name, d.file_link
-    FROM applications a
-    JOIN student_masterlist s ON a.studentID = s.studentID
-    JOIN documents d ON a.studentID = d.student_ID
-    WHERE a.companyName = ? 
-      AND a.semester = ? 
-      AND a.schoolYear = ? 
-      AND a.status = ?
-      AND s.semester = ? 
-      AND s.schoolYear = ?
-      AND d.semester = ?
-      AND d.schoolYear = ?
-      AND d.document = 'Resume'
-";
+    // Step 1: Get slots per jobrole for this company in the current semester and schoolYear
+    $slotsQuery = "
+        SELECT jobrole, slots
+        FROM companylist
+        WHERE TRIM(companyName) = TRIM(?)
+            AND TRIM(semester) = TRIM(?)
+            AND TRIM(schoolYear) = TRIM(?)
+        ";
+    $slotsStmt = $connect->prepare($slotsQuery);
+    $slotsStmt->bind_param("sss", $companyName, $activeSemester, $activeSchoolYear);
+    $slotsStmt->execute();
+    $slotsResult = $slotsStmt->get_result();
 
-$stmt = $connect->prepare($query);
-$stmt->bind_param("ssssssss", $companyName, $activeSemester, $activeSchoolYear, $applicationStat, $activeSemester, $activeSchoolYear, $activeSemester, $activeSchoolYear);
-$stmt->execute();
-$result = $stmt->get_result();
+    $jobSlots = [];
+    while ($row = $slotsResult->fetch_assoc()) {
+        $jobSlots[trim($row['jobrole'])] = (int)$row['slots'];
+    }
+    $slotsStmt->close();
 
-$applicants = [];
-while ($row = $result->fetch_assoc()) {
-    $applicants[] = $row;
-}
-$stmt->close();
+    // Step 2: Get count of approved applications per jobrole for this company
+    $approvedCountQuery = "
+        SELECT jobrole, COUNT(*) as approvedCount
+        FROM applications
+        WHERE companyName = ?
+            AND semester = ?
+            AND schoolYear = ?
+            AND status = 'Approved'
+        GROUP BY jobrole
+    ";
+    $approvedStmt = $connect->prepare($approvedCountQuery);
+    $approvedStmt->bind_param("sss", $companyName, $activeSemester, $activeSchoolYear);
+    $approvedStmt->execute();
+    $approvedResult = $approvedStmt->get_result();
+
+    $approvedCounts = [];
+    while ($row = $approvedResult->fetch_assoc()) {
+        $approvedCounts[trim($row['jobrole'])] = (int)$row['approvedCount'];
+    }
+    $approvedStmt->close();
+
+    // Step 3: Calculate remaining slots per jobrole
+    $remainingSlots = [];
+    foreach ($jobSlots as $jobrole => $slots) {
+        $approved = $approvedCounts[$jobrole] ?? 0;
+        $remainingSlots[$jobrole] = $slots - $approved;
+    }
+
+    // Step 4: Query pending applications but only for jobroles with remaining slots > 0
+    // Prepare a list of jobroles with available slots
+    $allowedJobRoles = array_filter($remainingSlots, fn($slots) => $slots > 0);
+    if (empty($allowedJobRoles)) {
+        // No available slots, so no applicants to show
+        $applicants = [];
+    } else {
+        // Use placeholders for prepared statement IN clause
+        $placeholders = implode(',', array_fill(0, count($allowedJobRoles), '?'));
+
+        $query = "
+            SELECT a.id AS applicationID, a.studentID, a.jobrole, a.companyCode, a.applicationDate,
+                s.firstName, s.lastName, s.course, s.section, d.document, d.file_name, d.file_link
+            FROM applications a
+            JOIN student_masterlist s ON a.studentID = s.studentID
+            JOIN documents d ON a.studentID = d.student_ID
+            WHERE a.companyName = ? 
+                AND a.semester = ? 
+                AND a.schoolYear = ? 
+                AND a.status = ?
+                AND s.semester = ? 
+                AND s.schoolYear = ?
+                AND d.semester = ?
+                AND d.schoolYear = ?
+                AND d.document = 'Resume'
+                AND a.jobrole IN ($placeholders)
+            ";
+
+        $stmt = $connect->prepare($query);
+
+        // Bind parameters: first the fixed ones, then the jobroles dynamically
+        $types = str_repeat('s', 8 + count($allowedJobRoles)); // 8 fixed string params + jobroles
+        $params = array_merge(
+            [$companyName, $activeSemester, $activeSchoolYear, $applicationStat, $activeSemester, $activeSchoolYear, $activeSemester, $activeSchoolYear],
+            array_keys($allowedJobRoles)
+        );
+
+        // Use a reference array for bind_param
+        $refs = [];
+        foreach ($params as $key => $value) {
+            $refs[$key] = &$params[$key];
+        }
+
+        // call_user_func_array for bind_param with references
+        call_user_func_array([$stmt, 'bind_param'], array_merge([$types], $refs));
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $applicants = [];
+        while ($row = $result->fetch_assoc()) {
+            $applicants[] = $row;
+        }
+        $stmt->close();
+    }
 ?>
-
-
 
 <!DOCTYPE html>
 <html>

@@ -7,6 +7,7 @@
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Retrieve and sanitize inputs
         $id = intval($_POST['id']);
+        $slots = trim($_POST['editSlots']);
         $jobrole = trim($_POST['editjobrole']);
         $address = trim($_POST['editAddress']);
         $contactPerson = trim($_POST['editContactPerson']);
@@ -27,6 +28,7 @@
             companyaddress = ?, 
             contactPerson = ?, 
             jobrole = ?, 
+            slots = ?,
             workType = ?, 
             jobdescription = ?, 
             jobreq = ?, 
@@ -35,7 +37,7 @@
             WHERE No = ?");
 
         if ($stmt) {
-            $stmt->bind_param("ssssssssi", $address, $contactPerson, $jobrole, $workType, $jobDescription, $jobRequirements, $link, $department, $id);
+            $stmt->bind_param("sssssssssi", $address, $contactPerson, $jobrole, $slots, $workType, $jobDescription, $jobRequirements, $link, $department, $id);
 
             if ($stmt->execute()) {
                 echo json_encode(['success' => true]);

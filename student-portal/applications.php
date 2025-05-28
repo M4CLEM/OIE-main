@@ -59,7 +59,7 @@
                                                 <td><?= htmlspecialchars($row['status']) ?></td>
                                                 <td>
                                                     <!-- Replace with your desired action, such as view/delete -->
-                                                    <a href="view_application.php?id=<?= $row['id'] ?>" class="btn btn-info btn-sm">View</a>
+                                                    <a href="#" class="btn btn-info btn-sm viewBtn" data-bs-target="#viewModal" data-bs-toggle="modal" data-companyname="<?= $row['companyName']; ?>" data-jobrole="<?= $row['jobrole']; ?>" data-applicationdate="<?= $row['applicationDate']; ?>" data-status="<?= $row['status']; ?>" data-id="<?= $row['id'] ?>">View</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -74,12 +74,92 @@
                     </div>
                 </div>
             </div>
-            
         </div>
 
+        <!-- VIEW MODAL-->
+        <div class="modal fade" role="dialog" tabindex="-1" id="viewModal" aria-labelledby="viewModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="col">
+                            <h5 class="modal-title">Application Details</h5>
+                            <p class="small" id="applicationDate"></p>
+                        </div>
+                        <button class="close" type="button" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col">
+                                <label for="status">Status:</label>
+                            </div>
+                            <div class="col">
+                                <p id="status"></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label for="applicationID">Application ID:</label>
+                            </div>
+                            <div class="col">
+                                <p id="applicationID"></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md">
+                                <label for="companyName">Company Name:</label>
+                            </div>
+                            <div class="col-md">
+                                <p id="companyName"></p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="row">
+                                <div class="col-md">
+                                    <label for="jobrole">Jobrole:</label>
+                                </div>
+                                <div class="col-md">
+                                    <p id="jobrole"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
             crossorigin="anonymous"></script>
         <script src="../assets/js/sidebarscript.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                $('.viewBtn').on('click', function() {
+                    const button = $(this);
+
+                    // Get data from button attributes
+                    const applicationID = button.data('id');
+                    const companyName = button.data('companyname');
+                    const jobrole = button.data('jobrole');
+                    const applicationDate = button.data('applicationdate');
+                    const status = button.data('status');
+
+                    // Insert into modal fields
+                    $('#applicationID').text(applicationID);
+                    $('#companyName').text(companyName);
+                    $('#jobrole').text(jobrole);
+                    $('#applicationDate').text("Applied on: " + applicationDate);
+                    $('#status').text(status);
+
+                    // Open the modal
+                    $('#viewModal').modal('show');
+                });
+            });
+        </script>
     </body>
 </html>

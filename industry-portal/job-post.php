@@ -93,6 +93,7 @@
                                             <tr>
                                                 <th scope="col">JOBROLE</th>
                                                 <th scope="col">WORK TYPE</th>
+                                                <th scope="col">SLOTS</th>
                                                 <th scope="col" width="23%">ACTION</th>
                                             </tr>
                                         </thead>
@@ -101,9 +102,36 @@
                                                 if ($jobResult->num_rows === 0): ?>
                                                     <tr><td colspan="2">No job roles found.</td></tr>
                                             <?php else:
+                                                $countQuery = "
+                                                    SELECT jobrole, COUNT(*) as count 
+                                                    FROM company_info 
+                                                    WHERE status = 'Approved' 
+                                                        AND semester = ? 
+                                                        AND schoolYear = ? 
+                                                        AND companyName = ?
+                                                    GROUP BY jobrole
+                                                ";
+
+                                                $countStmt = $connect->prepare($countQuery);
+                                                $countStmt->bind_param("sss", $activeSemester, $activeSchoolYear, $companyName);
+                                                $countStmt->execute();
+                                                $result = $countStmt->get_result();
+
+                                                $jobCounts = [];
+                                                while ($countRow = $result->fetch_assoc()) {
+                                                    $jobCounts[trim($countRow['jobrole'])] = $countRow['count'];
+                                                }
+                                                $countStmt->close();
+
                                                 while ($row = $jobResult->fetch_assoc()):
                                                     $jobRole = trim($row['jobrole']);
                                                     $workType = trim($row['workType']);
+                                                    $slots = trim($row['slots']);
+
+                                                    // Get the count of students already approved for this jobrole
+                                                    $usedSlots = isset($jobCounts[$jobRole]) ? $jobCounts[$jobRole] : 0;
+                                                    $remainingSlots = $slots - $usedSlots;
+                                                    if ($remainingSlots < 0) $remainingSlots = 0; // just in case
                                                 ?>
                                                     <tr>
                                                         <td>
@@ -112,8 +140,9 @@
                                                             </a>
                                                         </td>
                                                         <td><?php echo htmlspecialchars($workType); ?></td>
+                                                        <td><?php echo htmlspecialchars($usedSlots); ?> / <?php echo htmlspecialchars($slots); ?></td>
                                                         <td>
-                                                            <a href="modal.php" type="button" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $row['No']; ?>" data-companyaddress="<?php echo $row['companyaddress']; ?>" data-contactperson="<?php echo $row['contactPerson']; ?>" data-jobrole="<?php echo $row['jobrole']; ?>" data-worktype="<?php echo $row['workType']; ?>" data-jobdescription="<?php echo $row['jobdescription']; ?>" data-jobrequirement="<?php echo $row['jobreq']; ?>" data-department="<?php echo $row['dept']; ?>" data-link="<?php echo $row['link']; ?>">
+                                                            <a href="modal.php" type="button" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $row['No']; ?>" data-companyaddress="<?php echo $row['companyaddress']; ?>" data-contactperson="<?php echo $row['contactPerson']; ?>" data-jobrole="<?php echo $row['jobrole']; ?>" data-worktype="<?php echo $row['workType']; ?>" data-jobdescription="<?php echo $row['jobdescription']; ?>" data-jobrequirement="<?php echo $row['jobreq']; ?>" data-department="<?php echo $row['dept']; ?>" data-link="<?php echo $row['link']; ?>" data-slots="<?php echo $row['slots']; ?>">
                                                                 Edit
                                                             </a>
 
@@ -240,6 +269,14 @@
                     <div class="modal-body">
                         <form id="jobPostForm">
                             <div class="form-group md-5">
+
+                                <div class="col-md">
+                                    <div>
+                                        <span>Slots</span>
+                                    </div>
+                                    <input type="number" class="form-control" name="slots" id="slots" placeholder="Slots" required>
+                                </div>
+
                                 <div class="col-md">
                                     <div>
                                         <span>Jobrole</span>
@@ -349,6 +386,14 @@
                             <input type="hidden" id="editID" name="id">
 
                             <div class="form-group md-5">
+                                
+                                <div class="col-md">
+                                    <div>
+                                        <span>Slots</span>
+                                    </div>
+                                    <input type="number" class="form-control" name="editSlots" id="editSlots" placeholder="Slots" required>
+                                </div>
+
                                 <div class="col-md">
                                     <div>
                                         <span>Jobrole</span>
@@ -578,6 +623,7 @@
                 var jobrequirement = $(this).data('jobrequirement');
                 var department = $(this).data('department');
                 var link = $(this).data('link');
+                var slots = $(this).data('slots');
 
                 // Set values into the modal fields
                 $('#editID').val(id);
@@ -589,6 +635,7 @@
                 $('#editJobRequirements').val(jobrequirement);
                 $('#editDepartment').val(department);
                 $('#editLink').val(link);
+                $('#editSlots').val(slots);
             });
 
             let editFormConfirmed = false;

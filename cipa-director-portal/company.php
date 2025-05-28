@@ -146,6 +146,13 @@ $departmentResult = mysqli_query($connect, $departmentQuery);
 
                         <div class="form-group">
                             <div class="col-md-10">
+                                <label for="slots">Slots:</label>
+                                <input type="number" name="slots" id="slots" class="form-control input-sm" value="" autocomplete="none">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-10">
                                 <label for="workType">Work Type:</label>
                                 <select name="workType" id="workType" class="form-control my-2">
                                     <option hidden disable value="select">Select</option>
