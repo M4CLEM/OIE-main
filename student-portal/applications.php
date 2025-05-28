@@ -45,7 +45,8 @@
                                         <th>Company</th>
                                         <th>Jobrole</th>
                                         <th>Application Date</th>
-                                        <th>Status</th>
+                                        <th>Company Remarks</th>
+                                        <th>University Remarks</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -57,6 +58,7 @@
                                                 <td><?= htmlspecialchars($row['jobrole']) ?></td>
                                                 <td><?= htmlspecialchars($row['applicationDate'])?></td>
                                                 <td><?= htmlspecialchars($row['status']) ?></td>
+                                                <td><?= htmlspecialchars($row['schoolRemarks']) ?></td>
                                                 <td>
                                                     <!-- Replace with your desired action, such as view/delete -->
                                                     <a href="#" class="btn btn-info btn-sm viewBtn" data-bs-target="#viewModal" data-bs-toggle="modal" data-companyname="<?= $row['companyName']; ?>" data-jobrole="<?= $row['jobrole']; ?>" data-applicationdate="<?= $row['applicationDate']; ?>" data-status="<?= $row['status']; ?>" data-id="<?= $row['id'] ?>">View</a>

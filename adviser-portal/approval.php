@@ -63,6 +63,11 @@ if (isset($_POST['Approve'])) {
     $updateStudentInfo->bind_param("sssss", $companyCode, $trainerEmail, $studentEmail, $activeSemester, $activeSchoolYear);
     $updateStudentInfo->execute();
 
+    $applicationDelete = "UPDATE applications SET schoolRemarks = 'Approved' WHERE studentID = ? AND semester = ? AND schoolYear = ?";
+    $applicationStmt = $connect->prepare($applicationDelete);
+    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+    $applicationStmt->execute();
+
     header("Location: approval.php");
 
     exit;
@@ -83,6 +88,11 @@ if (isset($_POST['ApproveChange'])) {
     $updateStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
     $updateStmt->execute();
 
+    $applicationDelete = "DELETE FROM applications WHERE studentID = ? AND semester = ? AND school_year = ?";
+    $applicationStmt = $connect->prepare($applicationDelete);
+    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+    $applicationStmt->execute();
+
     header("Location: approval.php");
     exit;
 }
@@ -100,6 +110,28 @@ if (isset($_POST['PullOut'])) {
     $updateStmt = $connect->prepare($updateQuery);
     $updateStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
     $updateStmt->execute();
+
+    $applicationDelete = "DELETE FROM applications WHERE studentID = ? AND semester = ? AND school_year = ?";
+    $applicationStmt = $connect->prepare($applicationDelete);
+    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+    $applicationStmt->execute();
+
+    header("Location: approval.php");
+    exit;
+}
+
+if (isset($_POST['Reject'])) {
+    $studentID = $_POST['studentID'];
+
+    $rejectQuery = "UPDATE company_info SET status = 'Rejected' WHERE studentID = ? AND semester = ? AND schoolYear = ?";
+    $stmt = $connect->prepare($rejectQuery);
+    $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+    $stmt->execute();
+
+    $applicationDelete = "UPDATE applications SET schoolRemarks = 'Rejected' WHERE studentID = ? AND semester = ? AND schoolYear = ?";
+    $applicationStmt = $connect->prepare($applicationDelete);
+    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+    $applicationStmt->execute();
 
     header("Location: approval.php");
     exit;
@@ -183,6 +215,7 @@ if (isset($_POST['PullOut'])) {
                                                 $modalApproveID = "confirmApprove{$modalIndex}";
                                                 $modalApproveChangeID = "confirmApproveChange{$modalIndex}";
                                                 $modalPullOutID = "confirmPullOut{$modalIndex}";
+                                                $modalRejectID = "confirmReject{$modalIndex}";
 
                                                 echo "<tr>";
                                                 echo "<td>{$studentFullName}</td>";
@@ -224,6 +257,8 @@ if (isset($_POST['PullOut'])) {
                                                     } elseif ($row['status'] == 'Pending') {
                                                         echo "
                                                             <button type='button' class='btn btn-sm btn-success w-100 rounded-2' data-bs-toggle='modal' data-bs-target='#{$modalApproveID}'>Approve</button>
+                                                            <button type='button' class='btn btn-sm btn-danger w-100 rounded-2'
+                                                            data-bs-toggle='modal' data-bs-target='#{$modalRejectID}'>Reject</button>
                                                             <!-- Modal -->
                                                                 <div class='modal fade' id='{$modalApproveID}' tabindex='-1'>
                                                                     <div class='modal-dialog'>
@@ -242,6 +277,29 @@ if (isset($_POST['PullOut'])) {
                                                                                 <div class='modal-footer'>
                                                                                     <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
                                                                                     <button type='submit' name='Approve' class='btn btn-success'>Approve</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- REJECT MODAL -->
+                                                                <div class='modal fade' id='{$modalRejectID}' tabindex='-1'>
+                                                                    <div class='modal-dialog'>
+                                                                        <form method='post'>
+                                                                            <input type='hidden' name='studentID' value='{$row['studentID']}'>
+                                                                            <input type='hidden' name='companyCode' value='{$row['companyCode']}'>
+                                                                            <input type='hidden' name='trainerEmail' value='{$row['trainerEmail']}'>
+                                                                            <div class='modal-content'>
+                                                                                <div class='modal-header'>
+                                                                                    <h5 class='modal-title'>Confirm Rejection</h5>
+                                                                                    <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
+                                                                                </div>
+                                                                                <div class='modal-body fs-5'>
+                                                                                    Reject deployment of <strong>{$studentFullName}</strong> to <strong>{$row['companyName']}</strong>?
+                                                                                </div>
+                                                                                <div class='modal-footer'>
+                                                                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
+                                                                                    <button type='submit' name='Reject' class='btn btn-success'>Reject</button>
                                                                                 </div>
                                                                             </div>
                                                                         </form>
@@ -272,6 +330,8 @@ if (isset($_POST['PullOut'])) {
                                                                             </form>
                                                                         </div>
                                                                     </div>";
+                                                                } elseif ($row['status'] == 'Rejected'){
+                                                                    echo "<b><p style='color: red;'>Rejected!</p></b>";
                                                                 } else {
                                                                     echo "<b><p style='color: gray;'>Status Unknown</p></b>";
                                                                 }

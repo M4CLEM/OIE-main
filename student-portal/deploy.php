@@ -60,7 +60,7 @@ if (isset($_SESSION['student'])) {
     // If the student is enrolled in the current semester and school year
     if (mysqli_num_rows($enrollmentCheckResult) > 0) {
         // Check if there is deployment information for the active semester and school year
-        $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ? AND semester = ? AND schoolYear = ?");
+        $stmt = $connect->prepare("SELECT * FROM company_info WHERE student_email = ? AND semester = ? AND schoolYear = ? AND status != 'Rejected'");
         $stmt->bind_param("sss", $_SESSION['student'], $activeSemester, $activeSchoolYear);
         $stmt->execute();
         $result = $stmt->get_result(); 
