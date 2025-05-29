@@ -43,24 +43,7 @@ if (!$result) {
         <div class="main">
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-2 static-top shadow">
                 <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Grading</h4>
-                <ul class="navbar-nav ml-auto">
-                    <div class="topbar-divider d-none d-sm-block"></div>
-                    <li class="nav-item dropdown no-arrow">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
-                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                <?php echo $coordinatorRole; ?></span>
-                            <img class="img-profile rounded-circle" src="../img/undraw_profile.svg">
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="#">Profile</a>
-                            <a class="dropdown-item" href="#">Settings</a>
-                            <a class="dropdown-item" href="#">Activity Log</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="../logout.php">Logout</a>
-                        </div>
-                    </li>
-                </ul>
+                <?php include('../elements/cood_navbar_user_info.php')?>
             </nav>
 
             <div id="content" class="py-2">
