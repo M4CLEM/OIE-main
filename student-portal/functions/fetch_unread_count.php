@@ -19,7 +19,7 @@ $user = $result->fetch_assoc();
 $studentID = $user['studentID'];
 $department = $user['department'];
 
-$notifQuery = "SELECT viewer FROM event_reminder WHERE department = ?";
+$notifQuery = "SELECT viewer FROM event_reminder WHERE department = ? OR department = 'All'";
 $notifStmt = $connect->prepare($notifQuery);
 $notifStmt->bind_param("s", $department);
 $notifStmt->execute();

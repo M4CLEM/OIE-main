@@ -61,7 +61,7 @@
                 <div class="row">
                     <div class="col-md-6" style="height: 70vh; overflow-y: auto;">
                         <div class="card">
-                            <form action="">
+                            <form id="createAnnouncement">
                                 <div class="card-header">
                                     Create Announcement
                                 </div>
@@ -129,6 +129,27 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmSubmitModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Submission</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to submit this announcement?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmSubmitBtn" class="btn btn-primary">Yes, Submit</button>
             </div>
         </div>
     </div>
@@ -305,5 +326,38 @@
                 });
             }
         });
+
+        const announcementForm = document.getElementById('createAnnouncement');
+        const confirmBtn = document.getElementById('confirmSubmitBtn');
+
+        if (announcementForm && confirmBtn) {
+            announcementForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                $('#confirmSubmitModal').modal('show');
+            });
+
+            confirmBtn.addEventListener('click', function () {
+                $('#confirmSubmitModal').modal('hide');
+                const formData = new FormData(announcementForm);
+
+                fetch('functions/submit_announcement.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error: ' + response.status);
+                    return response.text();
+                })
+                .then(data => {
+                    alert('Announcement submitted successfully!');
+                    updateNotificationBadge();
+                    loadNotificationModal();
+                    announcementForm.reset();
+                })
+                .catch(err => {
+                    alert('Error submitting announcement: ' + err.message);
+                });
+            });
+        }
     })
 </script>

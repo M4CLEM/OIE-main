@@ -15,7 +15,7 @@ if (!isset($_POST['studentID']) || !isset($_POST['department'])) {
 $studentID = $_POST['studentID'];
 $department = $_POST['department'];
 
-$stmt = $connect->prepare("SELECT id, viewer FROM event_reminder WHERE department = ?");
+$stmt = $connect->prepare("SELECT id, viewer FROM event_reminder WHERE department = ? OR department = 'All'");
 $stmt->bind_param("s", $department);
 $stmt->execute();
 $result = $stmt->get_result();

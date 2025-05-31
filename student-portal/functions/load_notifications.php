@@ -19,7 +19,7 @@ $user = $result->fetch_assoc();
 $studentID = $user['studentID'];
 $department = $user['department'];
 
-$notificationQuery = "SELECT * FROM event_reminder WHERE department = ? ORDER BY datePosted DESC";
+$notificationQuery = "SELECT * FROM event_reminder WHERE department = ? OR department = 'All' ORDER BY datePosted DESC";
 $notificationStmt = $connect->prepare($notificationQuery);
 $notificationStmt->bind_param("s", $department);
 $notificationStmt->execute();
