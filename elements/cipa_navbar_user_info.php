@@ -3,7 +3,7 @@
 
     $departmentQuery = $connect->prepare("SELECT * FROM department_list");
     $departmentQuery->execute();
-    $result = $departmentQuery->get_result();
+    $departmentResult = $departmentQuery->get_result();
 ?>
 
 <ul class="navbar-nav ml-auto">
@@ -89,7 +89,7 @@
                                             </div>
                                             <select class="form-control" name="department" id="department">
                                                 <option value="All">All Department</option>
-                                                <?php while ($row = $result->fetch_assoc()): ?>
+                                                <?php while ($row = $departmentResult->fetch_assoc()): ?>
                                                     <option value="<?= htmlspecialchars($row['department']) ?>">
                                                         <?= htmlspecialchars($row['department']) ?>
                                                     </option>

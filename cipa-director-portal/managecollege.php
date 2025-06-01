@@ -2,8 +2,16 @@
     session_start();
     include_once("../includes/connection.php");
 
-    $query="select * from department_list";
+    $query="SELECT * FROM department_list";
     $result=mysqli_query($connect,$query);
+
+    if (!$result) {
+        die("Query failed: " . mysqli_error($connect));
+    }
+
+    if (mysqli_num_rows($result) == 0) {
+        echo "<p>No departments found.</p>";
+    }
 ?>
 
 <!DOCTYPE html>
@@ -60,7 +68,7 @@
                                         <div id="tab-1" class="tab-pane fade show p-0 active">
 
                                             <?php while($rows=mysqli_fetch_assoc($result)){?>
-
+                                                
                                                 <div class="job-item p-4 mb-4">
                                                     <div class="row g-4">
                                                         <div class="col-sm-12 col-md-8 d-flex align-items-center">
