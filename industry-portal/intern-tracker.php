@@ -14,6 +14,7 @@
         AND ci.schoolYear = ?
         AND si.semester = ?
         AND si.school_year = ?
+        AND ci.status = 'Approved'
     ";
 
     $studStmt = $connect->prepare($studQuery);
