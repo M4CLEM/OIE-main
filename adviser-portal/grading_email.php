@@ -45,13 +45,13 @@ function createWorkingMailer($host, $username, $password) {
 try {
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Retrieve values from the form
-        $recipient_emails = explode(',', $_POST['recipient-email']);
+        $recipient_emails = array_filter(array_map('trim', explode(',', $_POST['recipient-email'])));
         $sender = $_POST['sender'];
         $senderEmail = $_POST['sender-email'];
         $subject = $_POST['email-subject'];
 
         // Create the Mailer (tries 587, 465, then 25)
-        $mailer = createWorkingMailer('smtp.gmail.com', 'cipa@plmun.edu.ph', 'iqwrimadvoliiaoc');
+        $mailer = createWorkingMailer('smtp.gmail.com', 'cipa@plmun.edu.ph', 'oaoybffujhnigslm');
 
         foreach ($recipient_emails as $recipient_email) {
             $recipient_email = trim($recipient_email);
@@ -98,7 +98,7 @@ try {
             </html>';
 
             $message = (new Swift_Message($subject))
-                ->setFrom(['agl.systems.info@gmail.com' => 'PLMUN CIPA'])
+                ->setFrom(['cipa@plmun.edu.ph' => 'PLMUN CIPA'])
                 ->setTo($recipient_email)
                 ->setBody($body, 'text/html');
 

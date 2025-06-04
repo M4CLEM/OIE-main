@@ -30,7 +30,7 @@ class updatelogs
                 $student_Section = $row['section'];
                 $student_Company = $row['companyCode'];
 
-                $adviser_details_query = mysqli_query($connect, "SELECT * FROM listadviser WHERE dept='$dept' AND course='$course' AND section='$section'");
+                $adviser_details_query = mysqli_query($connect, "SELECT * FROM listadviser WHERE dept='$dept' AND course='$course' AND section='$section' AND semester='$semester' AND schoolYear='$schoolYear'");
 
                 $company_details_query = mysqli_query($connect, "SELECT * FROM company_info WHERE companyCode='$student_Company'");
                 $rowCompany = mysqli_fetch_array($company_details_query);

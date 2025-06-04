@@ -79,7 +79,7 @@ try {
 
         // SMTP credentials
         $smtpEmail = 'cipa@plmun.edu.ph'; // App email
-        $smtpPassword = 'iqwrimadvoliiaoc'; // App password
+        $smtpPassword = 'oaoybffujhnigslm'; // App password
 
         // Use port-rotating mailer
         $mailer = createWorkingMailer('smtp.gmail.com', $smtpEmail, $smtpPassword);
