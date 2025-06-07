@@ -175,8 +175,9 @@
                                                         </form>
 
                                                         <!-- Reject Form -->
-                                                        <form action="application_rejection.php" method="POST" style="display:inline;">
+                                                        <form action="functions/application_rejection.php" method="POST" style="display:inline;">
                                                             <input type="hidden" name="studentID" value="<?= htmlspecialchars($applicant['studentID']) ?>">
+                                                            <input type="hidden" name="applicationID" value="<?= htmlspecialchars($applicant['applicationID']) ?>">
                                                             <button type="submit" class="btn btn-sm btn-danger">Reject</button>
                                                         </form>
                                                     </td>
