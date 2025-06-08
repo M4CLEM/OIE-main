@@ -586,7 +586,7 @@
             // Approve Log
             $('#confirmApproveBtn').on('click', function () {
                 const logID = $('#approveLogID').val();
-    
+
                 $.ajax({
                     url: 'functions/approve_dtr.php',
                     method: 'POST',
@@ -594,10 +594,13 @@
                     dataType: 'json',
                     beforeSend: function () {
                         $('#confirmApproveBtn').html('<span class="spinner-border spinner-border-sm"></span> Approving...');
+                        $('#confirmApproveBtn').prop('disabled', true);
                     },
                     success: function (res) {
                         $('#approveModal').modal('hide');
+
                         if (res.success) {
+                            // Update UI after approval
                             $(`#action-buttons-${logID}`).html(`
                                 <button class="btn btn-success btn-sm" disabled>Approved</button>
                                 <button class="btn btn-danger btn-sm reject-log" data-logid="${logID}" data-toggle="modal" data-target="#rejectModal">Reject</button>
@@ -607,15 +610,19 @@
                             Swal.fire('Error!', res.message, 'error');
                         }
                     },
-                    error: function () {
+                    error: function (xhr, status, error) {
                         $('#approveModal').modal('hide');
-                        Swal.fire('Error!', 'Failed to approve log.', 'error');
+                        console.error('AJAX Error:', status, error);
+                        console.error('Response:', xhr.responseText);
+                        Swal.fire('Error!', 'An error occurred while approving. Please check the console.', 'error');
                     },
                     complete: function () {
                         $('#confirmApproveBtn').html('Yes, Approve');
+                        $('#confirmApproveBtn').prop('disabled', false);
                     }
                 });
             });
+
 
             // Reject Log
             $('#confirmRejectBtn').on('click', function () {

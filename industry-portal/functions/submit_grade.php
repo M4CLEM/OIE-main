@@ -88,12 +88,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted!']);
 
         // Update student's status to "Completed" in the background
-        $updateStmt = $connect->prepare("UPDATE studentinfo SET status = 'Completed' WHERE studentID = ?");
-        $updateStmt->bind_param("i", $studentId);
+        $updateStmt = $connect->prepare("UPDATE studentinfo SET status = 'Completed' WHERE studentID = ? AND semester = ? AND school_year = ?");
+        $updateStmt->bind_param("iss", $studentId, $activeSemester, $activeSchoolYear);
         
         if (!$updateStmt->execute()) {
             error_log("Error updating student status: " . $updateStmt->error);
         }
+
+        $endDateUpdate = $connect->prepare("UPDATE company_info SET dateEnded = CURDATE() WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $endDateUpdate->bind_param("iss", $studentId, $activeSemester, $activeSchoolYear);
+        $endDateUpdate->execute();
         
         $updateStmt->close();
     } else {

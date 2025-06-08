@@ -93,8 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     
     if ($stmt->execute()) {
         // Update student's status to "Completed" after inserting the grade
-        $updateStmt = $connect->prepare("UPDATE studentinfo SET status = 'Completed' WHERE studentID = ?");
-        $updateStmt->bind_param("i", $studentId);
+        $updateStmt = $connect->prepare("UPDATE studentinfo SET status = 'Completed' WHERE studentID = ? AND semester = ? AND school_year = ?");
+        $updateStmt->bind_param("iss", $studentId, $activeSemester, $activeSchoolYear);
         
         if ($updateStmt->execute()) {
             echo json_encode(['status' => 'success', 'message' => 'Grade successfully submitted and status updated to "Completed"!']);
@@ -102,6 +102,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             error_log("Error updating student status: " . $updateStmt->error);
             echo json_encode(['status' => 'success', 'message' => 'Grade submitted, but failed to update student status.']);
         }
+
+        $endDateUpdate = $connect->prepare("UPDATE company_info SET dateEnded = CURDATE() WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $endDateUpdate->bind_param("iss", $studentId, $activeSemester, $activeSchoolYear);
+        $endDateUpdate->execute();
+
         $updateStmt->close();
     } else {
         error_log("Database Insert Error: " . $stmt->error);

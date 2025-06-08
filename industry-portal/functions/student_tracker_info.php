@@ -56,7 +56,7 @@ if ($row) {
 }
 
 // 2. Fetch log data (DTR)
-$logQuery = "SELECT * FROM logdata WHERE student_num = ? AND semester = ? AND schoolYear = ?";
+$logQuery = "SELECT * FROM logdata WHERE student_num = ? AND semester = ? AND schoolYear = ? ORDER BY time_in DESC";
 $stmt = $connect->prepare($logQuery);
 $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
 $stmt->execute();
