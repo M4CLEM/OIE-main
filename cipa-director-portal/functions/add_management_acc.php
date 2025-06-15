@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("sssss", $employeeNumber, $name, $email, $password, $role);
     } else {
         $department = trim($_POST['department']);
-        $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role, department) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role, department) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $connect->prepare($sql);
         $stmt->bind_param("ssssss", $employeeNumber, $name, $email, $password, $role, $department);
     }

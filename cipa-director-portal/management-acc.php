@@ -255,36 +255,41 @@ if (!$result) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <script src="../assets/js/sidebarscript.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="../assets/js/sidebarscript.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <script>
-        // ============ ADD SCRIPT ================
-        document.addEventListener("DOMContentLoaded", function() {
-            const roleSelect = document.getElementById("role");
-            const departmentSelect = document.getElementById("department");
+<script>
+    // Role / Department dropdown toggle for Add Modal
+    document.addEventListener("DOMContentLoaded", function() {
+        const roleSelect = document.getElementById("role");
+        const departmentSelect = document.getElementById("department");
 
-            roleSelect.addEventListener("change", function() {
-                if (roleSelect.value === "CIPA") {
-                    departmentSelect.disabled = true;
-                    departmentSelect.style.backgroundColor = "#e0e0e0"; // Light gray
-                    departmentSelect.style.color = "#888"; // Dark gray
-                    departmentSelect.style.cursor = "not-allowed";
-                } else {
-                    departmentSelect.disabled = false;
-                    departmentSelect.style.backgroundColor = ""; // Reset to default
-                    departmentSelect.style.color = ""; // Reset to default
-                    departmentSelect.style.cursor = "";
-                }
-            });
-        });
+        function toggleDepartment() {
+            if (roleSelect.value === "CIPA") {
+                departmentSelect.disabled = true;
+                departmentSelect.style.backgroundColor = "#e0e0e0"; // Light gray
+                departmentSelect.style.color = "#888"; // Dark gray
+                departmentSelect.style.cursor = "not-allowed";
+            } else {
+                departmentSelect.disabled = false;
+                departmentSelect.style.backgroundColor = ""; // Reset to default
+                departmentSelect.style.color = ""; // Reset to default
+                departmentSelect.style.cursor = "";
+            }
+        }
 
-        // =========== ADD SCRIPT (Password Validation) =================
-        document.addEventListener("DOMContentLoaded", function() {
-            const form = document.querySelector("form"); // Update if your form has an ID
-            const password = document.getElementById("password");
-            const confirmPassword = document.getElementById("confirmPassword");
+        roleSelect.addEventListener("change", toggleDepartment);
+        toggleDepartment(); // Run on page load to set initial state
+    });
 
+    // Password validation for Add Form (before AJAX submit)
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("addForm");
+        const password = document.getElementById("password");
+        const confirmPassword = document.getElementById("confirmPassword");
+
+        if (form) {
             form.addEventListener("submit", function(event) {
                 if (password.value !== confirmPassword.value) {
                     event.preventDefault(); // Stop form submission
@@ -292,150 +297,130 @@ if (!$result) {
                     confirmPassword.focus();
                 }
             });
+        }
+    });
+
+    // AJAX Submit for Add Form
+    $(document).ready(function() {
+        $("#addForm").submit(function(event) {
+            event.preventDefault(); // Prevent page reload
+
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: "functions/add_management_acc.php",
+                type: "POST",
+                data: formData,
+                dataType: "json",
+                beforeSend: function() {
+                    $("#addMessage").html('<div class="alert alert-info">Processing...</div>');
+                },
+                success: function(response) {
+                    if (response.status === "success") {
+                        $("#addMessage").html('<div class="alert alert-success">' + response.message + "</div>");
+                        setTimeout(function() {
+                            $("#addModal").modal("hide");
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        $("#addMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
+                    }
+                },
+                error: function() {
+                    $("#addMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                }
+            });
+        });
+    });
+
+    // AJAX Submit for Edit Form with password validation inside the click handler
+    $(document).ready(function() {
+        $("#saveEditBtn").click(function() {
+            var password = $("#editPassword").val();
+            var confirmPassword = $("#editConfirmPassword").val();
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match! Please re-enter.");
+                $("#editConfirmPassword").focus();
+                return; // Stop AJAX call
+            }
+
+            var formData = $("#editForm").serialize();
+
+            $.ajax({
+                type: "POST",
+                url: "functions/edit_management_acc.php",
+                data: formData,
+                dataType: "json",
+                beforeSend: function() {
+                    $("#editMessage").html('<div class="alert alert-info">Processing...</div>');
+                },
+                success: function(response) {
+                    if (response.status === "success") {
+                        $("#editMessage").html('<div class="alert alert-success">' + response.message + "</div>");
+                        setTimeout(function() {
+                            $("#editModal").modal("hide");
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        $("#editMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
+                    }
+                },
+                error: function() {
+                    $("#editMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                }
+            });
+        });
+    });
+
+    // Populate Edit Modal and Delete Modal logic remains unchanged (your original jQuery code)
+    $(document).ready(function() {
+        $('.editBtn').click(function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            var role = $(this).data('role');
+            var department = $(this).data('department');
+            var email = $(this).data('email');
+            var employeenumber = $(this).data('employeenumber');
+
+            $('#editID').val(id);
+            $('#editStaffName').val(name);
+            $('#editRole').val(role);
+            $('#editDepartment').val(department);
+            $('#editEmail').val(email);
+            $('#editEmployeeNumber').val(employeenumber);
         });
 
-        // =========== EDIT SCRIPT (Password Validation) ===============
-        document.addEventListener("DOMContentLoaded", function() {
-            const form = document.querySelector("editForm");
-            const password = document.getElementById("editPassword");
-            const confirmPassword = document.getElementById("editConfirmPassword");
+        // Delete modal open
+        $(".deleteBtn").click(function() {
+            var id = $(this).data("id");
+            $("#confirmDelete").data("id", id);
+        });
 
-            form.addEventListener("submit", function(event) {
-                if (password.value != confirmPassword.value) {
-                    event.preventDefault();
-                    alert("Passwords do not match! Please re-enter.");
-                    confirmPassword.focus();
+        // Confirm delete
+        $("#confirmDelete").click(function() {
+            var id = $(this).data("id");
+            $("#deleteModal").modal("hide");
+
+            $.ajax({
+                url: "functions/delete_management_acc.php",
+                type: "POST",
+                data: { id: id },
+                success: function(response) {
+                    $("#successDeleteModal").modal("show");
+                },
+                error: function(xhr, status, error) {
+                    alert("An error occurred: " + error);
                 }
             });
         });
 
-        // ============ EDIT SCRIPT (Populate Edit Modal) ==============
-        $(document).ready(function() {
-            $('.editBtn').click(function() {
-                var id = $(this).data('id');
-                var name = $(this).data('name');
-                var role = $(this).data('role');
-                var department = $(this).data('department');
-                var email = $(this).data('email');
-                var employeenumber = $(this).data('employeenumber');
-
-                $('#editID').val(id);
-                $('#editStaffName').val(name);
-                $('#editRole').val(role);
-                $('#editDepartment').val(department);
-                $('#editEmail').val(email);
-                $('#editEmployeeNumber').val(employeenumber)
-            });
-
-        // ============ DELETE SCRIPT =============
-            // Open Delete Modal
-            $(".deleteBtn").click(function() {
-                var id = $(this).data("id");
-                $("#confirmDelete").data("id", id);
-            });
-
-            // Confirm and Process Deletion
-            $("#confirmDelete").click(function() {
-                var id = $(this).data("id");
-
-                // Hide delete modal
-                $("#deleteModal").modal("hide");
-
-                $.ajax({
-                    url: "functions/delete_management_acc.php", // Delete function script
-                    type: "POST",
-                    data: {
-                        id: id
-                    },
-                    success: function(response) {
-                        // Show success modal
-                        $("#successDeleteModal").modal("show");
-                    },
-                    error: function(xhr, status, error) {
-                        alert("An error occurred: " + error);
-                    },
-                });
-            });
-
-            // Reload page only when clicking "OK" button
-            $("#successDeleteModal").on("hidden.bs.modal", function() {
-                location.reload();
-            });
-
-            $("#successDeleteModal .btn-primary").click(function() {
-                $("#successDeleteModal").modal("hide"); // Close modal
-            });
+        // Reload page after success delete modal closes or OK clicked
+        $("#successDeleteModal").on("hidden.bs.modal", function() {
+            location.reload();
         });
-    </script>
-
-    <!--Add Modal AJAX-->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $("#addForm").submit(function(event) {
-                event.preventDefault(); // Prevent page reload
-
-                var formData = $(this).serialize(); // Get form data
-
-                $.ajax({
-                    url: "functions/add_management_acc.php",
-                    type: "POST",
-                    data: formData,
-                    dataType: "json",
-                    beforeSend: function() {
-                        $("#addMessage").html('<div class="alert alert-info">Processing...</div>');
-                    },
-                    success: function(response) {
-                        if (response.status === "success") {
-                            $("#addMessage").html('<div class="alert alert-success">' + response.message + "</div>");
-                            setTimeout(function() {
-                                $("#addModal").modal("hide"); // Hide modal
-                                location.reload(); // Reload page
-                            }, 1500);
-                        } else {
-                            $("#addMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
-                        }
-                    },
-                    error: function() {
-                        $("#addMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
-                    }
-                });
-            });
+        $("#successDeleteModal .btn-primary").click(function() {
+            $("#successDeleteModal").modal("hide");
         });
-    </script>
-
-    <script>
-        $(document).ready(function() {
-            $("#saveEditBtn").click(function() {
-                var formData = $("#editForm").serialize(); // Get all form data
-
-                $.ajax({
-                    type: "POST",
-                    url: "functions/edit_management_acc.php", // PHP file for processing
-                    data: formData,
-                    dataType: "json",
-                    beforeSend: function() {
-                        $("#editMessage").html('<div class="alert alert-info">Processing...</div>');
-                    },
-                    success: function(response) {
-                        if (response.status === "success") {
-                            $("#editMessage").html('<div class="alert alert-success">' + response.message + "</div>");
-                            setTimeout(function() {
-                                $("#editModal").modal("hide"); // Hide modal
-                                location.reload(); // Reload page
-                            }, 1500);
-                        } else {
-                            $("#editMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
-                        }
-                    },
-                    error: function() {
-                        $("#editMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
-                    }
-                });
-            });
-        });
-    </script>
-
-</body>
-
-</html>
+    });
+</script>

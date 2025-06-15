@@ -10,6 +10,14 @@ if (isset($_GET['dept'])) {
 
 $query = "select * from companylist where dept='{$department}'";
 $result = mysqli_query($connect, $query);
+
+$departmentQuery = "SELECT * FROM department_list";
+$departmentResult = mysqli_query($connect, $departmentQuery);
+
+$departments = [];
+while ($row = mysqli_fetch_assoc($departmentResult)) {
+    $departments[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -165,13 +173,12 @@ $result = mysqli_query($connect, $query);
                                 <div class="col-md-10">
                                     <label for="dept">Department:</label>
                                     <select name="dept" class="form-control my-2">
-                                        <option hidden disable value="select ">Select</option>
-                                        <option value="CBA">CBA</option>
-                                        <option value="CAS">CAS</option>
-                                        <option value="CTE">CTE</option>
-                                        <option value="CCJ">CCJ</option>
-                                        <option value="CITCS">CITCS</option>
-                                        <option value="COM">COM</option>
+                                        <?php foreach ($departments as $row): ?>
+                                            <option value="<?= htmlspecialchars($row['department']) ?>">
+                                                <?= htmlspecialchars($row['department']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+
                                     </select>
                                 </div>
                             </div>

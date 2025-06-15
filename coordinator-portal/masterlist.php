@@ -3,7 +3,7 @@ session_start();
 include_once("../includes/connection.php");
 $query = "select * from listadviser";
 $result = mysqli_query($connect, $query);
-$SYquery = "Select * from school_year";
+$SYquery = "Select * from academic_year";
 $SYresult = mysqli_query($connect, $SYquery);
 $department = $_SESSION['department'];
 ?>
@@ -81,11 +81,15 @@ $department = $_SESSION['department'];
                                                         while ($rowSec = $resultSec->fetch_assoc()) {
                                                     ?>
 
-                                                        <li>
-                                                            <a class="dropdown-item" onclick="showSections('<?php echo $rowSec['department']?>', '<?php echo $rowSec['course'];?>');
-                                                            updateButtonCourse('<?php echo $rowSec['course'];?>')" data-course="<?php echo $rowSec['course'];?>"><?php echo $rowSec['course'];?>
-                                                            </a>
-                                                        </li>
+<li>
+  <a class="dropdown-item" 
+     onclick="showSections('<?php echo $rowSec['department']?>', '<?php echo $rowSec['course'];?>'); 
+              updateButtonCourse('<?php echo $rowSec['course'];?>');
+              reloadStudents();"
+     data-course="<?php echo $rowSec['course'];?>">
+    <?php echo $rowSec['course'];?>
+  </a>
+</li>
 
                                                     <?php 
                                                     } 
@@ -250,104 +254,92 @@ $department = $_SESSION['department'];
             crossorigin="anonymous"></script>
     <script src="../assets/js/sidebarscript.js"></script>
 
-    <script> 
-
-        function updateButtonCourse(newText) {
-            console.log("Updating course button text to:", newText); // Debugging
-            var courseButton = document.getElementById('dropdowncourse');
-            if (courseButton) {
-                courseButton.innerHTML = newText; // Use innerHTML instead of innerText
-            } else {
-                console.error("Course button not found");
-            }
+<script> 
+    function updateButtonCourse(newText) {
+        console.log("Updating course button text to:", newText); // Debugging
+        var courseButton = document.getElementById('dropdowncourse');
+        if (courseButton) {
+            courseButton.innerHTML = newText; // Use innerHTML instead of innerText
+        } else {
+            console.error("Course button not found");
         }
+    }
 
-        function updateButtonSection(newText) {
-            document.getElementById('dropdownsection').innerText = newText;
+    function updateButtonSection(newText) {
+        var sectionButton = document.getElementById('dropdownsection');
+        if(sectionButton){
+            sectionButton.innerHTML = newText;
         }
+    }
 
-        function showSections(department, course) {
-            $.ajax({
-                url: 'functions/get_sections.php',
-                type: 'GET',
-                data: { 
-                    department: department,
-                    course: course 
-                },
-                success: function(data) {
+    function showSections(department, course) {
+        $.ajax({
+            url: 'functions/get_sections.php',
+            type: 'GET',
+            data: { 
+                department: department,
+                course: course 
+            },
+            success: function(data) {
                 document.querySelector('.section-list').innerHTML = data;
-                }
-            });
-        }
-
-        function showStudents(department, course, section, schoolYear) {
-            $.ajax({
-                url: 'functions/get_students.php',
-                type: 'GET',
-                data: {
-                    department: department,
-                    course: course,
-                    section: section,
-                    schoolYear: schoolYear,
-                },
-                success: function(data) {
-                    document.querySelector('.student-list').innerHTML = data;
-                }
-            });
-        }
-
-        $(document).ready(function() {
-            $('#dataTable').DataTable({
-                "lengthMenu": [[10,  25,  50, -1], [10,  25,  50, "All"]], 
-                "searching": false, 
-            });
+            }
         });
+    }
 
-    </script>
-
-    <script>
-
-        function filterTableByStatus() {
-            var status = document.getElementById('statusDropdown').value; // Get the selected status
-            var table = document.querySelector('.table'); // Get the table
-            var rows = table.getElementsByTagName('tr'); // Get all table rows
-
-            for (var i = 0; i < rows.length; i++) {
-                var statusCell = rows[i].getElementsByTagName('td')[3]; // Assuming the status is in the 4th column
-                if (statusCell) {
-                    var txtValue = statusCell.textContent || statusCell.innerText;
-                    if (txtValue.indexOf(status) > -1) {
-                        rows[i].style.display = ""; // Show the row if the status matches
-                    } else {
-                        rows[i].style.display = "none"; // Hide the row if the status doesn't match
-                    }
-                }
+    function showStudents(department, course, section, schoolYear, status) {
+        $.ajax({
+            url: 'functions/get_students.php',
+            type: 'GET',
+            data: {
+                department: department,
+                course: course,
+                section: section,
+                schoolYear: schoolYear,
+                status: status
+            },
+            success: function(data) {
+                document.querySelector('.student-list').innerHTML = data;
             }
-        }
+        });
+    }
 
-        document.getElementById('statusDropdown').addEventListener('change', filterTableByStatus);
+    // Helper to get current filter values
+    function getCurrentFilters() {
+        const department = "<?php echo $_SESSION['department']; ?>";
+        const course = document.getElementById('dropdowncourse').innerText.trim();
+        const section = document.getElementById('dropdownsection').innerText.trim();
+        const schoolYear = document.getElementById('schoolYearDropdown').value;
+        const status = document.getElementById('statusDropdown').value;
+        return { department, course, section, schoolYear, status };
+    }
 
-        function filterTableBySY() {
-            var schoolYear = document.getElementById('schoolYearDropdown').value; // Get the selected status
-            var table = document.querySelector('.table'); // Get the table
-            var rows = table.getElementsByTagName('tr'); // Get all table rows
+    // Reload students based on current filters
+    function reloadStudents() {
+        const filters = getCurrentFilters();
 
-            for (var i = 0; i < rows.length; i++) {
-                var schoolYearCell = rows[i].getElementsByTagName('td')[4]; // Assuming the status is in the 4th column
-                if (schoolYearCell) {
-                    var txtValue = schoolYearCell.textContent || schoolYearCell.innerText;
-                    if (txtValue.indexOf(schoolYear) > -1) {
-                        rows[i].style.display = ""; // Show the row if the status matches
-                    } else {
-                        rows[i].style.display = "none"; // Hide the row if the status doesn't match
-                    }
-                }
-            }
-        }
+        // If course or section is "Select Course"/"Select Section", treat as empty
+        const courseVal = (filters.course === "Select Course") ? "" : filters.course;
+        const sectionVal = (filters.section === "Select Section") ? "" : filters.section;
 
-        document.getElementById('schoolYearDropdown').addEventListener('change', filterTableBySY);
-        
-    </script>
+        showStudents(filters.department, courseVal, sectionVal, filters.schoolYear, filters.status);
+    }
+
+    // Attach event listeners to dropdowns to reload students dynamically
+    document.addEventListener('DOMContentLoaded', function() {
+        // School Year change
+        document.getElementById('schoolYearDropdown').addEventListener('change', reloadStudents);
+
+        // Status change
+        document.getElementById('statusDropdown').addEventListener('change', reloadStudents);
+
+        // Since course and section dropdowns are built dynamically, 
+        // ensure you call reloadStudents() after you update those buttons
+        // For example, inside your existing onclick handlers, call reloadStudents();
+
+        // Optionally, you could also reload students initially (e.g., page load)
+        reloadStudents();
+    });
+</script>
 
 <!-- Loading Modal -->
 <div id="loadingModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; text-align: center;">

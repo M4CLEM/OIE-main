@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = "CIPA";
 
     // Prepare insert query for CIPA
-    $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO staff_list (employeeNumber, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
     $stmt = $connect->prepare($sql);
     $stmt->bind_param("sssss", $employeeNumber, $name, $email, $password, $role);
 

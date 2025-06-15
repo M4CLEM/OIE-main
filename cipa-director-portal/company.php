@@ -9,6 +9,12 @@ $activeSchoolYear = $_SESSION['schoolYear'];
 
 $departmentQuery = "SELECT * FROM department_list";
 $departmentResult = mysqli_query($connect, $departmentQuery);
+
+$departments = [];
+while ($row = mysqli_fetch_assoc($departmentResult)) {
+    $departments[] = $row;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -182,11 +188,12 @@ $departmentResult = mysqli_query($connect, $departmentQuery);
                                 <label for="dept">Department:</label>
                                 <select name="dept" class="form-control my-2">
                                     <option hidden disabled selected value="">Select</option>
-                                    <?php while ($row = mysqli_fetch_assoc($departmentResult)): ?>
+                                    <?php foreach ($departments as $row): ?>
                                         <option value="<?= htmlspecialchars($row['department']) ?>">
                                             <?= htmlspecialchars($row['department']) ?>
                                         </option>
-                                    <?php endwhile; ?>
+                                    <?php endforeach; ?>
+
                                 </select>
                             </div>
                         </div>

@@ -64,32 +64,44 @@
         // Use placeholders for prepared statement IN clause
         $placeholders = implode(',', array_fill(0, count($allowedJobRoles), '?'));
 
-        $query = "
-            SELECT a.id AS applicationID, a.studentID, a.jobrole, a.companyCode, a.applicationDate,
-                s.firstName, s.lastName, s.course, s.section, d.document, d.file_name, d.file_link
-            FROM applications a
-            JOIN student_masterlist s ON a.studentID = s.studentID
-            JOIN documents d ON a.studentID = d.student_ID
-            WHERE a.companyName = ? 
-                AND a.semester = ? 
-                AND a.schoolYear = ? 
-                AND a.status = ?
-                AND s.semester = ? 
-                AND s.schoolYear = ?
-                AND d.semester = ?
-                AND d.schoolYear = ?
-                AND d.document = 'Resume'
-                AND a.jobrole IN ($placeholders)
-            ";
+$query = "
+    SELECT a.id AS applicationID, a.studentID, a.jobrole, a.companyCode, a.applicationDate,
+           s.firstName, s.lastName, s.course, s.section, d.file_name, d.file_link
+    FROM applications a
+    JOIN student_masterlist s ON a.studentID = s.studentID
+    JOIN (
+        SELECT d1.*
+        FROM documents d1
+        INNER JOIN (
+            SELECT student_ID, MAX(id) AS max_id
+            FROM documents
+            WHERE document = 'Resume'
+              AND semester = ?
+              AND schoolYear = ?
+            GROUP BY student_ID
+        ) latest ON d1.id = latest.max_id
+    ) d ON a.studentID = d.student_ID
+    WHERE a.companyName = ? 
+        AND a.semester = ? 
+        AND a.schoolYear = ? 
+        AND a.status = ?
+        AND s.semester = ? 
+        AND s.schoolYear = ?
+        AND a.jobrole IN ($placeholders)
+";
+
 
         $stmt = $connect->prepare($query);
 
         // Bind parameters: first the fixed ones, then the jobroles dynamically
         $types = str_repeat('s', 8 + count($allowedJobRoles)); // 8 fixed string params + jobroles
-        $params = array_merge(
-            [$companyName, $activeSemester, $activeSchoolYear, $applicationStat, $activeSemester, $activeSchoolYear, $activeSemester, $activeSchoolYear],
-            array_keys($allowedJobRoles)
-        );
+$params = array_merge(
+    [$activeSemester, $activeSchoolYear,  // For subquery
+     $companyName, $activeSemester, $activeSchoolYear, $applicationStat, 
+     $activeSemester, $activeSchoolYear], // For main query
+    array_keys($allowedJobRoles)
+);
+$types = str_repeat('s', count($params));
 
         // Use a reference array for bind_param
         $refs = [];
