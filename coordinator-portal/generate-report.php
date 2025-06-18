@@ -1,49 +1,53 @@
 <?php
+    session_start();
+    include("../includes/connection.php");
 
-session_start();
-include("../includes/connection.php");
-
-$department = $_SESSION['department'];
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
-
-$course = $_POST['course'] ?? 'All'; 
-$sectionFilter = $_POST['section'] ?? 'All';
-
-$query = "SELECT * FROM studentinfo WHERE department = ? AND semester = ? AND school_year = ?";
-$params = [$department, $activeSemester, $activeSchoolYear];
-$types = "sss";
-
-// Add course filter if specified
-if ($course !== 'All') {
-    $query .= " AND course = ?";
-    $params[] = $course;
-    $types .= "s";
-}
-
-// Add section filter if specified
-if ($sectionFilter !== 'All') {
-    $query .= " AND section = ?";
-    $params[] = $sectionFilter;
-    $types .= "s";
-}
-
-$query .= " ORDER BY course ASC, section ASC, lastName ASC";
-
-// Prepare and execute
-$stmt = $connect->prepare($query);
-$stmt->bind_param($types, ...$params);
-
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    if ($result->num_rows > 0) {
-        // display table rows
-    } else {
-        echo "No results found.";
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
     }
-} else {
-    echo "SQL Error: " . $stmt->error;
-}
+
+    $department = $_SESSION['department'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+
+    $course = $_POST['course'] ?? 'All'; 
+    $sectionFilter = $_POST['section'] ?? 'All';
+
+    $query = "SELECT * FROM studentinfo WHERE department = ? AND semester = ? AND school_year = ?";
+    $params = [$department, $activeSemester, $activeSchoolYear];
+    $types = "sss";
+
+    // Add course filter if specified
+    if ($course !== 'All') {
+        $query .= " AND course = ?";
+        $params[] = $course;
+        $types .= "s";
+    }
+
+    // Add section filter if specified
+    if ($sectionFilter !== 'All') {
+        $query .= " AND section = ?";
+        $params[] = $sectionFilter;
+        $types .= "s";
+    }
+
+    $query .= " ORDER BY course ASC, section ASC, lastName ASC";
+
+    // Prepare and execute
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param($types, ...$params);
+
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            // display table rows
+        } else {
+            echo "No results found.";
+        }
+    } else {
+        echo "SQL Error: " . $stmt->error;
+    }
 ?>
 
 <!DOCTYPE html>

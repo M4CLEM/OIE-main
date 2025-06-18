@@ -102,8 +102,11 @@ if (isset($_POST['login'])) {
         // Handle empty fields
     } else {
 
-        $query = "SELECT * FROM users WHERE username='$uname' AND password='$pass'";
-        $res = mysqli_query($connect, $query);
+        $query = "SELECT * FROM users WHERE username = ? AND password = ?";
+        $stmt = $connect->prepare($query);
+        $stmt->bind_param("ss", $uname, $pass);
+        $stmt->execute();
+        $res = $stmt->get_result();
 
         if (mysqli_num_rows($res) == 1) {
             $row = mysqli_fetch_assoc($res);

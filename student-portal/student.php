@@ -1,11 +1,23 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
-$query = "select * from users";
-$result = mysqli_query($connect, $query);
+
+if (!isset($_SESSION['student'])) {
+    header("Location: ../logout.php");
+    exit();
+}
+
+// Use a prepared statement for consistency and security
+$query = "SELECT * FROM users";
+$stmt = $connect->prepare($query);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $currentPage = basename($_SERVER['PHP_SELF']);
+
+$stmt->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -33,8 +45,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <?php
                 
                 $email = $_SESSION['student'];
-                $query = "SELECT * FROM studentinfo WHERE email ='$email'";
-                $result = mysqli_query($connect, $query);
+
+                $query = "SELECT * FROM studentinfo WHERE email = ?";
+                $stmt = $connect->prepare($query);
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $result = $stmt->get_result();
                 while ($rows = mysqli_fetch_array($result)) {
 
                     $studentID = $rows['studentID'];

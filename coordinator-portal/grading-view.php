@@ -1,83 +1,83 @@
 <?php
-// Start a PHP session to access session variables
-session_start();
+    session_start();
+    include_once("../includes/connection.php");
 
-// Include the database connection file from the parent directory
-include_once("../includes/connection.php");
-
-// Get the department value stored in the session
-$department = $_SESSION['department'];
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
-
-// Query the database to get criteria lists for the current department
-// Includes company and job role information from the view
-$companyResult = mysqli_query($connect, "SELECT * FROM criteria_list_view WHERE department = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'");
-$adviserResult = mysqli_query($connect, "SELECT * FROM adviser_criteria WHERE department = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'");
-
-
-// Query preset criteria templates from the database
-$criteriaPresetsQuery = mysqli_query($connect, "SELECT * FROM criteria_presets");
-$criteriaPresets = [];
-// Convert preset results into an array of [criteria, description] pairs
-while ($row = mysqli_fetch_assoc($criteriaPresetsQuery)) {
-    $criteriaPresets[] = [
-        'criteria' => $row['criteria'],
-        'description' => $row['description']
-    ];
-}
-
-// Initialize an array to group criteria by their ID
-$companyCriteriaGrouped = [];
-// Process each row from the company criteria results
-while ($row = mysqli_fetch_assoc($companyResult)) {
-    // Decode the JSON-formatted criteria string into an array
-    $criteriaData = json_decode($row['criteria'], true);
-    
-    // Create a new group entry if it doesn't exist
-    if (!isset($companyCriteriaGrouped[$row['id']])) {
-        $companyCriteriaGrouped[$row['id']] = [
-            'company' => $row['company'],       // Store company name
-            'jobrole' => $row['jobrole'],       // Store job role
-            'companyCriteria' => []             // Initialize company criteria array
-        ];
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
     }
-    
-    // Add each criteria item to the group's company criteria array
-    foreach ($criteriaData as $companyCriteriaItem) {
-        $companyCriteriaGrouped[$row['id']]['companyCriteria'][] = [
-            'companyCriteria' => $companyCriteriaItem['companyCriteria'],
-            'companyPercentage' => $companyCriteriaItem['companyPercentage'],
-            'companyDescription' => $companyCriteriaItem['companyDescription']
-        ];
-    }
-}
 
-$adviserCriteriaGrouped = [];
+    $department = $_SESSION['department'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
 
-// Process each row from the adviser criteria results
-while ($row = mysqli_fetch_assoc($adviserResult)) {
-    $criteriaData = json_decode($row['criteria'], true);
+    // Secure: Fetch company criteria
+    $companyStmt = $connect->prepare("SELECT * FROM criteria_list_view WHERE department = ? AND semester = ? AND schoolYear = ?");
+    $companyStmt->bind_param("sss", $department, $activeSemester, $activeSchoolYear);
+    $companyStmt->execute();
+    $companyResult = $companyStmt->get_result();
 
-    // Create a new group entry if it doesn't exist
-    if (!isset($adviserCriteriaGrouped[$row['id']])) {
-        $adviserCriteriaGrouped[$row['id']] = [
-            'company' => $row['company'],
-            'jobrole' => $row['jobrole'],
-            'adviserCriteria' => []             // Initialize adviser criteria array
+    // Secure: Fetch adviser criteria
+    $adviserStmt = $connect->prepare("SELECT * FROM adviser_criteria WHERE department = ? AND semester = ? AND schoolYear = ?");
+    $adviserStmt->bind_param("sss", $department, $activeSemester, $activeSchoolYear);
+    $adviserStmt->execute();
+    $adviserResult = $adviserStmt->get_result();
+
+    // Query preset criteria templates (no user input, safe)
+    $criteriaPresetsQuery = mysqli_query($connect, "SELECT * FROM criteria_presets");
+    $criteriaPresets = [];
+    while ($row = mysqli_fetch_assoc($criteriaPresetsQuery)) {
+        $criteriaPresets[] = [
+            'criteria' => $row['criteria'],
+            'description' => $row['description']
         ];
     }
 
-    // Add each criteria item to the adviser's criteria array
-    foreach ($criteriaData as $adviserCriteriaItem) {
-        $adviserCriteriaGrouped[$row['id']]['adviserCriteria'][] = [
-            'adviserCriteria' => $adviserCriteriaItem['adviserCriteria'],
-            'adviserPercentage' => $adviserCriteriaItem['adviserPercentage'],
-            'adviserDescription' => $adviserCriteriaItem['adviserDescription']
-        ];
+    // Group company criteria
+    $companyCriteriaGrouped = [];
+    while ($row = mysqli_fetch_assoc($companyResult)) {
+        $criteriaData = json_decode($row['criteria'], true);
+
+        if (!isset($companyCriteriaGrouped[$row['id']])) {
+            $companyCriteriaGrouped[$row['id']] = [
+                'company' => $row['company'],
+                'jobrole' => $row['jobrole'],
+                'companyCriteria' => []
+            ];
+        }
+
+        foreach ($criteriaData as $item) {
+            $companyCriteriaGrouped[$row['id']]['companyCriteria'][] = [
+                'companyCriteria' => $item['companyCriteria'],
+                'companyPercentage' => $item['companyPercentage'],
+                'companyDescription' => $item['companyDescription']
+            ];
+        }
     }
-}
+
+    // Group adviser criteria
+    $adviserCriteriaGrouped = [];
+    while ($row = mysqli_fetch_assoc($adviserResult)) {
+        $criteriaData = json_decode($row['criteria'], true);
+
+        if (!isset($adviserCriteriaGrouped[$row['id']])) {
+            $adviserCriteriaGrouped[$row['id']] = [
+                'company' => $row['company'],
+                'jobrole' => $row['jobrole'],
+                'adviserCriteria' => []
+            ];
+        }
+
+        foreach ($criteriaData as $item) {
+            $adviserCriteriaGrouped[$row['id']]['adviserCriteria'][] = [
+                'adviserCriteria' => $item['adviserCriteria'],
+                'adviserPercentage' => $item['adviserPercentage'],
+                'adviserDescription' => $item['adviserDescription']
+            ];
+        }
+    }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

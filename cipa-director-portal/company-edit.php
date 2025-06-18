@@ -2,15 +2,28 @@
     session_start();
     include_once("../includes/connection.php");
 
-    if (isset($_GET['number'])) {
-        $compNum = $_GET['number'];
-    } else {
-        echo "ERROR!";
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
     }
 
-    $query = "SELECT * FROM companylist WHERE No={$compNum}";
-    $result = mysqli_query($connect, $query) or die(mysqli_error($connect));
+    if (isset($_GET['number'])) {
+        $compNum = intval($_GET['number']); // ✅ sanitize: ensure it's an integer
+    } else {
+        echo "ERROR!";
+        exit(); // Make sure execution stops
+    }
+
+    // ✅ Use prepared statement
+    $stmt = $connect->prepare("SELECT * FROM companylist WHERE No = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $stmt->bind_param("i", $compNum); // "i" for integer
+    $stmt->execute();
+    $result = $stmt->get_result(); // 🔄 $result now holds the same content as original
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

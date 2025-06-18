@@ -1,15 +1,30 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-$department = $_SESSION['department'];
-$coordinatorRole = $_SESSION['coordinator'];
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$result = mysqli_query($connect, "SELECT * FROM grading_rubics WHERE department = '$department'");
-if (!$result) {
-    die("Query Failed: " . mysqli_error($connect));
-}
+    $department = $_SESSION['department'];
+    $coordinatorRole = $_SESSION['coordinator'];
+
+    // ✅ Secure query using prepared statement
+    $stmt = $connect->prepare("SELECT * FROM grading_rubics WHERE department = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+
+    $stmt->bind_param("s", $department);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        die("Query execution failed: " . $connect->error);
+    }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

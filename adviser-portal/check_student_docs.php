@@ -1,12 +1,24 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$email = $_SESSION['adviser'];
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
-$query = "SELECT * FROM listadviser WHERE email ='$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
-$result = mysqli_query($connect, $query);
+    session_start();
+    include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['adviser'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    $email = $_SESSION['adviser'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+
+    // Use a prepared statement for security
+    $query = "SELECT * FROM listadviser WHERE email = ? AND semester = ? AND schoolYear = ?";
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param("sss", $email, $activeSemester, $activeSchoolYear);
+    $stmt->execute();
+    $result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

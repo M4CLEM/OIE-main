@@ -1,21 +1,37 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$query = "select * from companylist";
-$result = mysqli_query($connect, $query);
+    session_start();
+    include_once("../includes/connection.php");
 
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$departmentQuery = "SELECT * FROM department_list";
-$departmentResult = mysqli_query($connect, $departmentQuery);
+    // Fetch companylist (keep $result to preserve existing code)
+    $stmt = $connect->prepare("SELECT * FROM companylist");
+    if (!$stmt) {
+        die("Company Query Preparation Failed: " . $connect->error);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result(); // 🔄 Use $result to match original usage
 
-$departments = [];
-while ($row = mysqli_fetch_assoc($departmentResult)) {
-    $departments[] = $row;
-}
+    // Fetch department_list
+    $departmentStmt = $connect->prepare("SELECT * FROM department_list");
+    if (!$departmentStmt) {
+        die("Department Query Preparation Failed: " . $connect->error);
+    }
+    $departmentStmt->execute();
+    $departmentResult = $departmentStmt->get_result();
 
+    $departments = [];
+    while ($row = mysqli_fetch_assoc($departmentResult)) {
+        $departments[] = $row;
+    }
+
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

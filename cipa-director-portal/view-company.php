@@ -2,16 +2,29 @@
     session_start();
     include_once("../includes/connection.php");
 
-    $companyNum = $_GET['number'];
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    // Sanitize and validate inputs
+    $companyNum = isset($_GET['number']) ? intval($_GET['number']) : 0; // Use intval to ensure it's a number
     $department = isset($_GET['dept']) ? $_GET['dept'] : '';
 
-    $query="select * from companylist where No={$companyNum}";
-    $result=mysqli_query($connect,$query);
-    $rows=mysqli_fetch_assoc($result);
+    // ✅ Secure query using prepared statement
+    $stmt = $connect->prepare("SELECT * FROM companylist WHERE No = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $stmt->bind_param("i", $companyNum); // "i" for integer
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $rows = mysqli_fetch_assoc($result); // Works same as before
 
-    $targetPage = $department !== '' ? 'company-filter.php?dept=' . $department : 'company.php';
-
+    // Determine redirect/target page
+    $targetPage = $department !== '' ? 'company-filter.php?dept=' . urlencode($department) : 'company.php';
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

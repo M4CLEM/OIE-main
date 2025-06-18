@@ -1,8 +1,18 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$query = "SELECT * FROM users WHERE role ='IndustryPartner'";
-$result = mysqli_query($connect, $query);
+    session_start();
+    include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    $role = "IndustryPartner";
+    $query = "SELECT * FROM users WHERE role = ?";
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param("s", $role);
+    $stmt->execute();
+    $result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>

@@ -1,29 +1,46 @@
 <?php
-// Start the session to use session variables
-session_start();
+    // Start the session to use session variables
+    session_start();
+    // Include the database connection
+    include_once("../includes/connection.php");
 
-// Include the database connection
-include_once("../includes/connection.php");
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+    $department = $_SESSION['department'];
+    $coordinatorRole = $_SESSION['coordinator'];
 
-// Retrieve the program from the session
-$department = $_SESSION['department'];
-$coordinatorRole = $_SESSION['coordinator']; // Get coordinator role
+    // ✅ Secure query for fetching company names and job roles
+    $companyStmt = $connect->prepare("SELECT companyName, jobrole FROM companylist WHERE dept = ? AND semester = ? AND schoolYear = ?");
+    if (!$companyStmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $companyStmt->bind_param("sss", $department, $activeSemester, $activeSchoolYear);
+    $companyStmt->execute();
+    $companyQuery = $companyStmt->get_result();
 
-// Fetch company names and job roles filtered by the department from the companylist database
-$companyQuery = mysqli_query($connect, "SELECT companyName, jobrole FROM companylist WHERE dept = '$department' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'");
-if (!$companyQuery) {
-    die("Query Failed: " . mysqli_error($connect));
-}
+    if (!$companyQuery) {
+        die("Query Failed: " . $connect->error);
+    }
 
-// Fetch criteria list based on the program
-$result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
-if (!$result) {
-    die("Query Failed: " . mysqli_error($connect));
-}
+    // ✅ Secure query for fetching criteria list
+    $criteriaStmt = $connect->prepare("SELECT * FROM criteria_presets WHERE department = ?");
+    if (!$criteriaStmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $criteriaStmt->bind_param("s", $department);
+    $criteriaStmt->execute();
+    $result = $criteriaStmt->get_result();
+
+    if (!$result) {
+        die("Query Failed: " . $connect->error);
+    }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

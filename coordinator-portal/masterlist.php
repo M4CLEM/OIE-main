@@ -1,12 +1,31 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$query = "select * from listadviser";
-$result = mysqli_query($connect, $query);
-$SYquery = "Select * from academic_year";
-$SYresult = mysqli_query($connect, $SYquery);
-$department = $_SESSION['department'];
+    session_start();
+    include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    $department = $_SESSION['department'];
+
+    // ✅ Secure query for listadviser (no filtering, but still use prepare for consistency)
+    $stmt = $connect->prepare("SELECT * FROM listadviser");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // ✅ Secure query for academic_year
+    $stmtSY = $connect->prepare("SELECT * FROM academic_year");
+    if (!$stmtSY) {
+        die("SY Query preparation failed: " . $connect->error);
+    }
+    $stmtSY->execute();
+    $SYresult = $stmtSY->get_result();
 ?>
+
     
 <!DOCTYPE html>
 <html lang="en">
@@ -81,15 +100,15 @@ $department = $_SESSION['department'];
                                                         while ($rowSec = $resultSec->fetch_assoc()) {
                                                     ?>
 
-<li>
-  <a class="dropdown-item" 
-     onclick="showSections('<?php echo $rowSec['department']?>', '<?php echo $rowSec['course'];?>'); 
-              updateButtonCourse('<?php echo $rowSec['course'];?>');
-              reloadStudents();"
-     data-course="<?php echo $rowSec['course'];?>">
-    <?php echo $rowSec['course'];?>
-  </a>
-</li>
+                                                    <li>
+                                                        <a class="dropdown-item" 
+                                                            onclick="showSections('<?php echo $rowSec['department']?>', '<?php echo $rowSec['course'];?>'); 
+                                                            updateButtonCourse('<?php echo $rowSec['course'];?>');
+                                                            reloadStudents();"
+                                                        data-course="<?php echo $rowSec['course'];?>">
+                                                            <?php echo $rowSec['course'];?>
+                                                        </a>
+                                                    </li>
 
                                                     <?php 
                                                     } 

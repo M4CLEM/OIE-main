@@ -2,6 +2,11 @@
     session_start();
     include_once("../includes/connection.php");
 
+    if (!isset($_SESSION['IndustryPartner'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     $companyName = $_SESSION['companyName'];
     $activeSemester = $_SESSION['semester'];
     $activeSchoolYear = $_SESSION['schoolYear'];

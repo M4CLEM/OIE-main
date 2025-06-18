@@ -1,13 +1,27 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-$result = mysqli_query($connect, "SELECT * FROM staff_list");
-if (!$result) {
-    die("Query Failed: " . mysqli_error($connect));
-}
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
+    // ✅ Use prepared statement for safety and consistency
+    $stmt = $connect->prepare("SELECT * FROM staff_list");
+
+    if (!$stmt) {
+        die("Query Preparation Failed: " . $connect->error);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result(); // 🔄 Same as original $result
+
+    if (!$result) {
+        die("Query Failed: " . $connect->error);
+    }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

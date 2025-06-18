@@ -2,12 +2,19 @@
     session_start();
     include_once("../includes/connection.php");
 
+    if (!isset($_SESSION['student'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     $email = $_SESSION['student'];
     $semester = $_SESSION['semester'];
     $schoolYear = $_SESSION['schoolYear'];
 
-    $query="select * from companylist";
-    $result=mysqli_query($connect,$query);
+    $query = "SELECT * FROM companylist";
+    $stmt = $connect->prepare($query);
+    $stmt->execute();
+    $result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>

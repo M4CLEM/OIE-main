@@ -2,6 +2,11 @@
     session_start();
     include("../includes/connection.php");
 
+    if (!isset($_SESSION['student'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     // Get the student's email from the session
     $email = $_SESSION['student'];
     $semester = $_SESSION['semester'];

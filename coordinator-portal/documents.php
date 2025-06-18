@@ -1,17 +1,38 @@
 <?php
-session_start();
-include("../includes/connection.php");
+    session_start();
+    include("../includes/connection.php");
 
-$department = $_SESSION['department'];
-$coordinatorRole = $_SESSION['coordinator'];
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$result = mysqli_query($connect, "SELECT * FROM documents_list WHERE department = '$department'");
-if (!$result) {
-    die("Query Failed: " . mysqli_error($connect));
-}
+    $department = $_SESSION['department'];
+    $coordinatorRole = $_SESSION['coordinator'];
 
-$documentType = mysqli_query($connect, "SELECT DISTINCT documentType FROM documents_list WHERE department = '$department'");
+    // ✅ Prepared statement for fetching documents
+    $stmt = $connect->prepare("SELECT * FROM documents_list WHERE department = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $stmt->bind_param("s", $department);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        die("Query failed: " . $connect->error);
+    }
+
+    // ✅ Prepared statement for fetching distinct document types
+    $typeStmt = $connect->prepare("SELECT DISTINCT documentType FROM documents_list WHERE department = ?");
+    if (!$typeStmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $typeStmt->bind_param("s", $department);
+    $typeStmt->execute();
+    $documentType = $typeStmt->get_result();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

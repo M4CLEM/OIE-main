@@ -1,16 +1,31 @@
 <?php
-session_start();
+    session_start();
 
-include("../includes/connection.php");
+    include("../includes/connection.php");
 
-$department = $_SESSION['department'];
-$coordinatorRole = $_SESSION['coordinator'];
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$result = mysqli_query($connect, "SELECT * FROM criteria_presets WHERE department = '$department'");
-if (!$result) {
-    die("Query Failed: " . mysqli_error($connect));
-}
+    $department = $_SESSION['department'];
+    $coordinatorRole = $_SESSION['coordinator'];
+
+    // ✅ Use prepared statement to prevent SQL injection
+    $stmt = $connect->prepare("SELECT * FROM criteria_presets WHERE department = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+
+    $stmt->bind_param("s", $department);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        die("Query Failed: " . $connect->error);
+    }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

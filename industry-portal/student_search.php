@@ -1,13 +1,22 @@
 <?php
-include_once("../includes/connection.php");
-session_start();
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
-$queryDept = "SELECT * FROM studentinfo WHERE status = 'Undeployed' AND semester = '$activeSemester' AND school_year = '$activeSchoolYear'";
-$stmtDept = $connect->prepare($queryDept);
-$stmtDept->execute();
-$result = mysqli_stmt_get_result($stmtDept);
+    include_once("../includes/connection.php");
+    session_start();
+
+    if (!isset($_SESSION['IndustryPartner'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+
+    $queryDept = "SELECT * FROM studentinfo WHERE status = 'Undeployed' AND semester = ? AND school_year = ?";
+    $stmtDept = $connect->prepare($queryDept);
+    $stmtDept->bind_param("ss", $activeSemester, $activeSchoolYear);
+    $stmtDept->execute();
+    $result = $stmtDept->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

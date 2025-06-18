@@ -1,6 +1,11 @@
 <?php
     session_start();
     include("../includes/connection.php");
+
+    if (!isset($_SESSION['IndustryPartner'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
     
     $trainerEmail = $_SESSION['trainerEmail'];
     $companyName = $_SESSION['companyName'];

@@ -1,44 +1,47 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-$semester = $_SESSION['semester'];
-$schoolYear = $_SESSION['schoolYear'];
+    if (!isset($_SESSION['adviser'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
-    // Explode the first (and only) string in dept_sec into an array
-    $sections = explode(',', $_SESSION['dept_sec'][0]);
+    $semester = $_SESSION['semester'];
+    $schoolYear = $_SESSION['schoolYear'];
 
-    // Build the SQL condition dynamically using FIND_IN_SET
-    $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND semester = ? AND school_year = ? AND ("
-        . implode(" OR ", array_fill(0, count($sections), "FIND_IN_SET(?, section)")) .
-        ") ORDER BY section ASC, lastName ASC";
+    if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
+        // Explode the first (and only) string in dept_sec into an array
+        $sections = explode(',', $_SESSION['dept_sec'][0]);
 
-    $stmt = $connect->prepare($query);
+        // Build the SQL condition dynamically using FIND_IN_SET
+        $query = "SELECT * FROM studentinfo WHERE department= ? AND course= ? AND semester = ? AND school_year = ? AND ("
+            . implode(" OR ", array_fill(0, count($sections), "FIND_IN_SET(?, section)")) .
+            ") ORDER BY section ASC, lastName ASC";
 
-    // Merge all the parameters
-    $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $semester, $schoolYear], $sections);
-    $types = str_repeat('s', count($params));
+        $stmt = $connect->prepare($query);
 
-    // Bind and execute
-    $stmt->bind_param($types, ...$params);
+        // Merge all the parameters
+        $params = array_merge([$_SESSION['dept_adv'], $_SESSION['dept_crs'], $semester, $schoolYear], $sections);
+        $types = str_repeat('s', count($params));
 
-    if ($stmt->execute()) {
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            // Fetch and process rows here
+        // Bind and execute
+        $stmt->bind_param($types, ...$params);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
+                // Fetch and process rows here
+            } else {
+                echo "No results found for the given criteria.";
+            }
         } else {
-            echo "No results found for the given criteria.";
+            echo "SQL Error: " . $stmt->error;
         }
     } else {
-        echo "SQL Error: " . $stmt->error;
+        echo "No sections found for the adviser.";
     }
-} else {
-    echo "No sections found for the adviser.";
-}
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -100,29 +103,29 @@ if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
                                     <?php
                                         $email = $_SESSION['adviser'];
 
-                                        // Fetch the comma-separated section string
-                                        $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$semester' AND schoolYear = '$schoolYear'";
-                                        $sectionsResult = mysqli_query($connect, $getsections);
+                                        // Use prepared statement to avoid SQL injection
+                                        $getsections = $connect->prepare("SELECT section FROM listadviser WHERE email = ? AND semester = ? AND schoolYear = ?");
+                                        $getsections->bind_param("sss", $email, $semester, $schoolYear);
+                                        $getsections->execute();
+                                        $sectionsResult = $getsections->get_result();
 
-                                        // Check if query was successful
                                         if ($sectionsResult) {
                                             echo '<select name="sections" id="sections" class="form-control form-control-sm">';
                                             echo '<option value="All Sections">All Sections</option>'; // Default option
 
-                                            // Loop through all matching rows
                                             while ($row = mysqli_fetch_assoc($sectionsResult)) {
                                                 $sectionString = $row['section'];
-                                                $individualSections = explode(',', $sectionString); // Split by comma
+                                                $individualSections = explode(',', $sectionString);
 
                                                 foreach ($individualSections as $section) {
-                                                    $trimmed = trim($section); // Optional: remove extra spaces
-                                                    echo '<option value="' . $trimmed . '">' . $trimmed . '</option>';
+                                                    $trimmed = trim($section);
+                                                    echo '<option value="' . htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8') . '</option>';
                                                 }
                                             }
 
                                             echo '</select>';
                                         } else {
-                                            echo "Error: " . mysqli_error($connect);
+                                            echo "Error: " . $getsections->error;
                                         }
                                     ?>
                                     </div>
@@ -148,6 +151,7 @@ if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
                                         <th scope="col">Section</th>
                                         <th scope="col">Status</th>
                                         <th scope="col">Grade</th>
+                                        <th scope="col">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -176,6 +180,7 @@ if (isset($_SESSION['dept_sec']) && count($_SESSION['dept_sec']) > 0) {
                                             }
 
                                             echo "<td> <p>{$totalGrade}</p></td>";
+                                            echo "<td><a class=\"btn btn-primary btn-sm mr-3\" href=\"student-edit.php?studentID={$row['studentID']}\">View</a></td>";
 
                                             echo "</tr>";
                                         }

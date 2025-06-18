@@ -1,142 +1,139 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
+    if (!isset($_SESSION['adviser'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-if (isset($_SESSION['dept_sec']) && !empty($_SESSION['dept_sec'])) {
-    // Handle case where dept_sec is a single string with comma-separated values
-    if (is_array($_SESSION['dept_sec'])) {
-        $sectionArray = [];
-        foreach ($_SESSION['dept_sec'] as $sec) {
-            $parts = explode(',', $sec); // Split strings like "4A,4B,4C"
-            foreach ($parts as $part) {
-                $sectionArray[] = trim($part);
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
+
+    // Handle section filtering
+    if (isset($_SESSION['dept_sec']) && !empty($_SESSION['dept_sec'])) {
+        if (is_array($_SESSION['dept_sec'])) {
+            $sectionArray = [];
+            foreach ($_SESSION['dept_sec'] as $sec) {
+                $parts = explode(',', $sec);
+                foreach ($parts as $part) {
+                    $sectionArray[] = trim($part);
+                }
             }
+        } else {
+            $sectionArray = array_map('trim', explode(',', $_SESSION['dept_sec']));
         }
-    } else {
-        $sectionArray = explode(',', $_SESSION['dept_sec']); // fallback, just in case
-        $sectionArray = array_map('trim', $sectionArray);
+
+        $conditions = [];
+        $params = [];
+        $types = '';
+
+        foreach ($sectionArray as $section) {
+            $conditions[] = "FIND_IN_SET(?, section)";
+            $params[] = $section;
+            $types .= 's';
+        }
+
+        $query = "SELECT * FROM company_info WHERE (" . implode(" OR ", $conditions) . ") AND semester = ? AND schoolYear = ?";
+        $params[] = $activeSemester;
+        $params[] = $activeSchoolYear;
+        $types .= 'ss';
+
+        $stmt = $connect->prepare($query);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
     }
 
-    // Build FIND_IN_SET conditions
-    $conditions = [];
-    foreach ($sectionArray as $section) {
-        $section = mysqli_real_escape_string($connect, $section);
-        $conditions[] = "FIND_IN_SET('$section', section)";
+    // Approve
+    if (isset($_POST['Approve'])) {
+        $companyCode = $_POST['companyCode'];
+        $studentEmail = $_POST['studentEmail'];
+        $trainerEmail = $_POST['trainerEmail'];
+
+        // Get studentID from studentinfo table
+        $stmt = $connect->prepare("SELECT studentID FROM studentinfo WHERE email = ?");
+        $stmt->bind_param("s", $studentEmail);
+        $stmt->execute();
+        $studentResult = $stmt->get_result();
+        $studentRow = $studentResult->fetch_assoc();
+        $studentID = $studentRow['studentID'] ?? '';
+
+        // Update company_info
+        $stmt = $connect->prepare("UPDATE company_info SET status = 'Approved', dateStarted = NOW() WHERE companyCode = ?");
+        $stmt->bind_param("s", $companyCode);
+        $stmt->execute();
+
+        // Update studentinfo
+        $stmt = $connect->prepare("UPDATE studentinfo SET status = 'Deployed', companyCode = ?, trainerEmail = ? WHERE email = ? AND semester = ? AND school_year = ?");
+        $stmt->bind_param("sssss", $companyCode, $trainerEmail, $studentEmail, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
+
+        // Update applications
+        $stmt = $connect->prepare("UPDATE applications SET schoolRemarks = 'Approved' WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
+
+        header("Location: approval.php");
+        exit;
     }
 
-    $sectionFilter = implode(" OR ", $conditions);
+    // ApproveChange
+    if (isset($_POST['ApproveChange'])) {
+        $companyCode = $_POST['companyCode'];
+        $studentID = $_POST['studentID'];
 
-    // Escape semester and school year
-    $activeSemesterEscaped = mysqli_real_escape_string($connect, $activeSemester);
-    $activeSchoolYearEscaped = mysqli_real_escape_string($connect, $activeSchoolYear);
+        $stmt = $connect->prepare("DELETE FROM company_info WHERE companyCode = ?");
+        $stmt->bind_param("s", $companyCode);
+        $stmt->execute();
 
-    // Build the query
-    $query = "SELECT * FROM company_info 
-              WHERE ($sectionFilter) 
-              AND semester = '$activeSemesterEscaped' 
-              AND schoolYear = '$activeSchoolYearEscaped'";
+        $stmt = $connect->prepare("UPDATE studentinfo SET status = 'Undeployed', companyCode = NULL, trainerEmail = NULL WHERE studentID = ? AND semester = ? AND school_year = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
-    $result = mysqli_query($connect, $query);
-}
+        $stmt = $connect->prepare("DELETE FROM applications WHERE studentID = ? AND semester = ? AND school_year = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
+        header("Location: approval.php");
+        exit;
+    }
 
+    // PullOut
+    if (isset($_POST['PullOut'])) {
+        $studentID = $_POST['studentID'];
 
-if (isset($_POST['Approve'])) {
-    echo ('button clicked');
-    $query = "select * from company_info"; 
-    $result = mysqli_query($connect, $query);
+        $stmt = $connect->prepare("DELETE FROM company_info WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
-    $companyCode = $_POST['companyCode'];
-    $studentEmail = $_POST['studentEmail'];
-    $trainerEmail = $_POST['trainerEmail'];
+        $stmt = $connect->prepare("UPDATE studentinfo SET status = 'Undeployed', companyCode = NULL, trainerEmail = NULL WHERE studentID = ? AND semester = ? AND school_year = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
-    echo $studentEmail;
+        $stmt = $connect->prepare("DELETE FROM applications WHERE studentID = ? AND semester = ? AND school_year = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
-    $updateCompanyInfo = $connect->prepare("UPDATE company_info SET status = 'Approved', dateStarted = NOW() WHERE companyCode = ?");
-    $updateCompanyInfo->bind_param("s", $companyCode);
-    $updateCompanyInfo->execute();
+        header("Location: approval.php");
+        exit;
+    }
 
-    $updateStudentInfo = $connect->prepare("UPDATE studentinfo SET status = 'Deployed', companyCode = ?, trainerEmail = ? WHERE email = ? AND semester = ? AND school_year = ?");
-    $updateStudentInfo->bind_param("sssss", $companyCode, $trainerEmail, $studentEmail, $activeSemester, $activeSchoolYear);
-    $updateStudentInfo->execute();
+    // Reject
+    if (isset($_POST['Reject'])) {
+        $studentID = $_POST['studentID'];
 
-    $applicationDelete = "UPDATE applications SET schoolRemarks = 'Approved' WHERE studentID = ? AND semester = ? AND schoolYear = ?";
-    $applicationStmt = $connect->prepare($applicationDelete);
-    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $applicationStmt->execute();
+        $stmt = $connect->prepare("UPDATE company_info SET status = 'Rejected' WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
-    header("Location: approval.php");
+        $stmt = $connect->prepare("UPDATE applications SET schoolRemarks = 'Rejected' WHERE studentID = ? AND semester = ? AND schoolYear = ?");
+        $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
+        $stmt->execute();
 
-    exit;
-}
-
-if (isset($_POST['ApproveChange'])) {
-    $companyCode = $_POST['companyCode'];
-    $studentID = $_POST['studentID'];
-
-    // Delete the row from the company_info table
-    $deleteQuery = "DELETE FROM company_info WHERE companyCode = ?";
-    $stmt = $connect->prepare($deleteQuery);
-    $stmt->bind_param("s", $companyCode);
-    $stmt->execute();
-
-    $updateQuery = "UPDATE studentinfo SET status = 'Undeployed', companyCode = NULL, trainerEmail = NULL WHERE studentID = ? AND semester = ? AND school_year = ?";
-    $updateStmt = $connect->prepare($updateQuery);
-    $updateStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $updateStmt->execute();
-
-    $applicationDelete = "DELETE FROM applications WHERE studentID = ? AND semester = ? AND school_year = ?";
-    $applicationStmt = $connect->prepare($applicationDelete);
-    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $applicationStmt->execute();
-
-    header("Location: approval.php");
-    exit;
-}
-
-if (isset($_POST['PullOut'])) {
-    $studentID = $_POST['studentID'];
-
-    // Delete the row from the company_info table
-    $deleteQuery = "DELETE FROM company_info WHERE studentID = ? AND semester = ? AND schoolYear = ?";
-    $stmt = $connect->prepare($deleteQuery);
-    $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $stmt->execute();
-
-    $updateQuery = "UPDATE studentinfo SET status = 'Undeployed', companyCode = NULL, trainerEmail = NULL WHERE studentID = ? AND semester = ? AND school_year = ?";
-    $updateStmt = $connect->prepare($updateQuery);
-    $updateStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $updateStmt->execute();
-
-    $applicationDelete = "DELETE FROM applications WHERE studentID = ? AND semester = ? AND school_year = ?";
-    $applicationStmt = $connect->prepare($applicationDelete);
-    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $applicationStmt->execute();
-
-    header("Location: approval.php");
-    exit;
-}
-
-if (isset($_POST['Reject'])) {
-    $studentID = $_POST['studentID'];
-
-    $rejectQuery = "UPDATE company_info SET status = 'Rejected' WHERE studentID = ? AND semester = ? AND schoolYear = ?";
-    $stmt = $connect->prepare($rejectQuery);
-    $stmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $stmt->execute();
-
-    $applicationDelete = "UPDATE applications SET schoolRemarks = 'Rejected' WHERE studentID = ? AND semester = ? AND schoolYear = ?";
-    $applicationStmt = $connect->prepare($applicationDelete);
-    $applicationStmt->bind_param("sss", $studentID, $activeSemester, $activeSchoolYear);
-    $applicationStmt->execute();
-
-    header("Location: approval.php");
-    exit;
-}
-
+        header("Location: approval.php");
+        exit;
+    }
 ?>
 
 <!DOCTYPE html>
