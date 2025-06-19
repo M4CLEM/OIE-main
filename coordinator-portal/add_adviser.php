@@ -1,53 +1,99 @@
 <?php
 session_start();
 include_once("../includes/connection.php");
+require '../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST['fullName'];
     $email = $_POST['email'];
-    $sectionRaw = $_POST['section']; // Comma-separated section IDs
+    $sectionRaw = $_POST['section'];
     $dept = $_POST['dept'];
     $course = $_POST['course'];
     $semester = $_POST['semester'];
     $schoolYear = $_POST['schoolYear'];
     $employeeNumber = $_POST['employeeNumber'];
-
     $role = "Adviser";
-    $password = $_POST['password'];
-    $confirmPassword = $_POST['confirm'];
 
-    // Validate password confirmation
-    if ($password !== $confirmPassword) {
-        echo '<div class="alert alert-danger" role="alert">Passwords do not match. Please try again.</div>';
-    } else {
-        // Sanitize section input
-        $sections = array_filter(array_map('trim', explode(',', $sectionRaw)));
-        $sectionString = implode(',', $sections); // This will be stored in one column
+    $plainPassword = bin2hex(random_bytes(4)); // 8-character random password
 
-        // Check if the email already exists in the users table
-        $checkUserExists = $connect->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
-        $checkUserExists->bind_param('s', $email);
-        $checkUserExists->execute();
-        $checkUserExists->bind_result($userCount);
-        $checkUserExists->fetch();
-        $checkUserExists->close();
+    $sections = array_filter(array_map('trim', explode(',', $sectionRaw)));
+    $sectionString = implode(',', $sections);
 
-        // Insert values into listadviser (only once)
-        $addToList = $connect->prepare('INSERT INTO listadviser (employeeNumber, fullName, email, section, course, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-        $addToList->bind_param('ssssssss', $employeeNumber, $fullName, $email, $sectionString, $course, $dept, $semester, $schoolYear);
-        $addToList->execute();
-        $addToList->close();
+    // Check if email already exists in users table
+    $stmt = $connect->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($userCount);
+    $stmt->fetch();
+    $stmt->close();
 
-        // Insert into users table only if they don't exist yet
-        if ($userCount == 0) {
-            $addToUsers = $connect->prepare('INSERT INTO users (username, role, password) VALUES (?, ?, ?)');
-            $addToUsers->bind_param('sss', $email, $role, $password);
-            $addToUsers->execute();
-            $addToUsers->close();
-        }
+    // Insert into listadviser table
+    $insertList = $connect->prepare("INSERT INTO listadviser (employeeNumber, fullName, email, section, course, dept, semester, schoolYear) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $insertList->bind_param("ssssssss", $employeeNumber, $fullName, $email, $sectionString, $course, $dept, $semester, $schoolYear);
+    $insertList->execute();
+    $insertList->close();
 
-        header("Location: advisers.php");
-        exit;
+    // Insert into users table only if not exists
+    if ($userCount == 0) {
+        $insertUser = $connect->prepare("INSERT INTO users (username, role, password) VALUES (?, ?, ?)");
+        $insertUser->bind_param("sss", $email, $role, $plainPassword);
+        $insertUser->execute();
+        $insertUser->close();
     }
+
+    // SMTP Configurations to try
+    $smtpHost = 'smtp.gmail.com';
+    $smtpUser = 'cipa@plmun.edu.ph'; // Sender email
+    $smtpPass = 'oaoybffujhnigslm';  // App password
+
+    $smtpPorts = [
+        ['port' => 587, 'secure' => 'tls'],
+        ['port' => 465, 'secure' => 'ssl'],
+        ['port' => 25,  'secure' => 'tls']
+    ];
+
+    $sent = false;
+
+    foreach ($smtpPorts as $config) {
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtpUser;
+            $mail->Password = $smtpPass;
+            $mail->SMTPSecure = $config['secure'];
+            $mail->Port = $config['port'];
+
+            $mail->setFrom($smtpUser, 'CIPA Admin');
+            $mail->addAddress($email, $fullName);
+
+            $mail->isHTML(true);
+            $mail->Subject = "OJT Portal Account Created | Adviser";
+            $mail->Body = "
+                <p>Hello <strong>$fullName</strong>,</p>
+                <p>Your Adviser account has been created in the OJT Portal.</p>
+                <p><strong>Department:</strong> $dept<br>
+                   <strong>Course:</strong> $course</p>
+                <p><strong>Email:</strong> $email<br>
+                   <strong>Password:</strong> $plainPassword</p>
+                <p>Please log in and change your password immediately.</p>
+                <p>Thank you,<br>CIPA Admin</p>
+            ";
+
+            $mail->send();
+            $sent = true;
+            break;
+        } catch (Exception $e) {
+            // Try next config
+            continue;
+        }
+    }
+
+    echo json_encode(["status" => "success", "message" => "Adviser account created and password sent via email."]);
+    exit;
 }
 ?>

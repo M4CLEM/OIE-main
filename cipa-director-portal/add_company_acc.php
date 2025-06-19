@@ -1,18 +1,18 @@
 <?php
-    session_start();
-    include_once("../includes/connection.php");
+session_start();
+include_once("../includes/connection.php");
 
-    if (!isset($_SESSION['CIPA'])) {
-        header("Location: ../logout.php");
-        exit();
-    }
+if (!isset($_SESSION['CIPA'])) {
+    header("Location: ../logout.php");
+    exit();
+}
 
-    $role = "IndustryPartner";
-    $query = "SELECT * FROM users WHERE role = ?";
-    $stmt = $connect->prepare($query);
-    $stmt->bind_param("s", $role);
-    $stmt->execute();
-    $result = $stmt->get_result();
+$role = "IndustryPartner";
+$query = "SELECT * FROM users WHERE role = ?";
+$stmt = $connect->prepare($query);
+$stmt->bind_param("s", $role);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -85,7 +85,7 @@
                                             <tr>
                                                 <td><?php echo $rows['companyName']; ?></td>
                                                 <td><?php echo $rows['username']; ?></td>
-                                                <td><?php echo $rows['password']; ?></td>
+                                                <td>********</td>
                                                 <td>
                                                     <div class="d-flex justify-content-start align-items-center gap-2">
                                                         <a href="#" class="btn btn-primary btn-sm editBtn"
@@ -121,13 +121,15 @@
         <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addAdvisers" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <form action="add_ip.php" method="POST">
+                    <form id="addForm">
                         <div class="modal-header">
                             <h5 class="modal-title" id="addAdvisers">Add Company</h5>
-                            <button class="close" type="button" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span>
+                            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
                             </button>
                         </div>
                         <div class="modal-body">
+                            <div id="addMessage"></div> <!-- Success/Error messages here -->
                             <div class="form-group">
                                 <input type="text" class="form-control" id="searchCompany" placeholder="Search Company">
                             </div>
@@ -144,17 +146,11 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <input class="form-control" id="email" name="email" type="text" placeholder="Email" required>
-                            </div>
-                            <div class="form-group">
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                            </div>
-                            <div class="form-group">
-                                <input type="password" class="form-control" id="confirm" name="confirm" placeholder="Confirm Password" required>
+                                <input class="form-control" id="email" name="email" type="email" placeholder="Email" required>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn btn-primary btn-sm" name="save" type="submit"><span class="fa fa-save fw-fa"></span> Save</button>
+                            <button class="btn btn-primary btn-sm" type="submit"><span class="fa fa-save fw-fa"></span> Save</button>
                             <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
                         </div>
                     </form>
@@ -162,24 +158,27 @@
             </div>
         </div>
 
-        <!--EDIT MODAL -->
-        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editCompany" aria-hidden="true">
+
+        <!-- EDIT MODAL -->
+        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <form id="editForm">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editCompany">Edit Company</h5>
+                            <h5 class="modal-title" id="editModalLabel">Edit Company Information</h5>
                             <input type="hidden" id="editID" name="id">
-                            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">×</span>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
+
                         <div class="modal-body">
-                            <div id="editMessage"></div> <!-- AJAX feedback -->
+                            <div id="editMessage"></div>
 
                             <div class="form-group">
                                 <input type="text" class="form-control" id="editSearchCompany" placeholder="Search Company">
                             </div>
+
                             <div class="form-group">
                                 <select class="form-control" id="editCompanyName" name="editCompanyName" required>
                                     <option value="">Select Company</option>
@@ -192,16 +191,17 @@
                                     ?>
                                 </select>
                             </div>
+
                             <div class="form-group">
-                                <input class="form-control" id="editEmail" name="editEmail" type="text" placeholder="Email" required>
+                                <input type="email" class="form-control" id="editEmail" name="editEmail" placeholder="Email" required>
                             </div>
-                            <div class="form-group">
-                                <input type="password" class="form-control" id="editPassword" name="editPassword" placeholder="New Password">
-                            </div>
-                            <div class="form-group">
-                                <input type="password" class="form-control" id="editConfirmPassword" name="editConfirmPassword" placeholder="Confirm Password">
+
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="resetPassword" name="resetPassword" value="1">
+                                <label class="form-check-label" for="resetPassword">Reset password and email new password</label>
                             </div>
                         </div>
+
                         <div class="modal-footer">
                             <button type="button" id="saveEditBtn" class="btn btn-primary btn-sm">
                                 <span class="fa fa-save fw-fa"></span> Save
@@ -212,6 +212,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- DELETE CONFIRMATION MODAL -->
         <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -321,6 +322,40 @@
 
                 companyDropdown.addEventListener("change", function() {
                     const selectedOption = this.options[this.selectedIndex];
+                });
+            });
+
+
+            // AJAX Submit for Add Company Form
+            $(document).ready(function() {
+                $("#addForm").submit(function(event) {
+                    event.preventDefault(); // Prevent page reload
+
+                    var formData = $(this).serialize();
+
+                    $.ajax({
+                        url: "add_ip.php", // path to your modified PHP handler
+                        type: "POST",
+                        data: formData,
+                        dataType: "json",
+                        beforeSend: function() {
+                            $("#addMessage").html('<div class="alert alert-info">Processing...</div>');
+                        },
+                        success: function(response) {
+                            if (response.status === "success") {
+                                $("#addMessage").html('<div class="alert alert-success">' + response.message + "</div>");
+                                setTimeout(function() {
+                                    $("#addModal").modal("hide");
+                                    location.reload(); // Refresh the page or table
+                                }, 1500);
+                            } else {
+                                $("#addMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
+                            }
+                        },
+                        error: function() {
+                            $("#addMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                        }
+                    });
                 });
             });
         </script>
@@ -481,4 +516,5 @@
             });
         </script>
 </body>
+
 </html>

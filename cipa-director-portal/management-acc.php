@@ -1,25 +1,25 @@
 <?php
-    session_start();
-    include_once("../includes/connection.php");
+session_start();
+include_once("../includes/connection.php");
 
-    if (!isset($_SESSION['CIPA'])) {
-        header("Location: ../logout.php");
-        exit();
-    }
+if (!isset($_SESSION['CIPA'])) {
+    header("Location: ../logout.php");
+    exit();
+}
 
-    // ✅ Use prepared statement for safety and consistency
-    $stmt = $connect->prepare("SELECT * FROM staff_list");
+// ✅ Use prepared statement for safety and consistency
+$stmt = $connect->prepare("SELECT * FROM staff_list");
 
-    if (!$stmt) {
-        die("Query Preparation Failed: " . $connect->error);
-    }
+if (!$stmt) {
+    die("Query Preparation Failed: " . $connect->error);
+}
 
-    $stmt->execute();
-    $result = $stmt->get_result(); // 🔄 Same as original $result
+$stmt->execute();
+$result = $stmt->get_result(); // 🔄 Same as original $result
 
-    if (!$result) {
-        die("Query Failed: " . $connect->error);
-    }
+if (!$result) {
+    die("Query Failed: " . $connect->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +53,7 @@
                 <h2 class="my-0 mr-auto font-weight-bold text-dark ml-3">Management Accounts</h2>
                 <?php include('../elements/cipa_navbar_user_info.php') ?>
             </nav>
-            
+
             <div id="content" class="py-2">
                 <div class="col-lg-12">
                     <div class="card shadow mb-4">
@@ -80,17 +80,17 @@
                                         while ($rows = mysqli_fetch_assoc($result)) {
                                         ?>
                                             <tr>
-                                                <td><?php echo $rows['employeeNumber']?></td>
+                                                <td><?php echo $rows['employeeNumber'] ?></td>
                                                 <td><?php echo $rows['name'] ?></td>
                                                 <td><?php echo $rows['department'] ?></td>
                                                 <td><?php echo $rows['email'] ?></td>
-                                                <td><?php echo $rows['password'] ?></td>
+                                                <td>********</td>
                                                 <td><?php echo $rows['role'] ?></td>
                                                 <td>
                                                     <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal"
                                                         data-target="#editModal" data-id="<?php echo $rows['id']; ?>"
                                                         data-name="<?php echo $rows['name']; ?>"
-                                                        data-department="<?php echo $rows['department']; ?>" data-email="<?php echo $rows['email']; ?>" data-role="<?php echo $rows['role'] ?>" data-employeenumber="<?php echo $rows['employeeNumber']?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
+                                                        data-department="<?php echo $rows['department']; ?>" data-email="<?php echo $rows['email']; ?>" data-role="<?php echo $rows['role'] ?>" data-employeenumber="<?php echo $rows['employeeNumber'] ?>"><i class="fa fa-edit fw-fa"></i>Edit</a>
                                                     <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
                                                         data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>">
                                                         <i class="fa fa-trash fw-fa"></i> Delete
@@ -148,12 +148,10 @@
                                 <div class="form-group">
                                     <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
                                 </div>
-                                <div class="form-group">
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                                </div>
-                                <div class="form-group">
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
-                                </div>
+
+
+
+
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-primary btn-sm" type="submit"><span class="fa fa-save fw-fa"></span> Save</button>
@@ -248,11 +246,9 @@
                                 <div class="form-group">
                                     <input type="text" class="form-control" id="editEmail" name="editEmail">
                                 </div>
-                                <div class="form-group">
-                                    <input type="password" class="form-control" id="editPassword" name="editPassword" placeholder="New password">
-                                </div>
-                                <div class="form-group">
-                                    <input type="password" class="form-control" id="editConfirmPassword" name="editConfirmPassword" placeholder="Confirm password">
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input" id="resetPassword" name="resetPassword" value="1">
+                                    <label class="form-check-label" for="resetPassword">Reset password and email new password</label>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -269,172 +265,153 @@
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-<script src="../assets/js/sidebarscript.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="../assets/js/sidebarscript.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<script>
-    // Role / Department dropdown toggle for Add Modal
-    document.addEventListener("DOMContentLoaded", function() {
-        const roleSelect = document.getElementById("role");
-        const departmentSelect = document.getElementById("department");
+    <script>
+        // Role / Department dropdown toggle for Add Modal
+        document.addEventListener("DOMContentLoaded", function() {
+            const roleSelect = document.getElementById("role");
+            const departmentSelect = document.getElementById("department");
 
-        function toggleDepartment() {
-            if (roleSelect.value === "CIPA") {
-                departmentSelect.disabled = true;
-                departmentSelect.style.backgroundColor = "#e0e0e0"; // Light gray
-                departmentSelect.style.color = "#888"; // Dark gray
-                departmentSelect.style.cursor = "not-allowed";
-            } else {
-                departmentSelect.disabled = false;
-                departmentSelect.style.backgroundColor = ""; // Reset to default
-                departmentSelect.style.color = ""; // Reset to default
-                departmentSelect.style.cursor = "";
-            }
-        }
-
-        roleSelect.addEventListener("change", toggleDepartment);
-        toggleDepartment(); // Run on page load to set initial state
-    });
-
-    // Password validation for Add Form (before AJAX submit)
-    document.addEventListener("DOMContentLoaded", function() {
-        const form = document.getElementById("addForm");
-        const password = document.getElementById("password");
-        const confirmPassword = document.getElementById("confirmPassword");
-
-        if (form) {
-            form.addEventListener("submit", function(event) {
-                if (password.value !== confirmPassword.value) {
-                    event.preventDefault(); // Stop form submission
-                    alert("Passwords do not match! Please re-enter.");
-                    confirmPassword.focus();
+            function toggleDepartment() {
+                if (roleSelect.value === "CIPA") {
+                    departmentSelect.disabled = true;
+                    departmentSelect.style.backgroundColor = "#e0e0e0"; // Light gray
+                    departmentSelect.style.color = "#888"; // Dark gray
+                    departmentSelect.style.cursor = "not-allowed";
+                } else {
+                    departmentSelect.disabled = false;
+                    departmentSelect.style.backgroundColor = ""; // Reset to default
+                    departmentSelect.style.color = ""; // Reset to default
+                    departmentSelect.style.cursor = "";
                 }
-            });
-        }
-    });
-
-    // AJAX Submit for Add Form
-    $(document).ready(function() {
-        $("#addForm").submit(function(event) {
-            event.preventDefault(); // Prevent page reload
-
-            var formData = $(this).serialize();
-
-            $.ajax({
-                url: "functions/add_management_acc.php",
-                type: "POST",
-                data: formData,
-                dataType: "json",
-                beforeSend: function() {
-                    $("#addMessage").html('<div class="alert alert-info">Processing...</div>');
-                },
-                success: function(response) {
-                    if (response.status === "success") {
-                        $("#addMessage").html('<div class="alert alert-success">' + response.message + "</div>");
-                        setTimeout(function() {
-                            $("#addModal").modal("hide");
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        $("#addMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
-                    }
-                },
-                error: function() {
-                    $("#addMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
-                }
-            });
-        });
-    });
-
-    // AJAX Submit for Edit Form with password validation inside the click handler
-    $(document).ready(function() {
-        $("#saveEditBtn").click(function() {
-            var password = $("#editPassword").val();
-            var confirmPassword = $("#editConfirmPassword").val();
-
-            if (password !== confirmPassword) {
-                alert("Passwords do not match! Please re-enter.");
-                $("#editConfirmPassword").focus();
-                return; // Stop AJAX call
             }
 
-            var formData = $("#editForm").serialize();
+            roleSelect.addEventListener("change", toggleDepartment);
+            toggleDepartment(); // Run on page load to set initial state
+        });
 
-            $.ajax({
-                type: "POST",
-                url: "functions/edit_management_acc.php",
-                data: formData,
-                dataType: "json",
-                beforeSend: function() {
-                    $("#editMessage").html('<div class="alert alert-info">Processing...</div>');
-                },
-                success: function(response) {
-                    if (response.status === "success") {
-                        $("#editMessage").html('<div class="alert alert-success">' + response.message + "</div>");
-                        setTimeout(function() {
-                            $("#editModal").modal("hide");
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        $("#editMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
+
+
+
+
+        // AJAX Submit for Add Form
+        $(document).ready(function() {
+            $("#addForm").submit(function(event) {
+                event.preventDefault(); // Prevent page reload
+
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: "functions/add_management_acc.php",
+                    type: "POST",
+                    data: formData,
+                    dataType: "json",
+                    beforeSend: function() {
+                        $("#addMessage").html('<div class="alert alert-info">Processing...</div>');
+                    },
+                    success: function(response) {
+                        if (response.status === "success") {
+                            $("#addMessage").html('<div class="alert alert-success">' + response.message + "</div>");
+                            setTimeout(function() {
+                                $("#addModal").modal("hide");
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $("#addMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
+                        }
+                    },
+                    error: function() {
+                        $("#addMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
                     }
-                },
-                error: function() {
-                    $("#editMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
-                }
-            });
-        });
-    });
-
-    // Populate Edit Modal and Delete Modal logic remains unchanged (your original jQuery code)
-    $(document).ready(function() {
-        $('.editBtn').click(function() {
-            var id = $(this).data('id');
-            var name = $(this).data('name');
-            var role = $(this).data('role');
-            var department = $(this).data('department');
-            var email = $(this).data('email');
-            var employeenumber = $(this).data('employeenumber');
-
-            $('#editID').val(id);
-            $('#editStaffName').val(name);
-            $('#editRole').val(role);
-            $('#editDepartment').val(department);
-            $('#editEmail').val(email);
-            $('#editEmployeeNumber').val(employeenumber);
-        });
-
-        // Delete modal open
-        $(".deleteBtn").click(function() {
-            var id = $(this).data("id");
-            $("#confirmDelete").data("id", id);
-        });
-
-        // Confirm delete
-        $("#confirmDelete").click(function() {
-            var id = $(this).data("id");
-            $("#deleteModal").modal("hide");
-
-            $.ajax({
-                url: "functions/delete_management_acc.php",
-                type: "POST",
-                data: { id: id },
-                success: function(response) {
-                    $("#successDeleteModal").modal("show");
-                },
-                error: function(xhr, status, error) {
-                    alert("An error occurred: " + error);
-                }
+                });
             });
         });
 
-        // Reload page after success delete modal closes or OK clicked
-        $("#successDeleteModal").on("hidden.bs.modal", function() {
-            location.reload();
+        // AJAX Submit for Edit Form with password validation inside the click handler
+        $(document).ready(function() {
+            $("#saveEditBtn").click(function() {
+
+                var formData = $("#editForm").serialize();
+
+                $.ajax({
+                    type: "POST",
+                    url: "functions/edit_management_acc.php",
+                    data: formData,
+                    dataType: "json",
+                    beforeSend: function() {
+                        $("#editMessage").html('<div class="alert alert-info">Processing...</div>');
+                    },
+                    success: function(response) {
+                        if (response.status === "success") {
+                            $("#editMessage").html('<div class="alert alert-success">' + response.message + "</div>");
+                            setTimeout(function() {
+                                $("#editModal").modal("hide");
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $("#editMessage").html('<div class="alert alert-danger">' + response.message + "</div>");
+                        }
+                    },
+                    error: function() {
+                        $("#editMessage").html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                    }
+                });
+            });
         });
-        $("#successDeleteModal .btn-primary").click(function() {
-            $("#successDeleteModal").modal("hide");
+
+        // Populate Edit Modal and Delete Modal logic remains unchanged (your original jQuery code)
+        $(document).ready(function() {
+            $('.editBtn').click(function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                var role = $(this).data('role');
+                var department = $(this).data('department');
+                var email = $(this).data('email');
+                var employeenumber = $(this).data('employeenumber');
+
+                $('#editID').val(id);
+                $('#editStaffName').val(name);
+                $('#editRole').val(role);
+                $('#editDepartment').val(department);
+                $('#editEmail').val(email);
+                $('#editEmployeeNumber').val(employeenumber);
+            });
+
+            // Delete modal open
+            $(".deleteBtn").click(function() {
+                var id = $(this).data("id");
+                $("#confirmDelete").data("id", id);
+            });
+
+            // Confirm delete
+            $("#confirmDelete").click(function() {
+                var id = $(this).data("id");
+                $("#deleteModal").modal("hide");
+
+                $.ajax({
+                    url: "functions/delete_management_acc.php",
+                    type: "POST",
+                    data: {
+                        id: id
+                    },
+                    success: function(response) {
+                        $("#successDeleteModal").modal("show");
+                    },
+                    error: function(xhr, status, error) {
+                        alert("An error occurred: " + error);
+                    }
+                });
+            });
+
+            // Reload page after success delete modal closes or OK clicked
+            $("#successDeleteModal").on("hidden.bs.modal", function() {
+                location.reload();
+            });
+            $("#successDeleteModal .btn-primary").click(function() {
+                $("#successDeleteModal").modal("hide");
+            });
         });
-    });
-</script>
+    </script>

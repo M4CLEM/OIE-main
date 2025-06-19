@@ -1,24 +1,24 @@
 <?php
-    session_start();
-    include_once("../includes/connection.php");
+session_start();
+include_once("../includes/connection.php");
 
-    if (!isset($_SESSION['coordinator'])) {
-        header("Location: ../logout.php");
-        exit();
-    }
+if (!isset($_SESSION['coordinator'])) {
+    header("Location: ../logout.php");
+    exit();
+}
 
-    // ✅ Use prepared statement for consistency and future safety
-    $stmt = $connect->prepare("SELECT * FROM listadviser");
-    if (!$stmt) {
-        die("Query preparation failed: " . $connect->error);
-    }
+// ✅ Use prepared statement for consistency and future safety
+$stmt = $connect->prepare("SELECT * FROM listadviser");
+if (!$stmt) {
+    die("Query preparation failed: " . $connect->error);
+}
 
-    $stmt->execute();
-    $result = $stmt->get_result();
+$stmt->execute();
+$result = $stmt->get_result();
 
-    if (!$result) {
-        die("Query failed: " . $connect->error);
-    }
+if (!$result) {
+    die("Query failed: " . $connect->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -49,7 +49,7 @@
                 <!-- Title -->
                 <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Advisers - <?php echo $_SESSION['coordinator']; ?></h4>
                 <!-- Topbar Navbar -->
-                <?php include('../elements/cood_navbar_user_info.php')?>
+                <?php include('../elements/cood_navbar_user_info.php') ?>
             </nav>
             <!-- End of Topbar -->
 
@@ -88,7 +88,7 @@
                                             <a href="modal.php" class="btn btn-primary btn-sm editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $rows['id']; ?>" data-name="<?php echo $rows['fullName']; ?>" data-email="<?php echo $rows['email']; ?>" data-section="<?php echo $rows['section']; ?>" data-course="<?php echo $rows['course']; ?>" data-department="<?php echo $rows['dept']; ?>" data-semester="<?php echo $rows['semester']; ?>" data-schoolyear="<?php echo $rows['schoolYear']; ?>" data-employeeid="<?php echo $rows['employeeNumber']; ?>"><span class="fa fa-edit fw-fa"></span></a>
 
                                             <button type="button" class="btn btn-danger btn-sm deleteBtn" data-toggle="modal"
-                                            data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>" data-email="<?php echo $rows['email']; ?>"><span class="fa fa-trash fw-fa"></span></button>
+                                                data-target="#deleteModal" data-id="<?php echo $rows['id']; ?>" data-email="<?php echo $rows['email']; ?>"><span class="fa fa-trash fw-fa"></span></button>
                                         </td>
                                     </tr>
                                 <?php
@@ -101,18 +101,19 @@
             </div>
         </div>
     </div>
-    
+
     <!-- ADD MODAL -->
     <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addAdvisers" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <form action="add_adviser.php" method="POST">
+                <form id="addAdviserForm">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addAdvisers">Add Adviser</h5>
                         <button class="close" type="button" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span>
                         </button>
                     </div>
                     <div class="modal-body">
+                        <div id="addAdviserMessage"></div>
                         <div class="form-group md-5">
                             <div class="col-md-10">
                                 <input class="form-control" id="employeeNumber" name="employeeNumber" type="text" value="" autocomplete="none" placeholder="Employee Number" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
@@ -169,11 +170,11 @@
                         </div>
 
                         <div class="form-group md-5">
-                            <div class="col-md-10">  
+                            <div class="col-md-10">
                                 <select name="semester" class="form-control">
                                     <option hidden disable value="select ">Select Semester</option>
                                     <option value="1st Semester">1st Semester</option>
-                                    <option value = "2nd Semester">2nd Semester</option>          
+                                    <option value="2nd Semester">2nd Semester</option>
                                 </select>
                             </div>
                         </div>
@@ -184,16 +185,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input type="password" class="form-control input-sm" id="password" name="password" value="" autocomplete="none" placeholder="Password" autocomplete="off" required>
-                            </div>
-                        </div>
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input type="password" class="form-control input-sm" id="confirm" name="confirm" value="" autocomplete="none" placeholder="Confirm Password" autocomplete="off" required>
-                            </div>
-                        </div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-primary btn-sm" name="save" type="submit"><span class="fa fa-save fw-fa"></span> Save</button>
@@ -209,7 +200,7 @@
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <form action="edit_adviser.php" method="POST">
+                <form id="editAdviserForm" method="POST">
                     <div class="modal-header">
                         <h5 class="modal-title" id="editModalLabel">Edit Information</h5>
                         <input type="hidden" id="editID" name="id">
@@ -217,88 +208,60 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input class="form-control" id="editEmployeeNumber" name="editEmployeeNumber" type="text" value="" autocomplete="none" placeholder="Employee Number" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
-                            </div>
-                        </div>
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input class="form-control" id="editFullName" name="editFullName" type="text" value="" autocomplete="none" placeholder="Full Name" onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" required>
-                            </div>
-                        </div>
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input class="form-control input-sm" id="editEmail" name="editEmail" type="email" value="" autocomplete="none" placeholder="Email" autocomplete="off" required>
-                            </div>
-                        </div>
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <select class="form-control" name="dept" id="editDropdowndept" onchange="showCourses(this.value, 'edit');" required>
-                                    <option value="" selected disabled>Select Department</option>
-                                    <?php
-                                    $queryDept = "select * from department_list";
-                                    $resultDept = mysqli_query($connect, $queryDept);
-                                    while ($rowDept = mysqli_fetch_assoc($resultDept)) {
-                                    ?>
-                                        <option value="<?php echo $rowDept['department']; ?>"><?php echo $rowDept['department']; ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
+                    <div class="modal-body" id="editAdviserMessage">
 
                         <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <select class="form-control" name="course" id="editDropdowncourse" onchange="showSections($('#editDropdowndept').val(), this.value, 'edit');" required>
-                                    <option value="" selected disabled>Select Course</option>
-                                </select>
+                            <input class="form-control" id="editEmployeeNumber" name="editEmployeeNumber" type="text" placeholder="Employee Number" required>
+                        </div>
+                        <div class="form-group md-5">
+                            <input class="form-control" id="editFullName" name="editFullName" type="text" placeholder="Full Name" required>
+                        </div>
+                        <div class="form-group md-5">
+                            <input class="form-control" id="editEmail" name="editEmail" type="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group md-5">
+                            <select class="form-control" name="dept" id="editDropdowndept" onchange="showCourses(this.value, 'edit');" required>
+                                <option value="" selected disabled>Select Department</option>
+                                <?php
+                                $queryDept = "SELECT * FROM department_list";
+                                $resultDept = mysqli_query($connect, $queryDept);
+                                while ($rowDept = mysqli_fetch_assoc($resultDept)) {
+                                    echo "<option value='{$rowDept['department']}'>{$rowDept['department']}</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group md-5">
+                            <select class="form-control" name="course" id="editDropdowncourse" onchange="showSections($('#editDropdowndept').val(), this.value, 'edit');" required>
+                                <option value="" selected disabled>Select Course</option>
+                            </select>
+                        </div>
+                        <div class="form-group md-5">
+                            <div class="dropdown">
+                                <button class="form-control text-start dropdown-toggle" type="button" id="editDropdownSectionBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Select Sections
+                                </button>
+                                <ul class="dropdown-menu w-100" id="editDropdownsection">
+                                </ul>
                             </div>
+                            <input type="hidden" name="section" id="editSectionInput" required>
+                        </div>
+                        <div class="form-group md-5">
+                            <select name="editSemester" id="editSemester" class="form-control" required>
+                                <option hidden disabled selected value="">Select Semester</option>
+                                <option value="1st Semester">1st Semester</option>
+                                <option value="2nd Semester">2nd Semester</option>
+                            </select>
+                        </div>
+                        <div class="form-group md-5">
+                            <input type="text" class="form-control" id="editSchoolYear" name="editSchoolYear" placeholder="School Year" required>
                         </div>
 
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <div class="dropdown">
-                                    <button class="form-control text-start dropdown-toggle" type="button" id="editDropdownSectionBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Select Sections
-                                    </button>
-                                    <ul class="dropdown-menu w-100" id="editDropdownsection">
-                                        <!-- AJAX will populate this -->
-                                    </ul>
-                                </div>
-                                <!-- Hidden input to submit selected values -->
-                                <input type="hidden" name="section" id="editSectionInput" required>
-                            </div>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="resetPassword" name="resetPassword" value="1">
+                            <label class="form-check-label" for="resetPassword">Reset password and email new password</label>
                         </div>
 
-                        <div class="form-group md-5">
-                            <div class="col-md-10">  
-                                <select name="editSemester" id="editSemester" class="form-control">
-                                    <option hidden disable value="select ">Select Semester</option>
-                                    <option value="1st Semester">1st Semester</option>
-                                    <option value = "2nd Semester">2nd Semester</option>          
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input type="text" class="form-control" id="editSchoolYear" name="editSchoolYear" value="" autocomplete="none" placeholder="School Year" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input type="password" class="form-control input-sm" id="editPassword" name="editPassword" value="" autocomplete="none" placeholder="Password" autocomplete="off" required>
-                            </div>
-                        </div>
-                        <div class="form-group md-5">
-                            <div class="col-md-10">
-                                <input type="password" class="form-control input-sm" id="confirmEdit" name="confirmEdit" value="" autocomplete="none" placeholder="Confirm Password" autocomplete="off" required>
-                            </div>
-                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" id="saveEditBtn" class="btn btn-primary btn-sm">
@@ -310,6 +273,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- DELETE CONFIRMATION MODAL -->
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -358,7 +322,7 @@
             </div>
         </div>
     </div>
-    
+
     </div>
 
 
@@ -395,12 +359,75 @@
             background-color: transparent;
             color: inherit;
         }
-
     </style>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     <script src="../assets/js/sidebarscript.js"></script>
+
+    <Script>
+        $(document).ready(function() {
+            $('#addAdviserForm').submit(function(event) {
+                event.preventDefault(); // prevent normal form submit
+
+                // serialize form data
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: 'add_adviser.php',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    beforeSend: function() {
+                        $('#addAdviserMessage').html('<div class="alert alert-info">Processing...</div>');
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#addAdviserMessage').html('<div class="alert alert-success">' + response.message + '</div>');
+                            setTimeout(function() {
+                                $('#addModal').modal('hide');
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $('#addAdviserMessage').html('<div class="alert alert-danger">' + response.message + '</div>');
+                        }
+                    },
+                    error: function() {
+                        $('#addAdviserMessage').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                    }
+                });
+            });
+
+            $('#editAdviserForm').on('submit', function(e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: 'edit_adviser.php',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    beforeSend: function() {
+                        $('#editAdviserMessage').html('<div class="alert alert-info">Updating adviser info...</div>');
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#editAdviserMessage').html('<div class="alert alert-success">' + response.message + '</div>');
+                            setTimeout(() => {
+                                $('#editModal').modal('hide');
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $('#editAdviserMessage').html('<div class="alert alert-danger">' + response.message + '</div>');
+                        }
+                    },
+                    error: function() {
+                        $('#editAdviserMessage').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                    }
+                });
+            });
+        });
+    </Script>
+
     <script>
         function capitalize(id) {
             var input = document.getElementById(id);
@@ -420,7 +447,9 @@
             $.ajax({
                 url: 'functions/get_courses.php',
                 type: 'GET',
-                data: { department: department },
+                data: {
+                    department: department
+                },
                 success: function(data) {
                     courseDropdown.innerHTML = data;
                 }
@@ -434,7 +463,10 @@
             $.ajax({
                 url: 'functions/get_sec.php',
                 type: 'GET',
-                data: { department: department, course: course },
+                data: {
+                    department: department,
+                    course: course
+                },
                 success: function(data) {
                     sectionList.innerHTML = data;
                     bindSectionCheckboxes(mode); // Pass mode to target correct modal
@@ -450,8 +482,8 @@
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
                     const selected = Array.from(checkboxes)
-                    .filter(cb => cb.checked)
-                    .map(cb => cb.value);
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
 
                     sectionInput.value = selected.join(',');
                     dropdownBtn.textContent = selected.length > 0 ? selected.join(', ') : 'Select Sections';
@@ -464,7 +496,7 @@
                 });
             });
         }
-        
+
         // Get references to the checkboxes and the delete button
         const removeRecordCheckbox = document.getElementById('removeRecord');
         const removeAccessCheckbox = document.getElementById('removeAccess');
@@ -473,9 +505,9 @@
         // Function to check if at least one checkbox is checked
         function checkCheckboxes() {
             if (removeRecordCheckbox.checked || removeAccessCheckbox.checked) {
-                confirmDeleteButton.disabled = false;  // Enable the delete button
+                confirmDeleteButton.disabled = false; // Enable the delete button
             } else {
-                confirmDeleteButton.disabled = true;   // Disable the delete button
+                confirmDeleteButton.disabled = true; // Disable the delete button
             }
         }
 
@@ -527,15 +559,15 @@
 
             $(".deleteBtn").click(function() {
                 var id = $(this).data("id");
-                var email = $(this).data("email");  // Retrieve the email
+                var email = $(this).data("email"); // Retrieve the email
                 $("#confirmDelete").data("id", id);
-                $("#confirmDelete").data("email", email);  // Store the email for confirmation
+                $("#confirmDelete").data("email", email); // Store the email for confirmation
             });
 
             // Confirm and Process Deletion
             $("#confirmDelete").click(function() {
                 var id = $(this).data("id");
-                var email = $(this).data("email");  // Get the stored email
+                var email = $(this).data("email"); // Get the stored email
                 var removeRecord = $("#removeRecord").prop("checked"); // Get the status of removeRecord checkbox
                 var removeAccess = $("#removeAccess").prop("checked"); // Get the status of removeAccess checkbox
 
@@ -555,7 +587,7 @@
                         id: id,
                         email: email, // Send email for deleting from the users table
                         removeRecord: removeRecord ? 'true' : 'false', // Send only true or false
-                        removeAccess: removeAccess ? 'true' : 'false'  // Send only true or false
+                        removeAccess: removeAccess ? 'true' : 'false' // Send only true or false
                     },
                     success: function(response) {
                         // Show success modal
