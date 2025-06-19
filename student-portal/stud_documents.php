@@ -2,82 +2,97 @@
 session_start();
 include("../includes/connection.php");
 
-// Get the student's email from the session
+if (!isset($_SESSION['student'])) {
+    header("Location: ../logout.php");
+    exit();
+}
+
 $email = $_SESSION['student'];
 $semester = $_SESSION['semester'];
 $schoolYear = $_SESSION['schoolYear'];
+$enrollments = [];
 
-$studNumberResult = mysqli_query($connect, "SELECT studentID FROM studentinfo WHERE email = '$email'");
+// Get studentID using prepared statement
+$studNumberStmt = $connect->prepare("SELECT studentID FROM studentinfo WHERE email = ?");
+$studNumberStmt->bind_param("s", $email);
+$studNumberStmt->execute();
+$studNumberResult = $studNumberStmt->get_result();
 
-if ($studNumberResult && mysqli_num_rows($studNumberResult) > 0) {
-    $row = mysqli_fetch_assoc($studNumberResult);
+if ($studNumberResult && $studNumberResult->num_rows > 0) {
+    $row = $studNumberResult->fetch_assoc();
     $studentID = $row['studentID'];
-} 
+} else {
+    die("Student not found.");
+}
+$studNumberStmt->close();
 
-$enrollResult = mysqli_query($connect, "SELECT semester, schoolYear FROM student_masterlist WHERE studentID = '$studentID'");
+// Get all enrollments for studentID
+$enrollStmt = $connect->prepare("SELECT semester, schoolYear FROM student_masterlist WHERE studentID = ?");
+$enrollStmt->bind_param("s", $studentID);
+$enrollStmt->execute();
+$enrollResult = $enrollStmt->get_result();
 
-$enrollments = []; // Array to store all semester and schoolYear values
-
-if ($enrollResult && mysqli_num_rows($enrollResult) > 0) {
-    while ($row = mysqli_fetch_assoc($enrollResult)) {
+if ($enrollResult && $enrollResult->num_rows > 0) {
+    while ($row = $enrollResult->fetch_assoc()) {
         $enrollments[] = [
             'semester' => $row['semester'],
             'schoolYear' => $row['schoolYear']
         ];
     }
 }
+$enrollStmt->close();
 
-// Fetch the department for the student based on the email
-$departmentResult = mysqli_query($connect, "SELECT department FROM studentinfo WHERE email='$email'");
+// Get department from studentinfo
+$departmentStmt = $connect->prepare("SELECT department FROM studentinfo WHERE email = ?");
+$departmentStmt->bind_param("s", $email);
+$departmentStmt->execute();
+$departmentResult = $departmentStmt->get_result();
 
-if (!$departmentResult) {
-    die("Query Failed: " . mysqli_error($connect));
+if (!$departmentResult || $departmentResult->num_rows === 0) {
+    die("No department found for this student.");
 }
 
-if (mysqli_num_rows($departmentResult) > 0) {
-    $row = mysqli_fetch_assoc($departmentResult);
-    $department = $row['department'];
+$row = $departmentResult->fetch_assoc();
+$department = trim($row['department']);
+$_SESSION['department'] = $department;
+$departmentStmt->close();
 
-    $department = trim($department);
+// Get documents related to department
+$documentStmt = $connect->prepare("SELECT * FROM documents_list WHERE department = ?");
+$documentStmt->bind_param("s", $department);
+$documentStmt->execute();
+$documentResult = $documentStmt->get_result();
 
-    $_SESSION['department'] = $department;
-
-    // Fetch documents related to the department
-    $documentQuery = "SELECT * FROM documents_list WHERE department='$department'";
-
-    $documentResult = mysqli_query($connect, $documentQuery);
-
-    if (!$documentResult) {
-        die("Query Failed: " . mysqli_error($connect));
-    }
-
-    // Fetch student's documents
-    $studDocumentQuery = "SELECT * FROM documents WHERE email= '$email'";
-
-    $studDocumentResult = mysqli_query($connect, $studDocumentQuery);
-    if (!$studDocumentResult) {
-        die("Query Failed: " . mysqli_error($connect));
-    }
-
-    // Rearrange the enrollments array to make the active semester the first one
-    usort($enrollments, function ($a, $b) use ($semester, $schoolYear) {
-        // First, place the active semester and school year at the beginning
-        if ($a['semester'] == $semester && $a['schoolYear'] == $schoolYear) {
-            return -1;
-        }
-        if ($b['semester'] == $semester && $b['schoolYear'] == $schoolYear) {
-            return 1;
-        }
-
-        // Then maintain chronological order (assuming "1st Semester" comes before "2nd Semester")
-        $semesterOrder = ['1st Semester', '2nd Semester'];
-        return array_search($a['semester'], $semesterOrder) - array_search($b['semester'], $semesterOrder);
-    });
-
-} else {
-    echo "No department found for this student.<br>";
+if (!$documentResult) {
+    die("Query Failed: " . $connect->error);
 }
+$documentStmt->close();
+
+// Get student documents
+$studDocumentStmt = $connect->prepare("SELECT * FROM documents WHERE email = ?");
+$studDocumentStmt->bind_param("s", $email);
+$studDocumentStmt->execute();
+$studDocumentResult = $studDocumentStmt->get_result();
+
+if (!$studDocumentResult) {
+    die("Query Failed: " . $connect->error);
+}
+$studDocumentStmt->close();
+
+// Sort enrollments putting the active semester/school year first
+usort($enrollments, function ($a, $b) use ($semester, $schoolYear) {
+    if ($a['semester'] == $semester && $a['schoolYear'] == $schoolYear) {
+        return -1;
+    }
+    if ($b['semester'] == $semester && $b['schoolYear'] == $schoolYear) {
+        return 1;
+    }
+
+    $semesterOrder = ['1st Semester', '2nd Semester'];
+    return array_search($a['semester'], $semesterOrder) - array_search($b['semester'], $semesterOrder);
+});
 ?>
+
 
 
 <!DOCTYPE html>

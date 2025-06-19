@@ -2,11 +2,23 @@
     session_start();
     include_once("../includes/connection.php");
 
-    $query="SELECT * FROM department_list";
-    $result=mysqli_query($connect,$query);
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    // ✅ Use prepared statement
+    $stmt = $connect->prepare("SELECT * FROM department_list");
+
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result(); // 🔄 Same $result as before for compatibility
 
     if (!$result) {
-        die("Query failed: " . mysqli_error($connect));
+        die("Query failed: " . $connect->error);
     }
 
     if (mysqli_num_rows($result) == 0) {

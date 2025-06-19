@@ -1,6 +1,11 @@
 <?php
     session_start();
     include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 ?>
 
 <!DOCTYPE html>
@@ -34,8 +39,15 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="dropdowndept">
                                         <?php 
-                                            $queryDept="SELECT * FROM department_list";
-                                            $resultDept=mysqli_query($connect,$queryDept);
+                                            $queryDept = "SELECT * FROM department_list";
+                                            $stmtDept = $connect->prepare($queryDept);
+
+                                            if (!$stmtDept) {
+                                                die("Department Query Preparation Failed: " . $connect->error);
+                                            }
+
+                                            $stmtDept->execute();
+                                            $resultDept = $stmtDept->get_result();
                                             while($rowDept=mysqli_fetch_assoc($resultDept)) {
                                         ?>
                                             <li>

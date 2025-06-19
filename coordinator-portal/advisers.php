@@ -1,9 +1,26 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$query = "select * from listadviser";
-$result = mysqli_query($connect, $query);
+    session_start();
+    include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    // ✅ Use prepared statement for consistency and future safety
+    $stmt = $connect->prepare("SELECT * FROM listadviser");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        die("Query failed: " . $connect->error);
+    }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

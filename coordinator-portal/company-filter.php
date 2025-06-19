@@ -1,15 +1,31 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-if (isset($_GET['dept'])) {
-    $department = $_GET['dept'];
-} else {
-    echo "ERROR!";
-}
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$query = "select * from companylist where dept='{$department}'";
-$result = mysqli_query($connect, $query);
+    if (isset($_GET['dept'])) {
+        $department = $_GET['dept'];
+    } else {
+        die("ERROR!");
+    }
+
+    // ✅ Use prepared statement to protect against SQL injection
+    $stmt = $connect->prepare("SELECT * FROM companylist WHERE dept = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+
+    $stmt->bind_param("s", $department);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        die("Query failed: " . $connect->error);
+    }
 ?>
 
 <!DOCTYPE html>

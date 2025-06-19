@@ -28,9 +28,10 @@ if(isset($_POST['section'])) {
             // Output the counter as part of the row
             echo "<tr>";
             echo "<td class='small'>{$counter}</td>"; // This will output the current value of the counter
-            echo "<td class='small'><a href='' class='info-link' data-section='{$row['studentID']}'>{$row['studentID']}</a></td>";
+            echo "<td class='small'><a href='' class='info-link' data-section='{$row['studentID']}' data-semester='{$row['semester']}' data-schoolyear='{$row['schoolYear']}'>{$row['studentID']}</a></td>";
             echo "<td class='small'>{$row['lastName']} {$row['firstName']}</td>";
             echo "<td class='small'>{$row['year']}</td>";
+            echo "<td class='small'>{$row['semester']} {$row['schoolYear']}</td>";
             echo "</tr>";
     
             // Increment the counter for the next iteration

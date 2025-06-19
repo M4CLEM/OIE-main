@@ -2,11 +2,18 @@
     session_start();
     include_once("../includes/connection.php");
 
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     // Set timezone to correct region
     date_default_timezone_set('Asia/Manila'); // Change this if needed
 
     // Fetch all records
-    $result = mysqli_query($connect, "SELECT * FROM academic_year");
+    $stmt = $connect->prepare("SELECT * FROM academic_year");
+    $stmt->execute();
+    $result = $stmt->get_result();
     if (!$result) {
         die("Query Failed: " . mysqli_error($connect));
     }

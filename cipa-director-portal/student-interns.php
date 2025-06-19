@@ -1,6 +1,11 @@
 <?php
     session_start();
     include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 ?>
 
 <!DOCTYPE html>

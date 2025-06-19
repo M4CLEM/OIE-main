@@ -1,30 +1,22 @@
 <?php 
-session_start();
+	session_start();
 
+	// Unset all session variables
+	$_SESSION = [];
 
-if (isset($_SESSION['student'])) {
-	unset($_SESSION['student']);
-	header("Location:index.php");
-}else if(isset($_SESSION['adviser'])){
-	unset($_SESSION['adviser']);
-	header("Location:index.php");
-}else if(isset($_SESSION['admin'])){
-	unset($_SESSION['admin']);
-	header("Location:index.php");
-}else if(isset($_SESSION['coordinator'])){
-	unset($_SESSION['coordinator']);
-	header("Location:index.php");
-}else if(isset($_SESSION['IndustryPartner'])){
-	unset($_SESSION['IndustryPartner']);
-	if (isset($_SESSION['IP_num'])) {
-		unset($_SESSION['IP_num']);
-		header("Location: index.php");
+	// Destroy session cookie if set
+	if (ini_get("session.use_cookies")) {
+    	$params = session_get_cookie_params();
+    	setcookie(session_name(), '', time() - 42000,
+        	$params["path"], $params["domain"],
+        	$params["secure"], $params["httponly"]
+    	);
 	}
-	header("Location:index.php");
-}
-else if(isset($_SESSION['CIPA'])){
-	unset($_SESSION['CIPA']);
-	header("Location:index.php");
-}
 
- ?>
+	// Destroy the session
+	session_destroy();
+
+	// Redirect to login or home page
+	header("Location: index.php");
+	exit();
+?>

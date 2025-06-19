@@ -1,12 +1,17 @@
 <?php
+    use Symfony\Contracts\Service\Attribute\Required;
+    session_start();
+    include_once("../includes/connection.php"); 
+    
+    if (!isset($_SESSION['student'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-use Symfony\Contracts\Service\Attribute\Required;
-session_start();
-include_once("../includes/connection.php"); 
-
-$activeSemester = $_SESSION['semester'];
-$activeSchoolYear = $_SESSION['schoolYear'];
+    $activeSemester = $_SESSION['semester'];
+    $activeSchoolYear = $_SESSION['schoolYear'];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

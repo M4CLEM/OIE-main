@@ -2,12 +2,22 @@
     session_start();
     include_once("../includes/connection.php");
 
-    $dept = $_GET['dept'];
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-    $query="select * from department_list where department='{$dept}'";
-    $result=mysqli_query($connect,$query);
-    $rows=mysqli_fetch_assoc($result);
-    
+    $dept = isset($_GET['dept']) ? $_GET['dept'] : '';
+
+    $stmt = $connect->prepare("SELECT * FROM department_list WHERE department = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+    $stmt->bind_param("s", $dept);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $rows = mysqli_fetch_assoc($result); // ✅ Preserved functionality
 ?>
 
 <!DOCTYPE html>
@@ -59,9 +69,6 @@
                                     <div class="card shadow mb-4">
                                         <div class="card-header py-3 d-flex justify-content-between">
                                             <h4 class="m-0 font-weight-bold text-dark">List of Courses</h4> 
-
-                                           
-
                                             <a href='#' class='btn btn-primary btn-sm' data-toggle='modal' data-target='#addModal'>  
                                                 <i class='fa fa-plus-circle fw-fa'></i> Add Course
                                             </a>
@@ -82,8 +89,13 @@
 
                                                             <?php 
 
-                                                            $querySection="SELECT * FROM course_list WHERE department='{$dept}'";
-                                                            $resultSection=mysqli_query($connect,$querySection);
+                                                            $stmtSection = $connect->prepare("SELECT * FROM course_list WHERE department = ?");
+                                                            if (!$stmtSection) {
+                                                                die("Section Query Preparation Failed: " . $connect->error);
+                                                            }
+                                                            $stmtSection->bind_param("s", $dept);
+                                                            $stmtSection->execute();
+                                                            $resultSection = $stmtSection->get_result();
                                                                     
                                                             while($rowsSection=mysqli_fetch_assoc($resultSection))
                                                             {

@@ -2,6 +2,11 @@
     session_start();
     include("../includes/connection.php");
 
+    if (!isset($_SESSION['adviser'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     $email = $_SESSION['adviser'];
     $activeSemester = $_SESSION['semester'];
     $activeSchoolYear = $_SESSION['schoolYear'];
@@ -85,8 +90,16 @@
                                         <div class="input-group input-group-sm mb-2">
                                             <?php
                                                 // Assuming $connect is your mysqli connection object
-                                                $getsections = "SELECT section FROM listadviser WHERE email = '$email' AND semester = '$activeSemester' AND schoolYear = '$activeSchoolYear'";
-                                                $sections = mysqli_query($connect, $getsections);
+                                                $getsections = "SELECT section FROM listadviser WHERE email = ? AND semester = ? AND schoolYear = ?";
+                                                $stmt = $connect->prepare($getsections);
+
+                                                if ($stmt) {
+                                                    $stmt->bind_param("sss", $email, $activeSemester, $activeSchoolYear);
+                                                    $stmt->execute();
+                                                    $sections = $stmt->get_result();
+                                                } else {
+                                                    die("Query preparation failed: " . $connect->error);
+                                                }
 
                                                 // Check if query was successful
                                                 if ($sections) {

@@ -3,6 +3,11 @@
     // Include the database connection file from the parent directory
     include_once("../includes/connection.php");
 
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     // Get the department value stored in the session
     $department = $_SESSION['department'];
     $activeSemester = $_SESSION['semester'];

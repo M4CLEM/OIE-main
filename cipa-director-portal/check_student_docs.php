@@ -1,8 +1,21 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$query = "select * from department_list";
-$result = mysqli_query($connect, $query);
+    session_start();
+    include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    $query = "SELECT * FROM department_list";
+    $stmt = $connect->prepare($query);
+
+    if ($stmt) {
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        die("Preparation failed: " . $connect->error);
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -95,6 +108,7 @@ $result = mysqli_query($connect, $query);
                                                     <th scope="col" class="small">STUDENT NUMBER</th>
                                                     <th scope="col" class="small">NAME</th>
                                                     <th scope="col" class="small">YEAR LEVEL</th>
+                                                    <th scope="col" class="small">ACADEMIC YEAR</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -348,13 +362,15 @@ $result = mysqli_query($connect, $query);
             });
         }
 
-        function fetchStudentDocuments(studentID) {
+        function fetchStudentDocuments(studentID, semester, schoolYear) {
             // AJAX call to fetch documents based on studentID
             $.ajax({
                 url: 'functions/fetch_stud_docs.php', // Path to PHP script that fetches documents
                 method: 'POST',
                 data: {
-                    studentID: studentID
+                    studentID: studentID,
+                    semester: semester,
+                    schoolYear: schoolYear
                 },
                 success: function(response) {
                     // Update the docsTable tbody with the fetched documents
@@ -383,6 +399,8 @@ $result = mysqli_query($connect, $query);
         $(document).on('click', '.info-link', function(e) {
             e.preventDefault();
             var studentID = $(this).data('section');
+            var semester = $(this).data('semester');
+            var schoolYear = $(this).data('schoolyear');
             //console.log(studentID);
             // Show SweetAlert2 alert with loading animation
             Swal.fire({
@@ -404,7 +422,7 @@ $result = mysqli_query($connect, $query);
                             timer: 2000
                         });
                         fetchAndUpdateStudentInfo(studentID);
-                        fetchStudentDocuments(studentID)
+                        fetchStudentDocuments(studentID, semester, schoolYear)
                     }, 2000); // Simulated loading delay of 2 seconds
                 }
             });

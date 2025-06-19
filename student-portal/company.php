@@ -1,20 +1,25 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-// Check if department session is set
-if (!isset($_SESSION['department'])) {
-    die("Error: Department session is not set.");
-}
+    if (!isset($_SESSION['student'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$department = $_SESSION['department']; // Get the department of the logged-in student
+    // Check if department session is set
+    if (!isset($_SESSION['department'])) {
+        die("Error: Department session is not set.");
+    }
 
-// Query to filter companies based on the department
-$query = "SELECT * FROM companylist WHERE dept = ?";
-$stmt = $connect->prepare($query);
-$stmt->bind_param("s", $department);
-$stmt->execute();
-$companyResult = $stmt->get_result();
+    $department = $_SESSION['department']; // Get the department of the logged-in student
+
+    // Query to filter companies based on the department
+    $query = "SELECT * FROM companylist WHERE dept = ?";
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param("s", $department);
+    $stmt->execute();
+    $companyResult = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>

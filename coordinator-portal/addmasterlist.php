@@ -1,8 +1,24 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
-$result=mysqli_query($connect,"SELECT * FROM studentinfo WHERE status = 'ENROLLED'");
+    session_start();
+    include_once("../includes/connection.php");
+
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
+    // ✅ Use prepared statement for safety and consistency
+    $stmt = $connect->prepare("SELECT * FROM studentinfo WHERE status = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
+
+    $status = 'ENROLLED';
+    $stmt->bind_param("s", $status);
+    $stmt->execute();
+    $result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

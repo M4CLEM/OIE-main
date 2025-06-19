@@ -2,15 +2,27 @@
 session_start();
 include_once("../includes/connection.php"); 
 
+if (!isset($_SESSION['student'])) {
+    header("Location: ../logout.php");
+    exit();
+}
+
 $email = $_SESSION['student'];
 $department = $_SESSION['department'];
 
-$studNumberResult = mysqli_query($connect, "SELECT studentID FROM studentinfo WHERE email = '$email'");
+// Fetch studentID using prepared statement
+$studNumberStmt = $connect->prepare("SELECT studentID FROM studentinfo WHERE email = ?");
+$studNumberStmt->bind_param("s", $email);
+$studNumberStmt->execute();
+$studNumberResult = $studNumberStmt->get_result();
 
-if ($studNumberResult && mysqli_num_rows($studNumberResult) > 0) {
-    $row = mysqli_fetch_assoc($studNumberResult);
+if ($studNumberResult && $studNumberResult->num_rows > 0) {
+    $row = $studNumberResult->fetch_assoc();
     $studentID = $row['studentID'];
-} 
+} else {
+    die("Student not found.");
+}
+$studNumberStmt->close();
 
 // Fetch unique semesters and school years for tabs
 $enrollmentsQuery = "SELECT DISTINCT semester, schoolYear FROM student_masterlist WHERE studentID = ? ORDER BY schoolYear DESC, semester DESC";
@@ -20,6 +32,7 @@ $stmt->execute();
 $enrollmentsResult = $stmt->get_result();
 $enrollments = $enrollmentsResult->fetch_all(MYSQLI_ASSOC);
 
+$stmt->close();
 ?>
 
 <!DOCTYPE html>

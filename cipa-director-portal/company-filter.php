@@ -1,23 +1,40 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-if (isset($_GET['dept'])) {
-    $department = $_GET['dept'];
-} else {
-    echo "ERROR!";
-}
+    if (!isset($_SESSION['CIPA'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-$query = "select * from companylist where dept='{$department}'";
-$result = mysqli_query($connect, $query);
+    if (isset($_GET['dept'])) {
+        $department = $_GET['dept'];
+    } else {
+        echo "ERROR!";
+        exit(); // Important: stop execution if there's an error
+    }
 
-$departmentQuery = "SELECT * FROM department_list";
-$departmentResult = mysqli_query($connect, $departmentQuery);
+    // ✅ Securely query companylist using prepared statement
+    $stmt = $connect->prepare("SELECT * FROM companylist WHERE dept = ?");
+    if (!$stmt) {
+        die("Company Query Preparation Failed: " . $connect->error);
+    }
+    $stmt->bind_param("s", $department);
+    $stmt->execute();
+    $result = $stmt->get_result(); // 🔄 Keep using $result like before
 
-$departments = [];
-while ($row = mysqli_fetch_assoc($departmentResult)) {
-    $departments[] = $row;
-}
+    // ✅ Securely query department_list (no user input, but using prepare() for consistency)
+    $departmentStmt = $connect->prepare("SELECT * FROM department_list");
+    if (!$departmentStmt) {
+        die("Department Query Preparation Failed: " . $connect->error);
+    }
+    $departmentStmt->execute();
+    $departmentResult = $departmentStmt->get_result();
+
+    $departments = [];
+    while ($row = mysqli_fetch_assoc($departmentResult)) {
+        $departments[] = $row;
+    }
 ?>
 
 <!DOCTYPE html>

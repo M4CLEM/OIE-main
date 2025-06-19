@@ -4,11 +4,13 @@ include_once("../../includes/connection.php");
 
 if (isset($_POST['studentID'])) {
     $studentID = $_POST['studentID'];
+    $semester = $_POST['semester'];
+    $schoolYear = $_POST['schoolYear'];
 
     // Query to select only the document-related fields for the given studentID
-    $query = "SELECT * FROM documents WHERE student_ID = ?";
+    $query = "SELECT * FROM documents WHERE student_ID = ? AND semester = ? AND schoolYear = ?";
     $stmt = mysqli_prepare($connect, $query);
-    mysqli_stmt_bind_param($stmt, "s", $studentID);
+    mysqli_stmt_bind_param($stmt, "sss", $studentID, $semester, $schoolYear);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 

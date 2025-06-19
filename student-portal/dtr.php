@@ -1,69 +1,72 @@
 <?php
-session_start();
-include_once("../includes/connection.php");
+    session_start();
+    include_once("../includes/connection.php");
 
-$semester = $_SESSION['semester'];
-$schoolYear = $_SESSION['schoolYear'];
+    if (!isset($_SESSION['student'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
 
-include("includes/logs.php");
-date_default_timezone_set('Asia/Manila'); // Set correct timezone
+    $semester = $_SESSION['semester'];
+    $schoolYear = $_SESSION['schoolYear'];
 
-$post = new updatelogs();
+    include("includes/logs.php");
+    date_default_timezone_set('Asia/Manila'); // Set correct timezone
 
-$uname = $_SESSION['student'];
+    $post = new updatelogs();
 
-$sql = "SELECT * FROM studentinfo WHERE email = '$uname' AND semester = '$semester' AND school_year = '$schoolYear'";
-$result = mysqli_query($connect, $sql);
+    $uname = $_SESSION['student'];
 
-if (mysqli_num_rows($result) == 1) {
+    // Use prepared statement to fetch student info
+    $sql = "SELECT * FROM studentinfo WHERE email = ? AND semester = ? AND school_year = ?";
+    $stmt = $connect->prepare($sql);
+    $stmt->bind_param("sss", $uname, $semester, $schoolYear);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    $row = mysqli_fetch_assoc($result);
-    $_SESSION['stud_code'] = $row['studentID'];
-    $_SESSION['stud_first'] = $row['firstname'];
-    $_SESSION['stud_mid'] = $row['middlename'];
-    $_SESSION['stud_last'] = $row['lastname'];
-    $_SESSION['stud_dept'] = $row['department'];
-    $_SESSION['stud_course'] = $row['course'];
-    $_SESSION['stud_section'] = $row['section'];
-    $_SESSION['stud_company'] = $row['companyCode'];
-    $_SESSION['stud_SY'] = $row['school_year'];
-    $_SESSION['stud_image'] = $row['image'];
-}
+    if ($result && $result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        $_SESSION['stud_code'] = $row['studentID'];
+        $_SESSION['stud_first'] = $row['firstname'];
+        $_SESSION['stud_mid'] = $row['middlename'];
+        $_SESSION['stud_last'] = $row['lastname'];
+        $_SESSION['stud_dept'] = $row['department'];
+        $_SESSION['stud_course'] = $row['course'];
+        $_SESSION['stud_section'] = $row['section'];
+        $_SESSION['stud_company'] = $row['companyCode'];
+        $_SESSION['stud_SY'] = $row['school_year'];
+        $_SESSION['stud_image'] = $row['image'];
+    }
 
-$timeNow = date('Y-m-d H:i:s'); // This will now match Asia/Manila timezone
+    $timeNow = date('Y-m-d H:i:s'); // Asia/Manila time
 
-$studentNumber = $_SESSION['stud_code'];
-$firstName = $_SESSION['stud_first'];
-$middleName = $_SESSION['stud_mid'];
-$surName = $_SESSION['stud_last'];
-$dept = $_SESSION['stud_dept'];
-$course = $_SESSION['stud_course'];
-$section = $_SESSION['stud_section'];
-$companyCode = $_SESSION['stud_company'];
-$schoolYear = $_SESSION['stud_SY'];
-$image = $_SESSION['stud_image'];
-$currentTime = date("h:i:sa");
-$logState = "";
+    $studentNumber = $_SESSION['stud_code'];
+    $firstName = $_SESSION['stud_first'];
+    $middleName = $_SESSION['stud_mid'];
+    $surName = $_SESSION['stud_last'];
+    $dept = $_SESSION['stud_dept'];
+    $course = $_SESSION['stud_course'];
+    $section = $_SESSION['stud_section'];
+    $companyCode = $_SESSION['stud_company'];
+    $schoolYear = $_SESSION['stud_SY'];
+    $image = $_SESSION['stud_image'];
+    $currentTime = date("h:i:sa");
+    $logState = "";
 
+    // Use prepared statement to check log status
+    $logQuery = "SELECT status FROM logdata WHERE student_num = ? ORDER BY date DESC, time_in DESC LIMIT 1";
+    $logStmt = $connect->prepare($logQuery);
+    $logStmt->bind_param("s", $studentNumber);
+    $logStmt->execute();
+    $logResult = $logStmt->get_result();
 
-
-$data_query =  mysqli_query($connect, "SELECT status FROM logdata WHERE student_num='$studentNumber' 
-                                    ORDER BY date DESC, time_in DESC LIMIT 1");
-
-if (!$data_query) {
-    die('SQL Error: ' . mysqli_error($connect));
-}
-
-$row = mysqli_fetch_array($data_query);
-
-if ($row !== null) {
-    $logState = $row['status'];
-} else {
-    $logState = "In";
-}
-
+    if ($logResult && $logResult->num_rows > 0) {
+        $logRow = $logResult->fetch_assoc();
+        $logState = $logRow['status'];
+    } else {
+        $logState = "In";
+    }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">

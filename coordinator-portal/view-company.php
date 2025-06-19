@@ -2,15 +2,32 @@
     session_start();
     include_once("../includes/connection.php");
 
+    if (!isset($_SESSION['coordinator'])) {
+        header("Location: ../logout.php");
+        exit();
+    }
+
     $companyNum = $_GET['number'];
     $department = isset($_GET['dept']) ? $_GET['dept'] : '';
 
-    $query="select * from companylist where No={$companyNum}";
-    $result=mysqli_query($connect,$query);
-    $rows=mysqli_fetch_assoc($result);
+    // ✅ Use prepared statement to prevent SQL injection
+    $stmt = $connect->prepare("SELECT * FROM companylist WHERE No = ?");
+    if (!$stmt) {
+        die("Query preparation failed: " . $connect->error);
+    }
 
-    $targetPage = $department !== '' ? 'company-filter.php?dept=' . $department : 'company.php';
+    $stmt->bind_param("i", $companyNum); // 'i' for integer
+    $stmt->execute();
+    $result = $stmt->get_result();
 
+    if (!$result) {
+        die("Query failed: " . $connect->error);
+    }
+
+    $rows = mysqli_fetch_assoc($result);
+
+    // Maintain target page logic
+    $targetPage = $department !== '' ? 'company-filter.php?dept=' . urlencode($department) : 'company.php';
 ?>
 
 <!DOCTYPE html>
