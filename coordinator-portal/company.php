@@ -51,7 +51,7 @@
             <!-- Topbar -->
             <nav class="navbar navbar-expand navbar-light bg-white topbar static-top shadow mb-3">
                 <!-- Dashboard Title -->
-                <h2 class="my-0 mr-auto font-weight-bold text-dark ml-3">Company</h2>
+                <h4 class="my-0 mr-auto font-weight-bold text-dark ml-3">Company</h2>
                 <?php include('../elements/cood_navbar_user_info.php')?>
             </nav>
             <!-- End of Topbar -->

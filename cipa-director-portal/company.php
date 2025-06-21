@@ -48,14 +48,11 @@
     <!-- Page Wrapper -->
     <div id="wrapper">
 
-        <!-- Sidebar Wrapper -->
-        <div class="wrapper">
             <aside id="sidebar" class="expand">
                 <?php include('../elements/cipa_sidebar.php') ?>
             </aside>
 
 
-        </div>
 
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">

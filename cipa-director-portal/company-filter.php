@@ -58,10 +58,8 @@
             <?php include('../elements/cipa_sidebar.php') ?>
         </aside>
 
-        <div class="main py-3">
+        <div class="main">
 
-            <!-- Content Wrapper -->
-            <div id="content-wrapper" class="d-flex flex-column">
 
                 <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar static-top shadow mb-3">
@@ -125,7 +123,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
 
 

@@ -49,8 +49,6 @@
 
         <div class="main">
 
-            <!-- Content Wrapper -->
-            <div id="content-wrapper" class="d-flex flex-column">
             <!-- Topbar -->
             <nav class="navbar navbar-expand navbar-light bg-white topbar static-top shadow mb-3">
                 <!-- Dashboard Title -->
@@ -108,7 +106,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 
    <!-- add Modal-->
