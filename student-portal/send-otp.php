@@ -11,45 +11,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-use Swift\Mailer;
-use Swift\Message;
-use Swift\SmtpTransport;
-
-/**
- * Attempts to create a working SwiftMailer instance by trying ports 587, 465, and 25.
- */
-function createWorkingMailer($host, $username, $password) {
-    $ports = [
-        ['port' => 587, 'encryption' => 'tls'],
-        ['port' => 465, 'encryption' => 'ssl'],
-        ['port' => 25, 'encryption' => null]
-    ];
-
-    foreach ($ports as $config) {
-        try {
-            $transport = (new Swift_SmtpTransport($host, $config['port'], $config['encryption']))
-                ->setUsername($username)
-                ->setPassword($password)
-                ->setStreamOptions([
-                    'ssl' => [
-                        'verify_peer' => false,
-                        'verify_peer_name' => false,
-                        'allow_self_signed' => true
-                    ]
-                ]);
-
-            $mailer = new Swift_Mailer($transport);
-            $mailer->getTransport()->start(); // Test connection
-            return $mailer;
-        } catch (Exception $e) {
-            error_log("SMTP failed on port {$config['port']}: " . $e->getMessage());
-            continue;
-        }
-    }
-
-    throw new Exception("All SMTP ports failed. Check your credentials or network.");
-}
-
 try {
     if (isset($_POST['send'])) {
         $email = isset($_GET['email']) ? $_GET['email'] : '';
@@ -58,7 +19,7 @@ try {
             exit;
         }
 
-        // Optional: check if user exists
+        // Check if user exists
         $query = "SELECT username FROM users WHERE username = ?";
         $stmt = $connect->prepare($query);
         if (!$stmt) {
@@ -77,18 +38,20 @@ try {
         $otp = mt_rand(100000, 999999);
         $_SESSION['otp'] = $otp;
 
-        // SMTP credentials
-        $smtpEmail = 'cipa@plmun.edu.ph'; // App email
-        $smtpPassword = 'oaoybffujhnigslm'; // App password
+        // Brevo API key (must start with xkeysib-)
+        $apiKey = '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'; // ← Replace this
 
-        // Use port-rotating mailer
-        $mailer = createWorkingMailer('smtp.gmail.com', $smtpEmail, $smtpPassword);
-
-        // Create email message
-        $message = (new Swift_Message('OTP Verification Code'))
-            ->setFrom([$smtpEmail => 'PLMUN OIE'])
-            ->setTo([$email])
-            ->setBody('
+        // Brevo API payload
+        $data = [
+            'sender' => [
+                'name' => 'PLMUN OIE',
+                'email' => 'cipa@plmun.edu.ph' // ← Must be verified in Brevo
+            ],
+            'to' => [
+                ['email' => $email]
+            ],
+            'subject' => 'OTP Verification Code',
+            'htmlContent' => '
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -107,23 +70,39 @@ try {
                         </div>
                     </div>
                 </body>
-                </html>', 'text/html');
+                </html>'
+        ];
 
-        $result = $mailer->send($message);
+        // Send via Brevo API
+        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'api-key: ' . $apiKey
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-        echo '
-        <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050; width: 100%; max-width: 600px;">
-            <div class="alert alert-success d-flex align-items-center justify-content-center shadow" role="alert">
-                <svg xmlns="http://www.w3.org/2000/svg" class="bi flex-shrink-0 me-2" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.07 0l4.992-4.992a.75.75 0 0 0-1.06-1.06L7.5 9.439 5.53 7.47a.75.75 0 0 0-1.06 1.06l2.5 2.5z"/>
-                </svg>
-                <div>
-                    Send OTP successfully. Please check your Gmail.
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode == 201) {
+            echo '
+            <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050; width: 100%; max-width: 600px;">
+                <div class="alert alert-success d-flex align-items-center justify-content-center shadow" role="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="bi flex-shrink-0 me-2" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.07 0l4.992-4.992a.75.75 0 0 0-1.06-1.06L7.5 9.439 5.53 7.47a.75.75 0 0 0-1.06 1.06l2.5 2.5z"/>
+                    </svg>
+                    <div>
+                        Send OTP successfully. Please check your email.
+                    </div>
                 </div>
-            </div>
-        </div>';
+            </div>';
+        } else {
+            echo '<div class="alert alert-danger">Error sending OTP: ' . htmlspecialchars($response) . '</div>';
+        }
     }
 } catch (Exception $e) {
-    echo '<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>';
+    echo '<div class="alert alert-danger">Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
 }
 ?>

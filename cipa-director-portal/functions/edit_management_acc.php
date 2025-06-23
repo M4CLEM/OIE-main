@@ -1,10 +1,7 @@
 <?php
 session_start();
 include_once("../../includes/connection.php");
-require '../../vendor/autoload.php'; // Make sure PHPMailer is installed via Composer
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+require '../../vendor/autoload.php';
 
 header("Content-Type: application/json");
 
@@ -81,47 +78,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $passUserStmt->execute();
             $passUserStmt->close();
 
-            // Send email with new credentials
-            $smtpHost = 'smtp.gmail.com';
-            $smtpUser = 'cipa@plmun.edu.ph';
-            $smtpPass = 'oaoybffujhnigslm';
-            $smtpPorts = [
-                ['port' => 587, 'secure' => 'tls'],
-                ['port' => 465, 'secure' => 'ssl'],
-                ['port' => 25, 'secure' => 'tls']
+            // ✅ Send email using Brevo API
+            $brevoApiKey = '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'; // replace with your actual Brevo API key
+
+            $roleDisplay = ucfirst(strtolower($role));
+            $emailBody = "
+                <p>Hello <strong>$name</strong>,</p>
+                <p>Your <strong>$roleDisplay</strong> account credentials have been reset.</p>" .
+                ($role !== 'CIPA' ? "<p><strong>Department:</strong> $department</p>" : "") .
+                "<p><strong>Login Email:</strong> $email<br>
+                <strong>New Password:</strong> $plainPassword</p>
+                <p>Please log in and change your password immediately.</p>
+                <p>Thank you,<br>CIPA Admin</p>";
+
+            $brevoPayload = [
+                'sender' => [
+                    'name' => 'CIPA Admin',
+                    'email' => 'cipa@plmun.edu.ph' // Must be verified in Brevo
+                ],
+                'to' => [
+                    ['email' => $email, 'name' => $name]
+                ],
+                'subject' => "Updated Credentials for Your $roleDisplay Account",
+                'htmlContent' => $emailBody
             ];
 
-            $sent = false;
-            foreach ($smtpPorts as $config) {
-                try {
-                    $mail = new PHPMailer(true);
-                    $mail->isSMTP();
-                    $mail->Host = $smtpHost;
-                    $mail->SMTPAuth = true;
-                    $mail->Username = $smtpUser;
-                    $mail->Password = $smtpPass;
-                    $mail->SMTPSecure = $config['secure'];
-                    $mail->Port = $config['port'];
+            $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'api-key: ' . $brevoApiKey
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($brevoPayload));
 
-                    $mail->setFrom($smtpUser, 'CIPA Admin');
-                    $mail->addAddress($email, $name);
-                    $mail->isHTML(true);
-                    $mail->Subject = "Updated Credentials for Your $role Account";
-                    $mail->Body = "
-                        <p>Hello <strong>$name</strong>,</p>
-                        <p>Your <strong>$role</strong> account credentials have been reset.</p>
-                        <p><strong>Department:</strong> $department</p>
-                        <p><strong>Login Email:</strong> $email<br>
-                        <strong>New Password:</strong> $plainPassword</p>
-                        <p>Please log in and change your password immediately.</p>
-                        <p>Thank you,<br>CIPA Admin</p>
-                    ";
-                    $mail->send();
-                    $sent = true;
-                    break;
-                } catch (Exception $e) {
-                    continue;
-                }
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode != 201) {
+                error_log("Brevo API Error [$httpCode]: $response");
+                // You can also notify the frontend if needed
             }
         }
 
@@ -132,5 +128,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     echo json_encode(["status" => "error", "message" => "Update failed."]);
     exit();
 }
+
 $connect->close();
-?>

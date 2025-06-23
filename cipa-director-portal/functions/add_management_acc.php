@@ -1,10 +1,7 @@
 <?php
 session_start();
 include_once("../../includes/connection.php");
-require '../../vendor/autoload.php'; // PHPMailer via Composer
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+require '../../vendor/autoload.php';
 
 header("Content-Type: application/json");
 
@@ -15,29 +12,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $employeeNumber = trim($_POST['employeenumber']);
     $department = ($role === "CIPA") ? null : trim($_POST['department']);
 
-    // Validate required fields
     if (empty($name) || empty($email) || empty($role) || empty($employeeNumber) || ($role !== "CIPA" && empty($department))) {
         echo json_encode(["status" => "error", "message" => "Please fill all required fields."]);
         exit();
     }
 
-    // Check if email already exists in either table
+    // Check if email exists
     $emailCheckQuery = "SELECT email FROM staff_list WHERE email = ? UNION SELECT username FROM users WHERE username = ?";
     $emailCheckStmt = $connect->prepare($emailCheckQuery);
     $emailCheckStmt->bind_param("ss", $email, $email);
     $emailCheckStmt->execute();
     $emailCheckStmt->store_result();
-
     if ($emailCheckStmt->num_rows > 0) {
         echo json_encode(["status" => "error", "message" => "Email is already in use."]);
         exit();
     }
     $emailCheckStmt->close();
 
-    // Generate random password and hash it
-    $plainPassword = bin2hex(random_bytes(4)); // 8-character password
+    // Generate password
+    $plainPassword = bin2hex(random_bytes(4));
 
-    // Insert into staff_list
+    // Insert staff
     if ($role === "CIPA") {
         $stmt = $connect->prepare("INSERT INTO staff_list (employeeNumber, name, email, password, role) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("sssss", $employeeNumber, $name, $email, $plainPassword, $role);
@@ -51,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 
-    // Insert into users table
+    // Insert user login
     if ($role === "CIPA") {
         $accStmt = $connect->prepare("INSERT INTO users (username, role, password) VALUES (?, ?, ?)");
         $accStmt->bind_param("sss", $email, $role, $plainPassword);
@@ -64,79 +59,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo json_encode(["status" => "error", "message" => "Database error: " . $accStmt->error]);
         exit();
     }
+
     $accStmt->close();
 
-    // Send email with PHPMailer + SMTP with port fallback
-    $mail = new PHPMailer(true);
-
-    $smtpHost = 'smtp.gmail.com';          // ← REPLACE with your SMTP host
-    $smtpUser = 'cipa@plmun.edu.ph';    // ← REPLACE with your SMTP username/email
-    $smtpPass = 'oaoybffujhnigslm';       // ← REPLACE with your SMTP password
-
-    $smtpPorts = [
-        ['port' => 587, 'secure' => 'tls'],
-        ['port' => 465, 'secure' => 'ssl'],
-        ['port' => 25,  'secure' => 'tls'],
-    ];
-
-    $sent = false;
-
-    // Optional: Better display labels for roles
+    // Role label
     $roleLabelMap = [
         "CIPA" => "CIPA Director",
         "Coordinator" => "Coordinator",
-        // Add more roles if needed
+    ];
+    $roleDisplay = $roleLabelMap[$role] ?? ucfirst(strtolower($role));
+
+    // Brevo API send
+    $apiKey = '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'; // replace with your API key
+
+    $emailBody = "
+        <p>Hello <strong>$name</strong>,</p>
+        <p>Your <strong>$roleDisplay</strong> account has been created.</p>
+        <p><strong>Login Email:</strong> $email<br>
+        <strong>Password:</strong> $plainPassword</p>
+        <p>Please log in and change your password immediately.</p>
+        <p>Thank you,<br>CIPA Admin</p>
+    ";
+
+    $data = [
+        'sender' => [
+            'name' => 'CIPA Admin',
+            'email' => 'cipa@plmun.edu.ph' // Must be verified in Brevo
+        ],
+        'to' => [
+            ['email' => $email, 'name' => $name]
+        ],
+        'subject' => "$roleDisplay Account Created | OJT Portal",
+        'htmlContent' => $emailBody
     ];
 
-    $roleDisplay = isset($roleLabelMap[$role]) ? $roleLabelMap[$role] : ucfirst(strtolower($role));
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'api-key: ' . $apiKey
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    $responseRaw = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-    // Attempt sending email using multiple SMTP ports
-    foreach ($smtpPorts as $config) {
-        try {
-            $mail->isSMTP();
-            $mail->Host = $smtpHost;
-            $mail->SMTPAuth = true;
-            $mail->Username = $smtpUser;
-            $mail->Password = $smtpPass;
-            $mail->SMTPSecure = $config['secure'];
-            $mail->Port = $config['port'];
-
-            $mail->setFrom($smtpUser, 'CIPA Admin');
-            $mail->addAddress($email, $name);
-            $mail->isHTML(true);
-
-            // ✅ Dynamic subject based on role
-            $mail->Subject = "$roleDisplay Account Created | OJT Portal";
-
-            // ✅ Dynamic body with role-based message
-            $mail->Body = "
-            <p>Hello <strong>$name</strong>,</p>
-            <p>Your <strong>$roleDisplay</strong> account has been created.</p>
-            
-            <p><strong>Login Email:</strong> $email<br>
-            <strong>Password:</strong> $plainPassword</p>
-            <p>Please log in and change your password immediately.</p>
-            <p>Thank you,<br>CIPA Admin</p>
-        ";
-
-            $mail->send();
-            $sent = true;
-            break; // stop on successful send
-        } catch (Exception $e) {
-            // fail silently and try next config
-            continue;
-        }
-    }
-
-
-    if ($sent) {
+    if ($httpCode == 201) {
         echo json_encode(["status" => "success", "message" => "Account created and password sent via email."]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Account created, but failed to send email on all ports."]);
+        echo json_encode(["status" => "error", "message" => "Account created, but failed to send email. Brevo: $responseRaw"]);
     }
 
     $stmt->close();
     $connect->close();
-    exit();
 }
 ?>
