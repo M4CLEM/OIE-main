@@ -8,6 +8,9 @@ session_start();
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../../includes/connection.php';
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
 
@@ -17,51 +20,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Generate 6-digit OTP and store in session
+    // Generate 6-digit OTP
     $otp = random_int(100000, 999999);
     $_SESSION['otp'] = $otp;
     $_SESSION['otp_created_at'] = time();
     $_SESSION['otp_verified'] = false;
 
-    // Your Brevo API key
-    $apiKey = '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';
+    $mail = new PHPMailer(true);
+    $smtpHost = 'smtp.gmail.com'; // <-- replace with your SMTP server hostname
+    $username = 'cipa@plmun.edu.ph';
+    $password = 'dogebwgizyidnura';
 
-    // Build the Brevo API payload
-    $data = [
-        'sender' => [
-            'name' => 'PLMUN CIPA',
-            'email' => 'cipa@plmun.edu.ph' // ← Must be verified in Brevo
-        ],
-        'to' => [
-            ['email' => $email]
-        ],
-        'subject' => 'Your OTP Code',
-        'htmlContent' => "
-            <p>Hello,</p>
-            <p>Your OTP code is: <strong>$otp</strong></p>
-            <p>This code will expire in 2 minutes.</p>
-            <p>Regards,<br>PLMUN OJT Portal</p>
-        "
+    // List of SMTP configs to try (port, security)
+    $smtpConfigs = [
+        ['port' => 587, 'security' => 'tls'],
+        ['port' => 465, 'security' => 'ssl'],
+        ['port' => 25,  'security' => ''],   // no encryption
     ];
 
-    // Send the request to Brevo API
-    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'api-key: ' . $apiKey
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    $sent = false;
+    $lastError = '';
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    foreach ($smtpConfigs as $config) {
+        try {
+            $mail->clearAllRecipients();
+            $mail->clearAttachments();
 
-    // Handle response
-    if ($httpCode == 201) {
-        echo "OTP sent!";
-    } else {
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $username;
+            $mail->Password = $password;
+            $mail->SMTPSecure = $config['security'];
+            $mail->Port = $config['port'];
+
+            $mail->setFrom($username, 'OJT Portal');
+            $mail->addAddress($email);
+            $mail->Subject = 'Your OTP Code';
+            $mail->isHTML(true);
+            $mail->Body = "Your OTP code is: <strong>$otp</strong><br><br>This code will expire in 2 minutes.";
+
+
+            $mail->send();
+            $sent = true;
+            echo "OTP sent!";
+            break;  // stop trying after successful send
+        } catch (Exception $e) {
+            $lastError = $mail->ErrorInfo;
+            // try next config
+        }
+    }
+
+    if (!$sent) {
         http_response_code(500);
-        echo "Failed to send OTP. Brevo response: $response";
+        echo "Failed to send OTP. Last error: $lastError";
     }
 }

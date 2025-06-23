@@ -1,6 +1,9 @@
 <?php
 include_once("../../includes/connection.php");
-require '../../vendor/autoload.php'; // Composer autoload (keep it if you use other packages)
+require '../../vendor/autoload.php'; // PHPMailer via Composer
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 header("Content-Type: application/json");
 
@@ -8,11 +11,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = $_POST["id"];
     $companyName = mysqli_real_escape_string($connect, $_POST["editCompanyName"]);
     $email = mysqli_real_escape_string($connect, $_POST["editEmail"]);
-    $resetPassword = isset($_POST["resetPassword"]);
+    $resetPassword = isset($_POST["resetPassword"]) ? true : false;
 
+    // Build base query
     if ($resetPassword) {
-        $plainPassword = bin2hex(random_bytes(4)); // Generate 8-character password
-        $query = "UPDATE users SET companyName='$companyName', username='$email', password='$plainPassword' WHERE id='$id'";
+        // Generate new password
+        $plainPassword = bin2hex(random_bytes(4)); // 8-char
+        $password = $plainPassword;
+
+        $query = "UPDATE users SET companyName='$companyName', username='$email', password='$password' WHERE id='$id'";
     } else {
         $query = "UPDATE users SET companyName='$companyName', username='$email' WHERE id='$id'";
     }
@@ -22,48 +29,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    
+    // If password was reset, send email
     if ($resetPassword) {
-        $brevoApiKey = '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'; // Replace with your API key
+        $mail = new PHPMailer(true);
 
-        $emailBody = "
-            <p>Hello <strong>$companyName</strong>,</p>
-            <p>Your account credentials have been updated. Here are your new login details:</p>
-            <p><strong>Email:</strong> $email<br>
-            <strong>Password:</strong> $plainPassword</p>
-            <p>Please log in and change your password immediately.</p>
-            <p>Thank you,<br>CIPA Admin</p>
-        ";
+        $smtpHost = 'smtp.gmail.com';
+        $smtpUser = 'cipa@plmun.edu.ph';
+        $smtpPass = 'dogebwgizyidnura';
 
-        $payload = [
-            'sender' => [
-                'name' => 'CIPA Admin',
-                'email' => 'cipa@plmun.edu.ph'
-            ],
-            'to' => [
-                ['email' => $email, 'name' => $companyName]
-            ],
-            'subject' => "OJT Portal | Account Credentials Updated for $companyName",
-            'htmlContent' => $emailBody
+        $smtpPorts = [
+            ['port' => 587, 'secure' => 'tls'],
+            ['port' => 465, 'secure' => 'ssl'],
+            ['port' => 25,  'secure' => 'tls'],
         ];
 
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'api-key: ' . $brevoApiKey
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        $sent = false;
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        foreach ($smtpPorts as $config) {
+            try {
+                $mail->isSMTP();
+                $mail->Host = $smtpHost;
+                $mail->SMTPAuth = true;
+                $mail->Username = $smtpUser;
+                $mail->Password = $smtpPass;
+                $mail->SMTPSecure = $config['secure'];
+                $mail->Port = $config['port'];
 
-        if ($httpCode === 201) {
+                $mail->setFrom($smtpUser, 'CIPA Admin');
+                $mail->addAddress($email, $companyName);
+                $mail->isHTML(true);
+                $mail->Subject = "OJT Portal | Account Credentials Updated for $companyName";
+                $mail->Body = "
+                    <p>Hello <strong>$companyName</strong>,</p>
+                    <p>Your account credentials have been updated. Here are your new login details:</p>
+                    <p><strong>Email:</strong> $email<br>
+                    <strong>Password:</strong> $plainPassword</p>
+                    <p>Please log in and change your password immediately.</p>
+                    <p>Thank you,<br>CIPA Admin</p>
+                ";
+
+
+                $mail->send();
+                $sent = true;
+                break;
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+
+        if ($sent) {
             echo json_encode(["status" => "success", "message" => "Company account updated and password emailed."]);
         } else {
-            error_log("Brevo API Error [$httpCode]: $response");
-            echo json_encode(["status" => "error", "message" => "Updated, but failed to send password email."]);
+            echo json_encode(["status" => "error", "message" => "Updated, but failed to send new password via email."]);
         }
     } else {
         echo json_encode(["status" => "success", "message" => "Company account updated successfully."]);

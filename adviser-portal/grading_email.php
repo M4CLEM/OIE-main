@@ -1,87 +1,121 @@
 <?php
 
 require '../vendor/autoload.php';
+
+use Swift\Mailer;
+use Swift\Message;
+use Swift\Transport\SmtpTransport;
+
 require '../includes/connection.php';
 
-$response = [];
+$response = array();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $recipient_emails = array_filter(array_map('trim', explode(',', $_POST['recipient-email'])));
-    $sender = $_POST['sender'];
-    $senderEmail = $_POST['sender-email'];
-    $subject = $_POST['email-subject'];
+function createWorkingMailer($host, $username, $password) {
+    $ports = [
+        ['port' => 587, 'encryption' => 'tls'],
+        ['port' => 465, 'encryption' => 'ssl'],
+        ['port' => 25, 'encryption' => null]
+    ];
 
-    $apiKey = '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'; // replace this!
+    foreach ($ports as $config) {
+        try {
+            $transport = (new Swift_SmtpTransport($host, $config['port'], $config['encryption']))
+                ->setUsername($username)
+                ->setPassword($password)
+                ->setStreamOptions([
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    ]
+                ]);
 
-    foreach ($recipient_emails as $recipient_email) {
-        // Fetch student info
-        $query = "SELECT studentID, lastname, firstname, section FROM studentinfo WHERE trainerEmail = ?";
-        $stmt = $connect->prepare($query);
-        $stmt->bind_param("s", $recipient_email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        // Construct email HTML
-        $body = '
-        <!DOCTYPE html>
-        <html>
-        <body>
-            <p>Good Day!</p>
-            <p>I hope this letter finds you well. I am writing to inform you that the list below are the following deployed student(s) in your company that requires grading.</p><br>';
-
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                $link = 'http://localhost/OIE-main/grading_page.php?student_id=' . urlencode($row['studentID']);
-                $body .= '<p><a href="' . $link . '">' . $row['lastname'] . ' ' . $row['firstname'] . '</a></p><br>';
-            }
-        } else {
-            $body .= '<p>No students are currently assigned to your supervision.</p><br>';
-        }
-
-        $body .= '
-            <p>Kindly click the provided link(s) to proceed to the grading page.</p>
-            <p>For inquiries email me at: ' . $senderEmail . '</p>
-            <p>Best Regards,</p>
-            <p>' . $sender . '<br>OJT Adviser</p>
-        </body>
-        </html>';
-
-        // Build API payload
-        $data = [
-            'sender' => [
-                'name' => 'PLMUN CIPA',
-                'email' => 'cipa@plmun.edu.ph' // must be verified in Brevo
-            ],
-            'to' => [
-                ['email' => $recipient_email]
-            ],
-            'subject' => $subject,
-            'htmlContent' => $body
-        ];
-
-        // Send via Brevo API
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'api-key: ' . $apiKey
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-
-        $responseRaw = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode != 201) {
-            $response['status'] = 'error';
-            $response['message'] = "Failed to send to $recipient_email. Response: $responseRaw";
-            echo json_encode($response);
-            exit;
+            $mailer = new Swift_Mailer($transport);
+            $mailer->getTransport()->start(); // test connection
+            return $mailer;
+        } catch (Exception $e) {
+            error_log("SMTP failed on port {$config['port']}: " . $e->getMessage());
+            continue;
         }
     }
 
-    $response['status'] = 'success';
-    $response['message'] = 'Emails sent successfully!';
+    throw new Exception("All SMTP ports failed. Check your credentials or network.");
+}
+
+try {
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // Retrieve values from the form
+        $recipient_emails = array_filter(array_map('trim', explode(',', $_POST['recipient-email'])));
+        $sender = $_POST['sender'];
+        $senderEmail = $_POST['sender-email'];
+        $subject = $_POST['email-subject'];
+
+        // Create the Mailer (tries 587, 465, then 25)
+        $mailer = createWorkingMailer('smtp.gmail.com', 'cipa@plmun.edu.ph', 'dogebwgizyidnura');
+
+        foreach ($recipient_emails as $recipient_email) {
+            $recipient_email = trim($recipient_email);
+            
+            // Fetch students assigned to this trainerEmail
+            $query = "SELECT studentID, lastname, firstname, section FROM studentinfo WHERE trainerEmail = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->bind_param("s", $recipient_email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            // Prepare email body
+            $body = '
+            <!DOCTYPE html>
+            <html>
+            <head>
+            </head>
+            <body>
+                <div class="container">
+                    <p>Good Day!</p>
+                    <p>I hope this letter finds you well. I am writing to inform you that the list below are the following deployed student(s) in your company that requires grading.</p>
+                    <br>';
+
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    $student_id = $row['studentID'];
+                    $last_name = $row['lastname'];
+                    $first_name = $row['firstname'];
+
+                    $link = 'http://localhost/OIE-main/grading_page.php?student_id=' . urlencode($student_id);
+
+                    $body .= '<p><a href="' . $link . '">' . $last_name . ' ' . $first_name . '</a></p><br>';
+                }
+            } else {
+                $body .= '<p>No students are currently assigned to your supervision.</p><br>';
+            }
+
+            $body .= '<p>Kindly click the provided link(s) to proceed to the grading page.</p>
+                      <p>For inquiries email me at: ' . $senderEmail . '</p>
+                      <p>Best Regards,</p>
+                      <p>' . $sender . '<br>OJT Adviser</p>
+                </div>
+            </body>
+            </html>';
+
+            $message = (new Swift_Message($subject))
+                ->setFrom(['cipa@plmun.edu.ph' => 'PLMUN CIPA'])
+                ->setTo($recipient_email)
+                ->setBody($body, 'text/html');
+
+            $result = $mailer->send($message);
+
+            if (!$result) {
+                throw new Exception("Message could not be sent to $recipient_email.");
+            }
+        }
+
+        $response['status'] = 'success';
+        $response['message'] = 'Emails sent successfully!';
+    }
+} catch (Exception $e) {
+    $response['status'] = 'error';
+    $response['message'] = $e->getMessage();
+    error_log($e->getMessage());
 }
 
 echo json_encode($response);
