@@ -66,6 +66,8 @@
                                 <div class="mb-5">
                                     <h4 class="mb-3">Work Type</h4>
                                     <p><?php echo $rows['workType'];?></p>
+                                    <br><h4 class="mb-3">Vacancy(ies)</h4>
+                                    <p><?php echo nl2br($rows['slots']); ?></p>
                                     <br><h4 class="mb-3">Description</h4>
                                     <p><?php echo nl2br($rows['jobdescription']);?></p>
                                     <br><h4 class="mb-3 mt-3">Qualifications</h4>

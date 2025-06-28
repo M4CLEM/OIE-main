@@ -91,9 +91,12 @@
                                     <div class="table-responsive table-bordered">
                                         <table class="table" width="100%" cellspacing="0">
                                             <thead>
-                                                <tr>
-                                                    <th scope="col">Name</th>
+                                                <tr> 
                                                     <th scope="col">Student Number</th>
+                                                    <th scope="col">Name</th>
+                                                    <th scope="col">Company Deployed To</th>
+                                                    <th scope="col">Jobrole</th>
+                                                    <th scope="col">Hours Rendered</th>
                                                     <th scope="col">Grade</th>
                                                 </tr>
                                             </thead>

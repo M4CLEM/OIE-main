@@ -44,10 +44,8 @@
             <?php include('../elements/cipa_sidebar.php')?>
         </aside>
 
-        <div class="main py-3">
+        <div class="main">
 
-            <!-- Content Wrapper -->
-            <div id="content-wrapper" class="d-flex flex-column">
 
                 <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar static-top shadow mb-3">
@@ -139,7 +137,7 @@
                                                     <div class="col-md-10">
                                                         <label for="workType">workType:</label>
                                                         <select name="workType" id="workType" class="form-control my-2">
-                                                            <option hidden disable value="select">Select</option>
+                                                            <option hidden disable value="select">Select Work Type</option>
                                                             <option value="Onsite">On-Site</option>
                                                             <option value="WFH">Work from Home</option>
                                                             <option value="PB">Project-Based</option>
@@ -152,7 +150,7 @@
                                             <div class="row">
                                                 <div class="form-group col-lg-5">
                                                     <div class="col-md-10">
-                                                        <label for="slots">Slots:</label>
+                                                        <label for="slots">Vacany(ies):</label>
                                                         <input type="number" class="form-control input-sm mb-4" name="slots" id="slots" value="<?php echo $slots;?>">
                                                     </div>
                                                 </div>
@@ -194,7 +192,6 @@
                         </div>
                         <!-- End Page Content -->            
                     </div>
-                </div>
                 <!-- End of Main Content -->
             </div>
             <!-- End of Content Wrapper -->

@@ -68,7 +68,7 @@
                                             <tr>
                                                 <th scope="col">JOBROLE</th>
                                                 <th scope="col">WORK TYPE</th>
-                                                <th scope="col">SLOTS</th>
+                                                <th scope="col">VACANCY(IES)</th>
                                                 <th scope="col" width="23%">ACTION</th>
                                             </tr>
                                         </thead>
@@ -228,14 +228,14 @@
 
                                 <div class="col-md">
                                     <div>
-                                        <span>Slots</span>
+                                        <span>Vacancy(ies):</span>
                                     </div>
-                                    <input type="number" class="form-control" name="slots" id="slots" placeholder="Slots" required>
+                                    <input type="number" class="form-control" name="slots" id="slots" placeholder="Vacancy(ies)" required>
                                 </div>
 
                                 <div class="col-md">
                                     <div>
-                                        <span>Jobrole</span>
+                                        <span>Jobrole:</span>
                                     </div>
                                     <input type="text" class="form-control" name="jobrole" id="jobrole" placeholder="Jobrole" required>
                                 </div>
@@ -243,16 +243,16 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Company Address</span>
+                                            <span>Company/Branch Address:</span>
                                         </div>
-                                        <input type="text" class="form-control" name="address" id="address" placeholder="Address" required>
+                                        <input type="text" class="form-control" name="address" id="address" placeholder="Company/Branch Address" required>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Contact Person</span>
+                                            <span>Contact Person:</span>
                                         </div>
                                         <input class="form-control" type="text" name="contactPerson" id="contactPerson" placeholder="Contact Person" required>
                                     </div>
@@ -261,10 +261,10 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Work Type</span>
+                                            <span>Work Type:</span>
                                         </div>
                                         <select name="workType" id="workType" class="form-control" required>
-                                            <option hidden disable value="select">Select</option>';
+                                            <option hidden disable value="select">Select Work Type</option>';
                                             <option value="WFH">Work from Home</option>
                                             <option value="Onsite">On site</option>';
                                             <option value="PB">Project-based</option>
@@ -275,7 +275,7 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>College</span>
+                                            <span>College:</span>
                                         </div>
                                         <select name="department" id="department" class="form-control" required>
                                             <option value="" disabled selected>Select College</option>
@@ -291,27 +291,27 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Job Description</span>
+                                            <span>Job Description:</span>
                                         </div>
-                                        <textarea class="form-control" name="jobDescription" id="jobDescription" rows="5" required></textarea>
+                                        <textarea class="form-control" name="jobDescription" id="jobDescription" rows="5" required placeholder="Job Description"></textarea>
                                     </div>
                                 </div>
 
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Job Requirements</span>
+                                            <span>Job Requirements:</span>
                                         </div>
-                                        <textarea class="form-control" name="jobRequirements" id="jobRequirements" rows="5" required></textarea>
+                                        <textarea class="form-control" name="jobRequirements" id="jobRequirements" rows="5" required placeholder="Job Requirements"></textarea>
                                     </div>
                                 </div>
 
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Link</span>
+                                            <span>Link:</span>
                                         </div>
-                                        <input type="text" class="form-control" name="link" id="link" placeholder="Link" required>
+                                        <input type="text" class="form-control" name="link" id="link" placeholder="Social Media/Website Link" required>
                                     </div>
                                 </div>
 
@@ -345,14 +345,14 @@
                                 
                                 <div class="col-md">
                                     <div>
-                                        <span>Slots</span>
+                                        <span>Vacancy(ies):</span>
                                     </div>
-                                    <input type="number" class="form-control" name="editSlots" id="editSlots" placeholder="Slots" required>
+                                    <input type="number" class="form-control" name="editSlots" id="editSlots" placeholder="Vacancy(ies)" required>
                                 </div>
 
                                 <div class="col-md">
                                     <div>
-                                        <span>Jobrole</span>
+                                        <span>Jobrole:</span>
                                     </div>
                                     <input type="text" class="form-control" name="editjobrole" id="editjobrole" placeholder="Jobrole" required>
                                 </div>
@@ -360,7 +360,7 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Company Address</span>
+                                            <span>Company/Branch Address:</span>
                                         </div>
                                         <input type="text" class="form-control" name="editAddress" id="editAddress" placeholder="Address" required>
                                     </div>
@@ -369,7 +369,7 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Contact Person</span>
+                                            <span>Contact Person:</span>
                                         </div>
                                         <input class="form-control" type="text" name="editContactPerson" id="editContactPerson" placeholder="Contact Person" required>
                                     </div>
@@ -378,10 +378,10 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Work Type</span>
+                                            <span>Work Type:</span>
                                         </div>
                                         <select name="editWorkType" id="editWorkType" class="form-control" required>
-                                            <option hidden disable value="select">Select</option>';
+                                            <option hidden disable value="select">Select Work Type</option>';
                                             <option value="WFH">Work from Home</option>
                                             <option value="Onsite">On site</option>';
                                             <option value="PB">Project-based</option>
@@ -392,7 +392,7 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>College</span>
+                                            <span>College:</span>
                                         </div>
                                         <select name="editDepartment" id="editDepartment" class="form-control" required>
                                             <option value="" disabled selected>Select College</option>
@@ -408,27 +408,27 @@
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Job Description</span>
+                                            <span>Job Description:</span>
                                         </div>
-                                        <textarea class="form-control" name="editJobDescription" id="editJobDescription" rows="5" required></textarea>
+                                        <textarea class="form-control" name="editJobDescription" id="editJobDescription" rows="5" required placeholder="Job Description"></textarea>
                                     </div>
                                 </div>
 
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Job Requirements</span>
+                                            <span>Job Requirements:</span>
                                         </div>
-                                        <textarea class="form-control" name="editJobRequirements" id="editJobRequirements" rows="5" required></textarea>
+                                        <textarea class="form-control" name="editJobRequirements" id="editJobRequirements" rows="5" required placeholder="Job Requirements"></textarea>
                                     </div>
                                 </div>
 
                                 <div class="form-group md-5">
                                     <div class="col-md">
                                         <div>
-                                            <span>Link</span>
+                                            <span>Link:</span>
                                         </div>
-                                        <input type="text" class="form-control" name="editLink" id="editLink" placeholder="Link" required>
+                                        <input type="text" class="form-control" name="editLink" id="editLink" placeholder="Social Media/Website Link" required>
                                     </div>
                                 </div>
 

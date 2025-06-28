@@ -80,6 +80,12 @@
         padding-left: 40px; /* adjust value as needed to clear the toggle button */
     }
 
+    .sidebar-no-transition #sidebar,
+    .sidebar-no-transition #sidebar *,
+    .sidebar-no-transition .main,
+    .sidebar-no-transition .main * {
+        transition: none !important;
+    }
 </style>
 
 <div class="sidebar-toggle-container">
@@ -150,15 +156,38 @@
 </div>
 
 <script>
+    // Add no-transition class early to suppress animation on load
+    document.documentElement.classList.add("sidebar-no-transition");
+
     document.addEventListener("DOMContentLoaded", function () {
         const sidebar = document.getElementById("sidebar");
         const toggleBtn = document.getElementById("sidebarToggle");
         const body = document.body;
 
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem("sidebarState");
+        if (savedState === "collapsed") {
+            sidebar.classList.add("collapsed");
+            sidebar.classList.remove("expand");
+            body.classList.add("sidebar-collapsed");
+        } else {
+            sidebar.classList.add("expand");
+            sidebar.classList.remove("collapsed");
+            body.classList.remove("sidebar-collapsed");
+        }
+
+        // Enable transition AFTER classes are applied
+        requestAnimationFrame(() => {
+            document.documentElement.classList.remove("sidebar-no-transition");
+        });
+
+        // Toggle and save sidebar state
         toggleBtn.addEventListener("click", function () {
-            sidebar.classList.toggle("collapsed");
+            const isCollapsed = sidebar.classList.toggle("collapsed");
             sidebar.classList.toggle("expand");
             body.classList.toggle("sidebar-collapsed");
+
+            localStorage.setItem("sidebarState", isCollapsed ? "collapsed" : "expand");
         });
     });
 </script>

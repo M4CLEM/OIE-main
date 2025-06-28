@@ -138,35 +138,35 @@
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="companyName">Company Name:</label>
-                                <input class="form-control input-sm" id="companyName" name="companyName" type="text" value="" autocomplete="none">
+                                <input class="form-control input-sm" id="companyName" name="companyName" type="text" value="" autocomplete="none" placeholder="Company Name">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="companyaddress">Company Address:</label>
-                                <input class="form-control input-sm" id="companyaddress" name="companyaddress" type="text" value="" required autocomplete="none"></input>
+                                <input class="form-control input-sm" id="companyaddress" name="companyaddress" type="text" value="" required autocomplete="none" placeholder="Company/Branch Address"></input>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="companyaddress">Contact Person:</label>
-                                <input class="form-control input-sm" id="contact" name="contact" type="text" value="" required autocomplete="none"></input>
+                                <input class="form-control input-sm" id="contact" name="contact" type="text" value="" required autocomplete="none" placeholder="Contact Person"></input>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="jobrole">Job Role:</label>
-                                <input class="form-control input-sm" id="jobrole" name="jobrole" type="text" value="" autocomplete="none">
+                                <input class="form-control input-sm" id="jobrole" name="jobrole" type="text" value="" autocomplete="none" placeholder="Job Role">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-md-10">
-                                <label for="slots">Slots:</label>
-                                <input type="number" name="slots" id="slots" class="form-control input-sm" value="" autocomplete="none">
+                                <label for="slots">Vacancy(ies):</label>
+                                <input type="number" name="slots" id="slots" class="form-control input-sm" value="" autocomplete="none" placeholder="No. of Vacancies">
                             </div>
                         </div>
 
@@ -174,7 +174,7 @@
                             <div class="col-md-10">
                                 <label for="workType">Work Type:</label>
                                 <select name="workType" id="workType" class="form-control my-2">
-                                    <option hidden disable value="select">Select</option>
+                                    <option hidden disable value="select">Select Work Type</option>
                                     <option value="Onsite">On-Site</option>
                                     <option value="WFH">Work from Home</option>
                                     <option value="PB">Project-Based</option>
@@ -185,14 +185,14 @@
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="jobdescription">Job Description:</label>
-                                <textarea class="form-control" id="jobdescription" name="jobdescription" type="text" value="" autocomplete="none"></textarea>
+                                <textarea class="form-control" id="jobdescription" name="jobdescription" type="text" value="" autocomplete="none" placeholder="Job Description"></textarea>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="jobreq">Job Requirements/Qualification:</label>
-                                <textarea class="form-control " id="jobreq" name="jobreq" type="text" value="" required onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off"></textarea>
+                                <textarea class="form-control " id="jobreq" name="jobreq" type="text" value="" required onkeyup="javascript:capitalize(this.id, this.value);" autocomplete="off" placeholder="Job Requirements/Qualifications"></textarea>
                             </div>
                         </div>
 
@@ -200,7 +200,7 @@
                             <div class="col-md-10">
                                 <label for="dept">Department:</label>
                                 <select name="dept" class="form-control my-2">
-                                    <option hidden disabled selected value="">Select</option>
+                                    <option hidden disabled selected value="">Select Department</option>
                                     <?php foreach ($departments as $row): ?>
                                         <option value="<?= htmlspecialchars($row['department']) ?>">
                                             <?= htmlspecialchars($row['department']) ?>
@@ -214,7 +214,7 @@
                         <div class="form-group">
                             <div class="col-md-10">
                                 <label for="link">Link:</label>
-                                <input class="form-control input-sm" id="link" name="link" type="text" value="" value="" autocomplete="none">
+                                <input class="form-control input-sm" id="link" name="link" type="text" value="" autocomplete="none" placeholder="Social Media/Website">
                             </div>
                         </div>
                         <div class="modal-footer">
