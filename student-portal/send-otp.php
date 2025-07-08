@@ -78,8 +78,8 @@ try {
         $_SESSION['otp'] = $otp;
 
         // SMTP credentials
-        $smtpEmail = 'cipa@plmun.edu.ph'; // App email
-        $smtpPassword = 'dogebwgizyidnura'; // App password
+        $smtpEmail = 'accsample193@gmail.com'; // App email
+        $smtpPassword = 'llfjcrvifhijwgqs'; // App password
 
         // Use port-rotating mailer
         $mailer = createWorkingMailer('smtp.gmail.com', $smtpEmail, $smtpPassword);

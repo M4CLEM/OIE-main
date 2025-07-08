@@ -46,8 +46,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // SMTP Configurations to try
     $smtpHost = 'smtp.gmail.com';
-    $smtpUser = 'cipa@plmun.edu.ph'; // Sender email
-    $smtpPass = 'dogebwgizyidnura';  // App password
+    $smtpUser = 'accsample193@gmail.com'; // Sender email
+    $smtpPass = 'llfjcrvifhijwgqs';  // App password
 
     $smtpPorts = [
         ['port' => 587, 'secure' => 'tls'],

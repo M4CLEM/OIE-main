@@ -51,7 +51,7 @@ try {
         $subject = $_POST['email-subject'];
 
         // Create the Mailer (tries 587, 465, then 25)
-        $mailer = createWorkingMailer('smtp.gmail.com', 'cipa@plmun.edu.ph', 'dogebwgizyidnura');
+        $mailer = createWorkingMailer('smtp.gmail.com', 'accsample193@gmail.com', 'llfjcrvifhijwgqs');
 
         foreach ($recipient_emails as $recipient_email) {
             $recipient_email = trim($recipient_email);

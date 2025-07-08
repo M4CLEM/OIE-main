@@ -28,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $mail = new PHPMailer(true);
     $smtpHost = 'smtp.gmail.com'; // <-- replace with your SMTP server hostname
-    $username = 'cipa@plmun.edu.ph';
-    $password = 'dogebwgizyidnura';
+    $username = 'accsample193@gmail.com';
+    $password = 'llfjcrvifhijwgqs';
 
     // List of SMTP configs to try (port, security)
     $smtpConfigs = [

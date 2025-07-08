@@ -83,8 +83,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Send email with new credentials
             $smtpHost = 'smtp.gmail.com';
-            $smtpUser = 'cipa@plmun.edu.ph';
-            $smtpPass = 'dogebwgizyidnura';
+            $smtpUser = 'accsample193@gmail.com';
+            $smtpPass = 'llfjcrvifhijwgqs';
             $smtpPorts = [
                 ['port' => 587, 'secure' => 'tls'],
                 ['port' => 465, 'secure' => 'ssl'],

@@ -70,8 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $mail = new PHPMailer(true);
 
     $smtpHost = 'smtp.gmail.com';          // ← REPLACE with your SMTP host
-    $smtpUser = 'cipa@plmun.edu.ph';    // ← REPLACE with your SMTP username/email
-    $smtpPass = 'dogebwgizyidnura';       // ← REPLACE with your SMTP password
+    $smtpUser = 'accsample193@gmail.com';    // ← REPLACE with your SMTP username/email
+    $smtpPass = 'llfjcrvifhijwgqs';       // ← REPLACE with your SMTP password
 
     $smtpPorts = [
         ['port' => 587, 'secure' => 'tls'],

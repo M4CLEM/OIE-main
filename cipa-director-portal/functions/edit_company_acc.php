@@ -34,8 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail = new PHPMailer(true);
 
         $smtpHost = 'smtp.gmail.com';
-        $smtpUser = 'cipa@plmun.edu.ph';
-        $smtpPass = 'dogebwgizyidnura';
+        $smtpUser = 'accsample193@gmail.com';
+        $smtpPass = 'llfjcrvifhijwgqs';
 
         $smtpPorts = [
             ['port' => 587, 'secure' => 'tls'],
